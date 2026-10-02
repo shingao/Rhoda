@@ -81,6 +81,11 @@
   user-select: none;
 }
 
+/* Settings › Éditeur › margin markers off [§2.14] */
+:root[data-no-heading-markers] .cm-editor .cm-line.cm-h::before {
+  display: none;
+}
+
 /* Inline styles */
 .cm-strong {
   font-weight: var(--fw-bold);

@@ -7,11 +7,9 @@ export interface Settings {
   vaultPath: string | null;
   /** UI language (French by default). */
   language: Language;
-  theme: "coral";
+  appearance: Appearance;
   sort: SortKey;
-  editor: {
-    typewriter: boolean;
-  };
+  editor: EditorSettings;
   layout: {
     /** Widths in px; null = default from DESIGN tokens. */
     sidebarWidth: number | null;
@@ -23,12 +21,55 @@ export interface Settings {
   };
 }
 
+export const LIGHT_PALETTES = ["coral", "sage", "ink", "kraft"] as const;
+export const DARK_PALETTES = ["graphite", "blue"] as const;
+export type LightPalette = (typeof LIGHT_PALETTES)[number];
+export type DarkPalette = (typeof DARK_PALETTES)[number];
+export type Palette = LightPalette | DarkPalette;
+export type ThemeMode = "light" | "dark" | "system";
+export const PAPERS = ["plain", "lined", "grid", "dots"] as const;
+export type Paper = (typeof PAPERS)[number];
+
+export interface Appearance {
+  mode: ThemeMode;
+  light: LightPalette;
+  dark: DarkPalette;
+}
+
+export interface EditorSettings {
+  typewriter: boolean;
+  font: "sans" | "serif";
+  /** px, 14–20 by 0.5 [DESIGN §6]. */
+  fontSize: number;
+  /** Text column, px, 560–860 by 20 [DESIGN Layout]. */
+  columnWidth: number;
+  /** H1–H6 markers in the margin [DESIGN §2.14]. */
+  headingMarkers: boolean;
+  /** Default page background of notes without their own [DESIGN §7]. */
+  paper: Paper;
+  margin: boolean;
+  /** Link preview cards (phase 7): the only network request of the app. */
+  linkPreviews: boolean;
+}
+
+export const FONT_SIZE = { min: 14, max: 20, step: 0.5, default: 16.5 } as const;
+export const COLUMN_WIDTH = { min: 560, max: 860, step: 20, default: 660 } as const;
+
 export const DEFAULT_SETTINGS: Settings = {
   vaultPath: null,
   language: DEFAULT_LANGUAGE,
-  theme: "coral",
+  appearance: { mode: "light", light: "coral", dark: "graphite" },
   sort: "modified",
-  editor: { typewriter: false },
+  editor: {
+    typewriter: false,
+    font: "sans",
+    fontSize: FONT_SIZE.default,
+    columnWidth: COLUMN_WIDTH.default,
+    headingMarkers: true,
+    paper: "plain",
+    margin: false,
+    linkPreviews: true,
+  },
   layout: { sidebarWidth: null, listWidth: null, sidebarCollapsed: false, listCollapsed: false, outlineOpen: false },
 };
 
@@ -49,10 +90,34 @@ function merge<T>(defaults: T, stored: unknown): T {
   return out as T;
 }
 
+const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+const oneOf = <T extends string>(v: string, values: readonly T[], fallback: T): T => ((values as readonly string[]).includes(v) ? (v as T) : fallback);
+
+/** Values of the right type but out of range (edited by hand) are brought back in range. */
+export function sanitizeSettings(s: Settings): Settings {
+  const a = s.appearance;
+  const e = s.editor;
+  return {
+    ...s,
+    language: isLanguage(s.language) ? s.language : DEFAULT_LANGUAGE,
+    appearance: {
+      mode: oneOf(a.mode, ["light", "dark", "system"], "light"),
+      light: oneOf(a.light, LIGHT_PALETTES, "coral"),
+      dark: oneOf(a.dark, DARK_PALETTES, "graphite"),
+    },
+    editor: {
+      ...e,
+      font: oneOf(e.font, ["sans", "serif"], "sans"),
+      fontSize: Math.round(clamp(e.fontSize, FONT_SIZE.min, FONT_SIZE.max) / FONT_SIZE.step) * FONT_SIZE.step,
+      columnWidth: Math.round(clamp(e.columnWidth, COLUMN_WIDTH.min, COLUMN_WIDTH.max) / COLUMN_WIDTH.step) * COLUMN_WIDTH.step,
+      paper: oneOf(e.paper, PAPERS, "plain"),
+    },
+  };
+}
+
 export async function loadSettings(): Promise<Settings> {
   try {
-    const settings = merge(DEFAULT_SETTINGS, await invoke<unknown>("load_settings"));
-    return isLanguage(settings.language) ? settings : { ...settings, language: DEFAULT_LANGUAGE };
+    return sanitizeSettings(merge(DEFAULT_SETTINGS, await invoke<unknown>("load_settings")));
   } catch {
     return DEFAULT_SETTINGS;
   }

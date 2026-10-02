@@ -20,6 +20,7 @@
         "minHeight": 520,
         "center": true,
         "decorations": false,
+        "visible": false,
         "shadow": true
       }
     ],

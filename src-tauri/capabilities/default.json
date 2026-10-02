@@ -13,6 +13,9 @@
     "core:window:allow-start-dragging",
     "core:window:allow-close",
     "core:window:allow-destroy",
+    "core:window:allow-show",
+    "core:window:allow-set-background-color",
+    "core:webview:allow-set-webview-background-color",
     "opener:default",
     "dialog:default",
     "window-state:default"

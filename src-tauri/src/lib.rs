@@ -5,13 +5,36 @@ mod snapshots;
 mod vault;
 mod watcher;
 
+use std::time::Duration;
+
+use tauri::Manager;
+
+/// If the frontend could not show the window (script error), show it anyway.
+const SHOW_FALLBACK: Duration = Duration::from_secs(3);
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_window_state::Builder::default().build())
+        // The window is shown by the frontend once themed (no flash): never restore "visible".
+        .plugin(
+            tauri_plugin_window_state::Builder::default()
+                .with_state_flags(tauri_plugin_window_state::StateFlags::all() & !tauri_plugin_window_state::StateFlags::VISIBLE)
+                .build(),
+        )
         .manage(vault::VaultState::default())
+        .setup(|app| {
+            if let Some(window) = app.get_webview_window("main") {
+                std::thread::spawn(move || {
+                    std::thread::sleep(SHOW_FALLBACK);
+                    if !window.is_visible().unwrap_or(true) {
+                        let _ = window.show();
+                    }
+                });
+            }
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             vault::default_vault_path,
             vault::open_vault,

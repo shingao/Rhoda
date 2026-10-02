@@ -22,7 +22,7 @@ const ursaTheme = EditorView.theme({
     height: "100%",
     backgroundColor: "var(--bg-2)",
     color: "var(--text)",
-    fontFamily: "var(--font-editor)",
+    fontFamily: "var(--editor-font-active)",
     fontSize: "var(--editor-fs)",
   },
   "&.cm-focused": { outline: "none" },

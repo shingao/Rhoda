@@ -65,6 +65,7 @@
 
   /* Editor */
   --editor-min: 420px;                     /* [§Layout] */
+  --editor-font-active: var(--font-editor); /* [§1] sans (défaut) ou --font-editor-serif, réglage */
   --editor-bar-h: 52px;                    /* maquettes 02, 05–09, Papier */
   --editor-bar-pad: 0 16px 0 28px;         /* maquette 02 */
   --editor-meta-fs: 12.5px;                /* « Modifié … », maquette 02 */

@@ -3,6 +3,7 @@ import { errorMessage } from "../services/errors";
 import { loadSettings, saveSettings } from "../services/settings";
 import { vaultApi } from "../services/vault";
 import { connectEditor } from "./editorBridge";
+import { connectTheme } from "./theme";
 import { loadFolds } from "./folds";
 import { connectSearch } from "./search";
 import { flushAll, handleDiskChanges, loadNotes, prepareClose, purgeOldBackups } from "./notes";
@@ -19,8 +20,11 @@ export async function bootstrap(): Promise<void> {
   try {
     const settings = await loadSettings();
     setState({ settings });
-    document.documentElement.dataset.theme = settings.theme;
+    connectTheme();
     document.documentElement.lang = settings.language;
+    // Shown once themed (React has already rendered). Not via requestAnimationFrame:
+    // a hidden window never gets animation frames.
+    setTimeout(() => void appWindow.show().catch(() => undefined), 0);
     persistSettingsOnChange();
     connectEditor();
     connectSearch();
@@ -40,6 +44,7 @@ export async function bootstrap(): Promise<void> {
       return false;
     });
   } catch (e) {
+    void appWindow.show().catch(() => undefined);
     console.error("[ursa] startup failed", e);
     setState({ vault: { kind: "error", message: errorMessage(e) } });
   }
