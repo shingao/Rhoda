@@ -23,6 +23,30 @@
   line-height: var(--lh-tight);
 }
 
+.sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  height: var(--sort-btn-h);
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-md);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  color: var(--text-3);
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-instant) linear;
+}
+
+.sort:hover {
+  background: var(--hover);
+}
+
+.sortIcon {
+  width: var(--sort-btn-icon);
+  height: var(--sort-btn-icon);
+}
+
 .scroller {
   flex: 1;
   min-height: 0;

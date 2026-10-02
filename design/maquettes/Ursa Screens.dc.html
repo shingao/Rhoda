@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=JetBrains+Mono:wght@400;500&display=swap"><link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css"><link rel="stylesheet" href="ursa-tokens.css"><style>body{margin:0;background:#E6E3DE;font-family:system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#C4432F;text-decoration:none}a:hover{color:#AE3825}[class^="icon-"]{line-height:1;display:inline-flex}</style></helmet>
+<div data-theme="{{ theme }}" style="padding:40px 44px 64px;display:flex;flex-direction:column;gap:56px;background:#E6E3DE">
+
+<div style="display:flex;flex-direction:column;gap:6px"><span style="font:600 13px system-ui,sans-serif;color:#1a1a1a">Ursa — écrans 2 à 9</span><span style="font:13px/1.5 system-ui,sans-serif;color:rgba(0,0,0,.6);max-width:760px">Direction 1b. La palette de toute la page se change dans Tweaks (coral / sage / ink / kraft / graphite / blue). Tokens : ursa-tokens.css.</span></div>
+
+<div style="display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap">
+<div data-screen-label="02 Éditeur" style="display:flex;flex-direction:column;gap:10px">
+<span style="font:500 12px system-ui,sans-serif;color:rgba(0,0,0,.6)">02 — Éditeur en détail (curseur sur la ligne « L'index reste… »)</span>
+<div style="width:1000px;border-radius:10px;overflow:hidden;box-shadow:0 12px 40px rgba(60,40,20,.12);background:var(--bg-2);color:var(--text);font-family:var(--font-ui)">
+<div style="height:52px;display:flex;align-items:center;padding:0 16px 0 28px;color:var(--text-3)">
+<span style="flex:1;display:flex;align-items:center;gap:6px;font-size:13px"><i class="icon-rocket" style="font-size:14px"></i>projets<i class="icon-chevron-right" style="font-size:12px;color:var(--text-faint)"></i><span style="color:var(--text)">ursa</span></span>
+<span style="font-size:12.5px;margin-right:12px">Edited just now</span><i class="icon-ellipsis" style="font-size:16px;padding:8px"></i>
+</div>
+<article style="max-width:var(--editor-max);margin:0 auto;padding:36px 0 72px;font-family:var(--font-editor);font-size:var(--editor-fs);line-height:var(--editor-lh)">
+<div style="position:relative"><span style="position:absolute;left:-48px;top:13px;width:22px;text-align:right;font:600 11px var(--font-ui);color:var(--accent);opacity:.55">H1</span>
+<h1 style="margin:0;font-size:var(--h1-fs);line-height:var(--h1-lh);font-weight:700;letter-spacing:-.015em">Synchronisation des fichiers</h1></div>
+<div style="display:flex;gap:6px;margin:12px 0 22px;font-family:var(--font-ui)">
+<span style="font-size:13px;font-weight:600;padding:1px 9px;border-radius:var(--r-pill);background:var(--accent-soft);color:var(--accent-text)">#projets/ursa</span>
+<span style="font-size:13px;font-weight:600;padding:1px 9px;border-radius:var(--r-pill);background:var(--accent-soft);color:var(--accent-text)">#recherche</span>
+</div>
+<p style="margin:0 0 16px;text-wrap:pretty">L'index reste <span style="opacity:var(--syntax-opacity)">**</span><strong style="font-weight:700">local</strong><span style="opacity:var(--syntax-opacity)">**</span> : chaque note est un fichier <span style="opacity:var(--syntax-opacity);font-family:var(--font-mono);font-size:.86em">`</span><code style="font-family:var(--font-mono);font-size:.86em;padding:1px 5px;border-radius:var(--r-xs);background:var(--bg-code);color:var(--accent-text)">.md</code><span style="opacity:var(--syntax-opacity);font-family:var(--font-mono);font-size:.86em">`</span> dans le dossier choisi. On surveille le disque avec <span style="opacity:var(--syntax-opacity)">_</span><em>notify</em><span style="opacity:var(--syntax-opacity)">_</span><span style="display:inline-block;width:2px;height:1.15em;background:var(--accent);vertical-align:-.2em;margin:0 1px"></span> et on <span style="opacity:var(--syntax-opacity)">==</span><mark style="background:var(--highlight);color:inherit;padding:0 2px;border-radius:3px">réindexe uniquement les fichiers modifiés</mark><span style="opacity:var(--syntax-opacity)">==</span>.</p>
+<p style="margin:0 0 28px;text-wrap:pretty">Le format des en-têtes est décrit dans <span style="color:var(--accent-text);font-weight:600;box-shadow:inset 0 -1.5px 0 var(--accent-soft)">Format des métadonnées</span>, et l'API du watcher dans <span style="color:var(--accent-text);text-decoration:underline;text-decoration-color:var(--accent-soft);text-underline-offset:3px;text-decoration-thickness:1.5px">la doc Tauri</span>.</p>
+<div style="position:relative"><span style="position:absolute;left:-48px;top:8px;width:22px;text-align:right;font:600 11px var(--font-ui);color:var(--accent);opacity:.55">H2</span>
+<h2 style="margin:0 0 10px;font-size:var(--h2-fs);line-height:var(--h2-lh);font-weight:700">Étapes</h2></div>
+<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:28px">
+<div style="display:flex;align-items:center;gap:12px"><span style="width:18px;height:18px;flex:none;border-radius:50%;background:var(--text-3);color:var(--bg-2);display:flex;align-items:center;justify-content:center"><i class="icon-check" style="font-size:12px"></i></span><span style="color:var(--text-3)">Watcher sur le dossier racine</span></div>
+<div style="display:flex;align-items:center;gap:12px"><span style="width:18px;height:18px;flex:none;border-radius:50%;background:var(--text-3);color:var(--bg-2);display:flex;align-items:center;justify-content:center"><i class="icon-check" style="font-size:12px"></i></span><span style="color:var(--text-3)">Debounce à 150 ms</span></div>
+<div style="display:flex;align-items:center;gap:12px"><span style="width:18px;height:18px;flex:none;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--text-faint)"></span><span>Résolution des conflits d'écriture</span></div>
+<div style="display:flex;align-items:center;gap:12px"><span style="width:18px;height:18px;flex:none;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--text-faint)"></span><span>Test de charge sur 10 000 notes</span></div>
+</div>
+<div style="position:relative"><span style="position:absolute;left:-48px;top:6px;width:22px;text-align:right;font:600 11px var(--font-ui);color:var(--accent);opacity:.55">H3</span>
+<h3 style="margin:0 0 10px;font-size:var(--h3-fs);line-height:var(--h3-lh);font-weight:700">Debounce</h3></div>
+<div style="margin:0 0 24px;border-radius:var(--r-lg);background:var(--bg-code);overflow:hidden">
+<div style="height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 12px 0 16px;font:500 11.5px var(--font-ui);color:var(--text-3)"><span>typescript</span><i class="icon-copy" style="font-size:14px"></i></div>
+<pre style="margin:0;padding:0 16px 16px;font:400 13.5px/1.65 var(--font-mono);color:var(--text);white-space:pre"><span style="color:var(--accent-text)">const</span> queue = <span style="color:var(--accent-text)">new</span> Set&lt;string&gt;();
+watcher.on(<span style="color:var(--text-2)">"change"</span>, (path) =&gt; {
+  queue.add(path);
+  scheduleFlush(<span style="color:var(--text-2)">150</span>);
+});</pre>
+</div>
+<blockquote style="margin:0 0 28px;padding:14px 18px;border-radius:var(--r-md);background:var(--bg-1);font-style:italic;color:var(--text-2)">Un fichier, une note. L'utilisateur n'a rien d'autre à comprendre.</blockquote>
+<div style="position:relative;width:560px;height:315px;margin:56px 0 30px">
+<div style="position:absolute;inset:0;border-radius:var(--r-md);background:repeating-linear-gradient(135deg,var(--bg-sunken) 0 8px,var(--bg-1) 8px 16px);display:flex;align-items:center;justify-content:center;font:500 12px var(--font-mono);color:var(--text-3)">schéma — watcher → file → index</div>
+<div style="position:absolute;inset:-3px;border-radius:9px;box-shadow:0 0 0 2px var(--accent)"></div>
+<span style="position:absolute;left:-7px;top:-7px;width:10px;height:10px;border-radius:2px;background:var(--bg-2);box-shadow:0 0 0 1.5px var(--accent)"></span>
+<span style="position:absolute;right:-7px;top:-7px;width:10px;height:10px;border-radius:2px;background:var(--bg-2);box-shadow:0 0 0 1.5px var(--accent)"></span>
+<span style="position:absolute;left:-7px;bottom:-7px;width:10px;height:10px;border-radius:2px;background:var(--bg-2);box-shadow:0 0 0 1.5px var(--accent)"></span>
+<span style="position:absolute;right:-7px;bottom:-7px;width:10px;height:10px;border-radius:2px;background:var(--bg-2);box-shadow:0 0 0 1.5px var(--accent)"></span>
+<span style="position:absolute;right:-6px;top:50%;margin-top:-14px;width:6px;height:28px;border-radius:3px;background:var(--accent)"></span>
+<span style="position:absolute;left:-6px;top:50%;margin-top:-14px;width:6px;height:28px;border-radius:3px;background:var(--accent)"></span>
+<span style="position:absolute;right:10px;bottom:10px;padding:2px 7px;border-radius:var(--r-sm);background:rgba(20,16,12,.72);color:#fff;font:500 11px var(--font-mono)">560 × 315</span>
+<div style="position:absolute;left:50%;top:-44px;transform:translateX(-50%);display:flex;gap:2px;padding:3px;border-radius:var(--r-md);background:var(--bg-raised);box-shadow:var(--shadow-pop);font-family:var(--font-ui);font-size:12px;color:var(--text-2)">
+<span style="padding:4px 8px;border-radius:var(--r-sm)">S</span><span style="padding:4px 8px;border-radius:var(--r-sm);background:var(--accent-soft);color:var(--accent-text);font-weight:600">M</span><span style="padding:4px 8px;border-radius:var(--r-sm)">L</span><span style="padding:4px 8px;border-radius:var(--r-sm)">Full</span><span style="width:1px;background:var(--separator);margin:2px 3px"></span><span style="padding:4px 6px;display:flex;align-items:center"><i class="icon-scan-text" style="font-size:14px"></i></span>
+</div>
+</div>
+<div style="display:flex;gap:16px;align-items:stretch;margin:0 0 14px;padding:14px;border-radius:var(--r-lg);background:var(--bg-1);font-family:var(--font-ui)">
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+<span style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text-3)"><span style="width:14px;height:14px;border-radius:3px;background:var(--bg-sunken)"></span>v2.tauri.app</span>
+<span style="font-size:14.5px;font-weight:700;line-height:1.35">File system watcher — Tauri</span>
+<span style="font-size:13px;line-height:1.45;color:var(--text-2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">Watch files and directories for changes from the Rust side and forward events to the webview.</span>
+</div>
+<div style="width:120px;flex:none;border-radius:var(--r-md);background:repeating-linear-gradient(135deg,var(--bg-sunken) 0 6px,var(--bg-2) 6px 12px)"></div>
+</div>
+<div style="display:flex;gap:14px;align-items:center;padding:12px 14px;border-radius:var(--r-lg);background:var(--bg-1);font-family:var(--font-ui)">
+<div style="width:44px;height:56px;flex:none;border-radius:4px;background:var(--bg-2);box-shadow:var(--shadow-card);display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px"><span style="font:700 9px var(--font-ui);color:var(--on-accent);background:var(--accent);padding:1px 4px;border-radius:2px">PDF</span></div>
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-size:14.5px;font-weight:700">rfc-sync-v2.pdf</span><span style="font-size:12.5px;color:var(--text-3)">12 pages · 1,4 Mo</span></div>
+<span style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:var(--r-md);color:var(--text-2)"><i class="icon-external-link" style="font-size:16px"></i></span>
+</div>
+</article>
+</div>
+</div>
+
+<div data-screen-label="02b Syntaxe" style="display:flex;flex-direction:column;gap:10px">
+<span style="font:500 12px system-ui,sans-serif;color:rgba(0,0,0,.6)">02b — Rendu live : hors ligne vs curseur sur la ligne</span>
+<div style="width:760px;border-radius:10px;overflow:hidden;box-shadow:0 12px 40px rgba(60,40,20,.12);background:var(--bg-2);color:var(--text);font-family:var(--font-editor);font-size:var(--editor-fs);line-height:1.6">
+<div style="display:grid;grid-template-columns:120px 1fr 1fr;font:600 11.5px var(--font-ui);color:var(--text-3);background:var(--bg-1)"><span style="padding:12px 16px">Élément</span><span style="padding:12px 16px">Hors ligne</span><span style="padding:12px 16px">Curseur sur la ligne</span></div>
+<div style="display:grid;grid-template-columns:120px 1fr 1fr;align-items:center;box-shadow:inset 0 -1px 0 var(--separator)"><span style="padding:14px 16px;font:500 12px var(--font-ui);color:var(--text-3)">Titre H2</span><span style="padding:14px 16px;font-size:1.4em;font-weight:700">Étapes</span><span style="padding:14px 16px;font-size:1.4em;font-weight:700"><span style="opacity:var(--syntax-opacity);font-weight:500">## </span>Étapes</span></div>
+<div style="display:grid;grid-template-columns:120px 1fr 1fr;align-items:center;box-shadow:inset 0 -1px 0 var(--separator)"><span style="padding:14px 16px;font:500 12px var(--font-ui);color:var(--text-3)">Gras / italique</span><span style="padding:14px 16px"><strong>local</strong> et <em>notify</em></span><span style="padding:14px 16px"><span style="opacity:var(--syntax-opacity)">**</span><strong>local</strong><span style="opacity:var(--syntax-opacity)">**</span> et <span style="opacity:var(--syntax-opacity)">_</span><em>notify</em><span style="opacity:var(--syntax-opacity)">_</span></span></div>
+<div style="display:grid;grid-template-columns:120px 1fr 1fr;align-items:center;box-shadow:inset 0 -1px 0 var(--separator)"><span style="padding:14px 16px;font:500 12px var(--font-ui);color:var(--text-3)">Surlignage</span><span style="padding:14px 16px"><mark style="background:var(--highlight);color:inherit;padding:0 2px;border-radius:3px">réindexer</mark></span><span style="padding:14px 16px"><span style="opacity:var(--syntax-opacity)">==</span><mark style="background:var(--highlight);color:inherit;padding:0 2px;border-radius:3px">réindexer</mark><span style="opacity:var(--syntax-opacity)">==</span></span></div>
+<div style="display:grid;grid-template-columns:120px 1fr 1fr;align-items:center;box-shadow:inset 0 -1px 0 var(--separator)"><span style="padding:14px 16px;font:500 12px var(--font-ui);color:var(--text-3)">Code inline</span><span style="padding:14px 16px"><code style="font-family:var(--font-mono);font-size:.86em;padding:1px 5px;border-radius:var(--r-xs);background:var(--bg-code);color:var(--accent-text)">.md</code></span><span style="padding:14px 16px;font-family:var(--font-mono);font-size:.86em"><span style="opacity:var(--syntax-opacity)">`</span><code style="font-family:var(--font-mono);padding:1px 5px;border-radius:var(--r-xs);background:var(--bg-code);color:var(--accent-text)">.md</code><span style="opacity:var(--syntax-opacity)">`</span></span></div>
+<div style="display:grid;grid-template-columns:120px 1fr 1fr;align-items:center;box-shadow:inset 0 -1px 0 var(--separator)"><span style="padding:14px 16px;font:500 12px var(--font-ui);color:var(--text-3)">Lien</span><span style="padding:14px 16px;color:var(--accent-text);text-decoration:underline;text-decoration-color:var(--accent-soft);text-underline-offset:3px;text-decoration-thickness:1.5px">la doc Tauri</span><span style="padding:14px 16px"><span style="opacity:var(--syntax-opacity)">[</span><span style="color:var(--accent-text)">la doc Tauri</span><span style="opacity:var(--syntax-opacity)">](https://v2.tauri.app/…)</span></span></div>
+<div style="display:grid;grid-template-columns:120px 1fr 1fr;align-items:center;box-shadow:inset 0 -1px 0 var(--separator)"><span style="padding:14px 16px;font:500 12px var(--font-ui);color:var(--text-3)">Wiki-link</span><span style="padding:14px 16px;color:var(--accent-text);font-weight:600;box-shadow:inset 0 -1.5px 0 var(--accent-soft)">Format des métadonnées</span><span style="padding:14px 16px"><span style="opacity:var(--syntax-opacity)">[[</span><span style="color:var(--accent-text);font-weight:600">Format des métadonnées</span><span style="opacity:var(--syntax-opacity)">]]</span></span></div>
+<div style="display:grid;grid-template-columns:120px 1fr 1fr;align-items:center;box-shadow:inset 0 -1px 0 var(--separator)"><span style="padding:14px 16px;font:500 12px var(--font-ui);color:var(--text-3)">Tag</span><span style="padding:14px 16px"><span style="font:600 13px var(--font-ui);padding:1px 9px;border-radius:var(--r-pill);background:var(--accent-soft);color:var(--accent-text)">#recherche</span></span><span style="padding:14px 16px"><span style="font:600 13px var(--font-ui);padding:1px 9px;border-radius:var(--r-pill);background:var(--accent-soft);color:var(--accent-text)">#recherche</span><span style="font:500 11.5px var(--font-ui);color:var(--text-3);margin-left:8px">inchangé</span></span></div>
+<div style="display:grid;grid-template-columns:120px 1fr 1fr;align-items:center"><span style="padding:14px 16px;font:500 12px var(--font-ui);color:var(--text-3)">Checklist</span><span style="padding:14px 16px;display:flex;align-items:center;gap:12px"><span style="width:18px;height:18px;border-radius:50%;background:var(--text-3);color:var(--bg-2);display:flex;align-items:center;justify-content:center"><i class="icon-check" style="font-size:12px"></i></span><span style="color:var(--text-3)">Debounce</span></span><span style="padding:14px 16px;display:flex;align-items:center;gap:8px"><span style="opacity:var(--syntax-opacity);font-family:var(--font-mono);font-size:.86em">- [x]</span><span style="color:var(--text-3)">Debounce</span></span></div>
+</div>
+</div>
+</div>
+
+<div style="display:flex;gap:40px;flex-wrap:wrap;align-items:flex-start">
+<div data-screen-label="03 Focus" style="display:flex;flex-direction:column;gap:10px">
+<span style="font:500 12px system-ui,sans-serif;color:rgba(0,0,0,.6)">03 — Mode focus (F11 / Ctrl Shift F)</span>
+<div style="width:1440px;height:900px;border-radius:10px;overflow:hidden;box-shadow:0 12px 40px rgba(60,40,20,.12);background:var(--bg-2);color:var(--text);font-family:var(--font-ui);position:relative">
+<div style="position:absolute;top:0;left:0;right:0;height:46px;display:flex;align-items:center;justify-content:center;color:var(--text-faint);font-size:12px">Esc to exit focus</div>
+<div style="position:absolute;top:0;right:0;display:flex;color:var(--text-faint);font-size:15px"><span style="width:46px;height:46px;display:flex;align-items:center;justify-content:center"><i class="icon-minus"></i></span><span style="width:46px;height:46px;display:flex;align-items:center;justify-content:center"><i class="icon-square" style="font-size:13px"></i></span><span style="width:46px;height:46px;display:flex;align-items:center;justify-content:center"><i class="icon-x"></i></span></div>
+<article style="max-width:var(--editor-max);margin:0 auto;padding:140px 0 0;font-family:var(--font-editor);font-size:var(--editor-fs);line-height:var(--editor-lh)">
+<h1 style="margin:0 0 22px;font-size:var(--h1-fs);line-height:var(--h1-lh);font-weight:700;letter-spacing:-.015em">Journal — 2 octobre</h1>
+<p style="margin:0 0 16px;text-wrap:pretty;opacity:.45">Levé avant le jour. Le café sur le rebord de la fenêtre, la rue encore vide, juste un livreur qui remonte vers la place en sifflant.</p>
+<p style="margin:0 0 16px;text-wrap:pretty">J'ai repris les notes sur le voyage. Je crois que je veux moins de choses à voir et plus de temps pour marcher sans but, perdre une après-midi entière dans un quartier<span style="display:inline-block;width:2px;height:1.15em;background:var(--accent);vertical-align:-.2em;margin-left:1px"></span></p>
+<p style="margin:0;text-wrap:pretty;opacity:.45">Penser à rappeler Inès pour le week-end.</p>
+</article>
+<div style="position:absolute;bottom:20px;left:0;right:0;display:flex;justify-content:center;gap:16px;font-size:12px;color:var(--text-faint)"><span>214 words</span><span>1 min read</span></div>
+</div>
+</div>
+
+<div data-screen-label="04 Sommaire" style="display:flex;flex-direction:column;gap:10px">
+<span style="font:500 12px system-ui,sans-serif;color:rgba(0,0,0,.6)">04 — Sommaire en overlay flottant (fermé par défaut) + sections repliées</span>
+<div style="border-radius:10px;overflow:hidden;box-shadow:0 12px 40px rgba(60,40,20,.12)"><dc-import name="Ursa Main" theme="{{ theme }}" mode="outline" hint-size="1440px,900px"></dc-import></div>
+</div>
+
+<div data-screen-label="05 Recherche" style="display:flex;flex-direction:column;gap:10px">
+<span style="font:500 12px system-ui,sans-serif;color:rgba(0,0,0,.6)">05 — Recherche active : @todo #voyages kyoto (résultat OCR en 3e position)</span>
+<div style="border-radius:10px;overflow:hidden;box-shadow:0 12px 40px rgba(60,40,20,.12)"><dc-import name="Ursa Main" theme="{{ theme }}" mode="search" hint-size="1440px,900px"></dc-import></div>
+</div>
+
+<div data-screen-label="06 Icône de tag" style="display:flex;flex-direction:column;gap:10px">
+<span style="font:500 12px system-ui,sans-serif;color:rgba(0,0,0,.6)">06 — Sélecteur d'icône de tag (clic droit › Change icon)</span>
+<div style="width:1440px;height:900px;border-radius:10px;overflow:hidden;box-shadow:0 12px 40px rgba(60,40,20,.12);position:relative">
+<dc-import name="Ursa Main" theme="{{ theme }}" hint-size="1440px,900px"></dc-import>
+<div style="position:absolute;left:10px;top:414px;width:212px;height:30px;border-radius:var(--r-md);box-shadow:0 0 0 2px var(--focus-ring)"></div>
+<div style="position:absolute;left:228px;top:300px;width:344px;border-radius:var(--r-xl);background:var(--bg-raised);box-shadow:var(--shadow-pop);color:var(--text);font-family:var(--font-ui);display:flex;flex-direction:column">
+<div style="display:flex;align-items:center;gap:10px;padding:14px 16px 10px"><span style="width:28px;height:28px;border-radius:var(--r-md);background:var(--accent-soft);color:var(--accent-text);display:flex;align-items:center;justify-content:center"><i class="icon-plane" style="font-size:15px"></i></span><span style="font-size:14px;font-weight:700;flex:1">Icon for #voyages</span><i class="icon-x" style="font-size:15px;color:var(--text-3)"></i></div>
+<div style="padding:0 12px"><div style="height:32px;display:flex;align-items:center;gap:8px;padding:0 10px;border-radius:var(--r-md);background:var(--bg-2);box-shadow:0 0 0 1.5px var(--accent);font-size:13.5px"><i class="icon-search" style="font-size:14px;color:var(--text-3)"></i><span>travel</span><span style="width:1.5px;height:15px;background:var(--accent);margin-left:-6px"></span></div></div>
+<div style="display:flex;align-items:center;gap:8px;padding:14px 16px 6px">
+<sc-for list="{{ swatches }}" as="c" hint-placeholder-count="8"><span style="width:20px;height:20px;border-radius:50%;background:{{ c.hex }};box-shadow:{{ c.ring }}"></span></sc-for>
+</div>
+<div style="padding:10px 16px 4px;font-size:11.5px;font-weight:600;color:var(--text-3)">Travel & places</div>
+<div style="display:grid;grid-template-columns:repeat(8,1fr);gap:2px;padding:0 10px">
+<sc-for list="{{ icons }}" as="ic" hint-placeholder-count="32"><span style="height:36px;display:flex;align-items:center;justify-content:center;border-radius:var(--r-md);background:{{ ic.bg }};color:{{ ic.c }};box-shadow:{{ ic.ring }}" style-hover="background:var(--hover)"><i class="icon-{{ ic.n }}" style="font-size:17px"></i></span></sc-for>
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 14px;font-size:12.5px;color:var(--text-3)"><span>Remove icon</span><span>Lucide · 1 500 icons</span></div>
+</div>
+</div>
+</div>
+
+<div data-screen-label="07 Palette" style="display:flex;flex-direction:column;gap:10px">
+<span style="font:500 12px system-ui,sans-serif;color:rgba(0,0,0,.6)">07 — Palette de commandes (Ctrl P)</span>
+<div style="width:1440px;height:900px;border-radius:10px;overflow:hidden;box-shadow:0 12px 40px rgba(60,40,20,.12);position:relative">
+<dc-import name="Ursa Main" theme="{{ theme }}" hint-size="1440px,900px"></dc-import>
+<div style="position:absolute;inset:0;background:var(--scrim)"></div>
+<div style="position:absolute;left:50%;top:120px;width:640px;margin-left:-320px;border-radius:var(--r-xl);background:var(--bg-raised);box-shadow:var(--shadow-pop);color:var(--text);font-family:var(--font-ui);overflow:hidden">
+<div style="height:56px;display:flex;align-items:center;gap:12px;padding:0 20px;font-size:16px;box-shadow:inset 0 -1px 0 var(--separator)"><i class="icon-search" style="font-size:18px;color:var(--text-3)"></i><span>ex</span><span style="width:1.5px;height:20px;background:var(--accent);margin-left:-10px"></span><span style="flex:1"></span><span style="font:500 11px var(--font-mono);color:var(--text-3)">Esc</span></div>
+<div style="padding:8px">
+<div style="padding:8px 12px 4px;font-size:11.5px;font-weight:600;color:var(--text-3)">Commands</div>
+<sc-for list="{{ cmds }}" as="c" hint-placeholder-count="3">
+<div style="height:40px;display:flex;align-items:center;gap:12px;padding:0 12px;border-radius:var(--r-md);background:{{ c.bg }};font-size:14px" style-hover="background:var(--hover)">
+<i class="icon-{{ c.icon }}" style="font-size:16px;color:var(--text-2)"></i><span style="flex:1"><b style="font-weight:700;color:var(--accent-text)">{{ c.m }}</b>{{ c.rest }}</span><span style="display:flex;gap:4px"><sc-for list="{{ c.keys }}" as="k" hint-placeholder-count="2"><kbd style="min-width:22px;height:22px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--r-sm);background:var(--bg-sunken);font:500 11px var(--font-mono);color:var(--text-2)">{{ k }}</kbd></sc-for></span>
+</div>
+</sc-for>
+<div style="padding:12px 12px 4px;font-size:11.5px;font-weight:600;color:var(--text-3)">Notes</div>
+<sc-for list="{{ pnotes }}" as="c" hint-placeholder-count="2">
+<div style="height:40px;display:flex;align-items:center;gap:12px;padding:0 12px;border-radius:var(--r-md);font-size:14px" style-hover="background:var(--hover)">
+<i class="icon-file-text" style="font-size:16px;color:var(--text-2)"></i><span style="flex:1"><b style="font-weight:700;color:var(--accent-text)">{{ c.m }}</b>{{ c.rest }}</span><span style="font-size:12px;color:var(--text-3)">{{ c.meta }}</span>
+</div>
+</sc-for>
+<div style="padding:12px 12px 4px;font-size:11.5px;font-weight:600;color:var(--text-3)">Tags</div>
+<div style="height:40px;display:flex;align-items:center;gap:12px;padding:0 12px;border-radius:var(--r-md);font-size:14px"><i class="icon-hash" style="font-size:16px;color:var(--text-2)"></i><span style="flex:1"><b style="font-weight:700;color:var(--accent-text)">ex</b>positions</span><span style="font-size:12px;color:var(--text-3)">9 notes</span></div>
+</div>
+<div style="height:40px;display:flex;align-items:center;gap:18px;padding:0 20px;background:var(--bg-1);font-size:12px;color:var(--text-3)"><span>↑↓ Navigate</span><span>↵ Run</span><span>Tab Insert as link</span><span style="flex:1"></span><span>&gt; commands only</span></div>
+</div>
+</div>
+</div>
+
+<div data-screen-label="08 Export" style="display:flex;flex-direction:column;gap:10px">
+<span style="font:500 12px system-ui,sans-serif;color:rgba(0,0,0,.6)">08 — Modale d'export</span>
+<div style="width:1440px;height:900px;border-radius:10px;overflow:hidden;box-shadow:0 12px 40px rgba(60,40,20,.12);position:relative">
+<dc-import name="Ursa Main" theme="{{ theme }}" hint-size="1440px,900px"></dc-import>
+<div style="position:absolute;inset:0;background:var(--scrim)"></div>
+<div style="position:absolute;left:50%;top:50%;width:560px;transform:translate(-50%,-50%);border-radius:var(--r-xl);background:var(--bg-raised);box-shadow:var(--shadow-pop);color:var(--text);font-family:var(--font-ui);padding:24px">
+<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:20px"><div style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-size:17px;font-weight:700">Export note</span><span style="font-size:13px;color:var(--text-3)">Voyage à Kyoto — avril</span></div><span style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:var(--r-md);color:var(--text-3)"><i class="icon-x" style="font-size:16px"></i></span></div>
+<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:22px">
+<sc-for list="{{ formats }}" as="f" hint-placeholder-count="5">
+<div style="height:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border-radius:var(--r-lg);background:{{ f.bg }};box-shadow:{{ f.ring }};color:{{ f.c }}" style-hover="background:var(--hover)"><i class="icon-{{ f.icon }}" style="font-size:22px"></i><span style="font-size:13px;font-weight:600">{{ f.label }}</span></div>
+</sc-for>
+</div>
+<div style="display:flex;flex-direction:column;gap:2px;margin-bottom:20px">
+<div style="height:40px;display:flex;align-items:center;justify-content:space-between;font-size:14px"><span>Page size</span><span style="display:flex;padding:2px;border-radius:var(--r-md);background:var(--bg-sunken);font-size:12.5px;font-weight:600"><span style="padding:4px 12px;border-radius:var(--r-sm);background:var(--bg-2);box-shadow:var(--shadow-card)">A4</span><span style="padding:4px 12px;color:var(--text-2)">Letter</span></span></div>
+<div style="height:40px;display:flex;align-items:center;justify-content:space-between;font-size:14px"><span>Include images</span><span style="width:34px;height:20px;border-radius:var(--r-pill);background:var(--accent);position:relative"><span style="position:absolute;right:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)"></span></span></div>
+<div style="height:40px;display:flex;align-items:center;justify-content:space-between;font-size:14px"><span>Include tags</span><span style="width:34px;height:20px;border-radius:var(--r-pill);background:var(--bg-sunken);box-shadow:inset 0 0 0 1px var(--separator);position:relative"><span style="position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25)"></span></span></div>
+<div style="height:40px;display:flex;align-items:center;justify-content:space-between;font-size:14px"><span>Use current theme</span><span style="width:34px;height:20px;border-radius:var(--r-pill);background:var(--bg-sunken);box-shadow:inset 0 0 0 1px var(--separator);position:relative"><span style="position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25)"></span></span></div>
+</div>
+<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r-md);background:var(--bg-sunken);font-size:13px;margin-bottom:24px"><i class="icon-folder" style="font-size:15px;color:var(--text-2)"></i><span style="flex:1;font-family:var(--font-mono);font-size:12.5px;color:var(--text-2)">C:\Users\Camille\Documents\Exports</span><span style="font-weight:600;color:var(--accent-text)">Change…</span></div>
+<div style="display:flex;justify-content:flex-end;gap:8px"><span style="height:34px;display:flex;align-items:center;padding:0 16px;border-radius:var(--r-md);background:var(--bg-sunken);font-size:13.5px;font-weight:600">Cancel</span><span style="height:34px;display:flex;align-items:center;gap:6px;padding:0 16px;border-radius:var(--r-md);background:var(--accent-solid);color:var(--on-accent);font-size:13.5px;font-weight:600"><i class="icon-download" style="font-size:15px"></i>Export PDF</span></div>
+</div>
+</div>
+</div>
+
+<div data-screen-label="09 Réglages" style="display:flex;flex-direction:column;gap:10px">
+<span style="font:500 12px system-ui,sans-serif;color:rgba(0,0,0,.6)">09 — Réglages (Ctrl ,)</span>
+<div style="width:1440px;height:900px;border-radius:10px;overflow:hidden;box-shadow:0 12px 40px rgba(60,40,20,.12);position:relative">
+<dc-import name="Ursa Main" theme="{{ theme }}" hint-size="1440px,900px"></dc-import>
+<div style="position:absolute;inset:0;background:var(--scrim)"></div>
+<div style="position:absolute;left:50%;top:50%;width:860px;height:660px;transform:translate(-50%,-50%);border-radius:var(--r-xl);background:var(--bg-raised);box-shadow:var(--shadow-pop);color:var(--text);font-family:var(--font-ui);display:flex;overflow:hidden">
+<nav style="width:200px;flex:none;background:var(--bg-1);padding:20px 10px;display:flex;flex-direction:column;gap:2px">
+<span style="padding:0 10px 14px;font-size:17px;font-weight:700">Settings</span>
+<sc-for list="{{ settingsNav }}" as="s" hint-placeholder-count="5"><div style="height:32px;display:flex;align-items:center;gap:10px;padding:0 10px;border-radius:var(--r-md);font-size:14px;font-weight:{{ s.w }};background:{{ s.bg }};box-shadow:{{ s.sh }}" style-hover="background:var(--hover)"><i class="icon-{{ s.icon }}" style="font-size:16px;color:{{ s.ic }}"></i>{{ s.label }}</div></sc-for>
+</nav>
+<div style="flex:1;min-width:0;padding:24px 32px;display:flex;flex-direction:column;gap:22px;overflow:hidden">
+<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:17px;font-weight:700">General & appearance</span><i class="icon-x" style="font-size:16px;color:var(--text-3)"></i></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:600">Notes folder</span><div style="display:flex;gap:8px"><div style="flex:1;height:34px;display:flex;align-items:center;gap:8px;padding:0 12px;border-radius:var(--r-md);background:var(--bg-sunken);font:400 12.5px var(--font-mono);color:var(--text-2)"><i class="icon-folder" style="font-size:15px"></i>D:\Notes\Ursa</div><span style="height:34px;display:flex;align-items:center;padding:0 14px;border-radius:var(--r-md);background:var(--bg-sunken);font-size:13.5px;font-weight:600">Change…</span></div><span style="font-size:12.5px;color:var(--text-3)">248 notes · plain .md files, readable by any editor.</span></div>
+<div style="display:flex;flex-direction:column;gap:10px"><span style="font-size:13px;font-weight:600">Palette</span>
+<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px">
+<sc-for list="{{ themeCards }}" as="tc" hint-placeholder-count="6">
+<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-start">
+<div style="width:100%;box-sizing:border-box;height:56px;border-radius:var(--r-md);background:{{ tc.b0 }};display:flex;padding:8px 0 0 8px;gap:0;box-shadow:{{ tc.ring }}">
+<div style="width:26%;display:flex;flex-direction:column;gap:4px;padding-top:4px"><span style="width:70%;height:5px;border-radius:2px;background:{{ tc.t }};opacity:.5"></span><span style="width:50%;height:5px;border-radius:2px;background:{{ tc.a }}"></span></div>
+<div style="flex:1;display:flex;border-radius:6px 0 0 0;overflow:hidden"><div style="width:40%;background:{{ tc.b1 }}"></div><div style="flex:1;background:{{ tc.b2 }};padding:8px;display:flex;flex-direction:column;gap:4px"><span style="width:70%;height:6px;border-radius:2px;background:{{ tc.t }}"></span><span style="width:45%;height:4px;border-radius:2px;background:{{ tc.a }}"></span></div></div>
+</div>
+<span style="font-size:12.5px;font-weight:{{ tc.w }};color:{{ tc.c }}">{{ tc.label }}</span>
+</div>
+</sc-for>
+</div>
+<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2)"><span style="width:16px;height:16px;border-radius:4px;box-shadow:inset 0 0 0 1.5px var(--text-faint)"></span>Follow Windows light/dark setting</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:600">Editor font</span><div style="height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border-radius:var(--r-md);background:var(--bg-sunken);font-size:13.5px">Hanken Grotesk<i class="icon-chevrons-up-down" style="font-size:14px;color:var(--text-3)"></i></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:600">Font size</span><div style="height:34px;display:flex;align-items:center;border-radius:var(--r-md);background:var(--bg-sunken);font-size:13.5px"><span style="width:36px;height:34px;display:flex;align-items:center;justify-content:center;color:var(--text-2)"><i class="icon-minus" style="font-size:14px"></i></span><span style="flex:1;text-align:center;font-variant-numeric:tabular-nums">16.5 px</span><span style="width:36px;height:34px;display:flex;align-items:center;justify-content:center;color:var(--text-2)"><i class="icon-plus" style="font-size:14px"></i></span></div></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:10px"><div style="display:flex;justify-content:space-between;font-size:13px"><span style="font-weight:600">Text column width</span><span style="color:var(--text-2);font-variant-numeric:tabular-nums">660 px</span></div>
+<div style="position:relative;height:20px;display:flex;align-items:center"><div style="flex:1;height:4px;border-radius:2px;background:var(--bg-sunken)"></div><div style="position:absolute;left:0;width:33%;height:4px;border-radius:2px;background:var(--accent)"></div><span style="position:absolute;left:33%;margin-left:-9px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 0 0 1px var(--separator),0 1px 3px rgba(0,0,0,.25)"></span></div>
+<div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-3)"><span>Narrow · 560</span><span>Wide · 860</span></div></div>
+<div style="display:flex;align-items:center;justify-content:space-between;font-size:14px"><div style="display:flex;flex-direction:column;gap:2px"><span>Heading markers in margin</span><span style="font-size:12.5px;color:var(--text-3)">Shows H1–H6 next to titles.</span></div><span style="width:34px;height:20px;border-radius:var(--r-pill);background:var(--accent);position:relative"><span style="position:absolute;right:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)"></span></span></div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;coral&quot;,&quot;sage&quot;,&quot;ink&quot;,&quot;kraft&quot;,&quot;graphite&quot;,&quot;blue&quot;],&quot;default&quot;:&quot;coral&quot;,&quot;tsType&quot;:&quot;'coral'|'sage'|'ink'|'kraft'|'graphite'|'blue'&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const theme = this.props.theme ?? 'coral';
+    const ring = '0 0 0 2px var(--bg-raised), 0 0 0 3.5px var(--accent)';
+    const swatchHex = ['var(--text-2)', '#C4432F', '#C27A1A', '#8A8A2E', '#3F8A5A', '#2F7F8A', '#4A6FB5', '#8A5BB0', '#A8507A'];
+    const iconNames = ['plane', 'train-front', 'map', 'map-pin', 'compass', 'globe', 'mountain', 'tent', 'luggage', 'camera', 'ship', 'car', 'bike', 'sun', 'umbrella', 'house', 'book-open', 'briefcase', 'chef-hat', 'coffee', 'heart', 'star', 'music', 'flask-conical', 'code', 'lightbulb', 'leaf', 'flower-2', 'dumbbell', 'graduation-cap', 'wallet', 'palette'];
+    const T = {
+      coral: { label: 'Graphite & coral', b0: '#2A2826', b1: '#F3EFE9', b2: '#FFFDF9', t: '#2B2622', a: '#E0654A' },
+      sage: { label: 'Sage', b0: '#D9E0D2', b1: '#EEF1E9', b2: '#FCFCF8', t: '#26302A', a: '#B5543A' },
+      ink: { label: 'Ink & paper', b0: '#1E2A3C', b1: '#F2F0EB', b2: '#FFFDF7', t: '#1F2733', a: '#D9573F' },
+      kraft: { label: 'Kraft', b0: '#E4DCCB', b1: '#F2EDE3', b2: '#FFFDFA', t: '#2E2A33', a: '#7C5CB0' },
+      graphite: { label: 'Graphite dark', b0: '#18181A', b1: '#212123', b2: '#2A2A2D', t: '#EBE8E3', a: '#EE7A63' },
+      blue: { label: 'Night blue', b0: '#121720', b1: '#192029', b2: '#202834', t: '#E5E9EF', a: '#F07D67' }
+    };
+    const key = (k) => k;
+    return {
+      theme,
+      swatches: swatchHex.map((hex, i) => ({ hex, ring: i === 1 ? ring : 'none' })),
+      icons: iconNames.map((n, i) => ({ n, bg: i === 0 ? 'var(--accent-soft)' : 'transparent', c: i === 0 ? 'var(--accent-text)' : 'var(--text-2)', ring: i === 0 ? 'inset 0 0 0 1.5px var(--accent)' : 'none' })),
+      cmds: [
+        { icon: 'download', m: 'Ex', rest: 'port note…', keys: ['Ctrl', 'Shift', 'E'], bg: 'var(--active)' },
+        { icon: 'folder-output', m: 'Ex', rest: 'port all notes…', keys: [], bg: 'transparent' },
+        { icon: 'chevrons-up-down', m: 'Ex', rest: 'pand all sections', keys: ['Ctrl', 'Shift', ']'], bg: 'transparent' }
+      ],
+      pnotes: [
+        { m: 'Ex', rest: 'position Hokusai — notes', meta: '#expositions' },
+        { m: 'Ex', rest: 'ercices de respiration', meta: 'Aug 14' }
+      ],
+      formats: [
+        { icon: 'file-text', label: 'Markdown' }, { icon: 'code', label: 'HTML' }, { icon: 'file', label: 'PDF', on: true },
+        { icon: 'file-type', label: 'DOCX' }, { icon: 'image', label: 'JPG' }
+      ].map(f => ({ ...f, bg: f.on ? 'var(--accent-soft)' : 'var(--bg-sunken)', ring: f.on ? 'inset 0 0 0 1.5px var(--accent)' : 'none', c: f.on ? 'var(--accent-text)' : 'var(--text-2)' })),
+      settingsNav: [
+        { icon: 'settings-2', label: 'General', on: true }, { icon: 'pen-line', label: 'Editor' }, { icon: 'keyboard', label: 'Shortcuts' },
+        { icon: 'file-input', label: 'Import' }, { icon: 'info', label: 'About' }
+      ].map(s => ({ ...s, w: s.on ? 600 : 500, bg: s.on ? 'var(--selected)' : 'transparent', sh: s.on ? 'var(--shadow-card)' : 'none', ic: s.on ? 'var(--accent)' : 'var(--text-2)' })),
+      themeCards: Object.keys(T).map(k => ({ ...T[k], ring: k === theme ? ring : 'inset 0 0 0 1px var(--separator)', w: k === theme ? 700 : 500, c: k === theme ? 'var(--text)' : 'var(--text-2)' }))
+    };
+  }
+}
+</script>
+</body>
+</html>

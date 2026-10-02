@@ -1,6 +1,6 @@
 # Ursa — PROGRESS
 
-État : **Phase 2 terminée** (à valider sur Windows) — en attente de ton retour, puis du « go » pour la phase 3. ⚠️ Les maquettes ne sont toujours pas sur le dépôt distant.
+État : **Phase 2 terminée et comparée aux maquettes** (à valider sur Windows) — en attente du « go » pour la phase 3.
 
 | Phase | Sujet | État |
 |---|---|---|
@@ -92,8 +92,8 @@
 |---|---|---|
 | P1-1 | Sous-étapes | Annoncées en 3 (scaffold / fichiers / liste+éditeur) mais livrées en **un seul commit** : elles dépendent les unes des autres et des commits intermédiaires n'auraient pas compilé. |
 | P1-2 | Sidebar | Seule la section « Notes » (avec compteur) est affichée ; les autres sont en phase 3. |
-| P1-3 | Barre de l'éditeur | DESIGN la cite sans la spécifier : 44 px, bouton de repli de la liste à gauche, menu `…` à droite. |
-| P1-4 | En-tête de liste | 52 px : titre de panneau « Notes » 17/700 + bouton de tri (menu radio). La date des cartes suit le tri (date de création si tri par création). |
+| P1-3 | Barre de l'éditeur | ~~44 px + bouton de repli de la liste~~ → alignée sur les maquettes en phase 2 : 52 px, fil d'Ariane à gauche (ph. 3), « Modifié … » + menu `…` à droite ; replier la liste passe par le menu `…` et Ctrl+Maj+\. |
+| P1-4 | En-tête de liste | 52 px : titre de panneau « Notes » 17/700 + bouton texte de tri « Modification ⌄ » (maquettes), menu radio. La date des cartes suit le tri. |
 | P1-5 | Raccourcis colonnes | Ctrl+\ sidebar (DESIGN), **Ctrl+Maj+\ liste** (ajout). Touche physique : sur AZERTY, c'est la touche `*` / `µ` à gauche d'Entrée. |
 | P1-6 | Note sans titre | Fichier `Sans titre.md` (`Untitled.md` en anglais), titre affiché « Sans titre » en `--text-3`. Nouvelle note = `# ` prêt à recevoir le titre. |
 | P1-7 | Encodage | Fichiers non UTF-8 ignorés (log) ; BOM UTF-8 retiré à la lecture et non réécrit. |
@@ -165,12 +165,43 @@ Découpée et livrée en sous-étapes : 2a grammaire, 2b rendu inline, 2c blocs,
 | P2-10 | Titres Setext (`===`/`---` sous le texte) | Rendus comme H1/H2, soulignement toujours estompé. |
 | P2-11 | Outils de dev | `localStorage` `ursa-dev-raw` (Markdown brut), `ursa-dev-fail-writes` (échecs simulés) et `window.__ursaView`, uniquement en `npm run dev` ; absents du build. |
 
-### Écarts avec le design (phase 2)
-- **Maquettes absentes du dépôt** : comparaison faite avec DESIGN.md uniquement. À refaire dès qu'elles seront poussées dans `design/`.
-- §2.8 : pas de défilement horizontal dans les blocs de code (retour à la ligne), cf. P2-3.
-- §2.7 : la case à cocher n'est pas atteignable au clavier (élément dans la zone éditable) ; bascule au clavier prévue avec Ctrl+Shift+T (ph. 10). Idem pour le bouton Copier des blocs de code.
-- §2.14 : le marqueur de marge n'est pas encore masquable (réglage en ph. 6).
-- Quand `#` apparaît sur un titre actif, le texte du titre se décale vers la droite (accepté par §3 : « décalage horizontal acceptable »).
+### Comparaison avec les maquettes (retour sur la phase 2)
+
+Sources : `design/maquettes/` (canevas HTML + captures). Méthode : l'écran 02 (HTML statique) a été rendu dans Chromium et comparé, mesures à l'appui, à la même note dans Ursa (`samples/Maquette éditeur.md`, colonne de 660 px dans les deux cas) ; les captures des écrans 04–09 et Papier ont servi pour le reste. Résultat après corrections : `docs/captures/phase-2/maquette-02-rendu-ursa.png`.
+
+**Écarts corrigés**
+| Élément | Maquette | Avant | Correction |
+|---|---|---|---|
+| Barre de l'éditeur | 52 px, padding 0 16 0 28, fil d'Ariane à gauche, « Edited just now » + `…` (02) ; icônes à droite (04–09) | 44 px, bouton de repli de la liste à gauche | 52 px, « Modifié à l'instant / il y a 2 h / hier / le 28 sept. » (12.5 `--text-3`) + `…` ; le repli de la liste passe dans le menu `…` (avec son raccourci). Fil d'Ariane : phase 3 |
+| Code inline, ligne active | backticks estompés en mono .86em **hors** de la pastille (02, 02b) | backticks dans la pastille | pastille autour du code seul, backticks à côté |
+| Lien `[texte](url)`, ligne active | texte en `--accent-text` **sans** soulignement quand la syntaxe est visible (02b) | soulignement conservé | soulignement retiré sur la ligne active |
+| Wiki-link, ligne active | `[[ ]]` estompés, sans le trait `--accent-soft` (02b) | trait conservé | trait retiré sur la ligne active |
+| `## ` d'un titre actif | estompé et en graisse 500 (02b) | estompé, graisse 700 | graisse 500 |
+| Tri de la liste | bouton texte « Modified ⌄ » (04–09) | bouton icône | bouton texte « Modification ⌄ » |
+| Recherche (titlebar) | placeholder « Search notes, #tags, @todo… » | « Rechercher » | « Rechercher des notes, #tags, @todo… » |
+| Aperçu des cartes | la ligne de tags sous le titre n'apparaît pas (05–09) | aperçu commençant par `#projets/ursa #recherche` | lignes composées uniquement de tags ignorées dans l'aperçu (testé) |
+
+**Conforme (vérifié)** : colonne de 660 px centrée ; marqueurs H1–H6 à 48 px à gauche dans une boîte de 22 px, H2/H3 centrés sur la x-height (± 1 px de la maquette) ; tags en pastille identiques sur la ligne active ; gras, italique, surlignage (`--highlight`, rayon 3, padding 0 2), code inline (`--bg-code`, `--accent-text`), wiki-links (600 + trait inset), liens (soulignement 1,5 px `--accent-soft`, décalage 3) ; tâches (cercle 18 px, cochée `--text-3` + coche 12 `--bg-2`, gap 12) ; bloc de code (en-tête 32 px, langue 11.5/500 `--text-3`, mono 13.5/1.65, mots-clés `--accent-text`, chaînes et nombres `--text-2`) ; citation (bg-1, padding 14 18, italique `--text-2`, sans barre) ; rythme de 28 px de la maquette Papier (titre H1 décalé de 10 px, ligne de tags de 28 px, tâches sur 28 px).
+
+**Écarts assumés (maquettes contradictoires ou DESIGN.md plus précis)**
+- Marqueur « H1 » : l'écran 02 le place ~11 px au-dessus de la x-height avec un H1 non décalé ; la maquette Papier et DESIGN §3 décalent le H1 de +10 px et §2.14 centre le marqueur sur la x-height. Ursa suit DESIGN + Papier (le marqueur suit le texte), ce qui correspond aussi aux captures 04–09.
+- Espacements de l'écran 02 (16 px entre paragraphes, 6 px entre tâches, 10 px sous H2, pastille de tag de 30 px) : non retenus, car ils cassent le rythme de 28 px que fixent DESIGN §6 et la maquette Papier (paragraphes séparés de 28, tâches de 28, pastille de 22).
+- Marge haute de la colonne : 56 px (2 unités, maquette Papier B) et non 36 px (écran 02).
+- Blocs de code : retour à la ligne au lieu de `white-space: pre` + défilement horizontal (P2-3).
+- Bouton Copier des blocs de code : visible au survol ou curseur dans le bloc (DESIGN §2.8), toujours visible dans la maquette statique.
+- §2.7 : case à cocher et bouton Copier non atteignables au clavier (Ctrl+Maj+T en ph. 10).
+- §2.14 : marqueur de marge pas encore masquable (réglage en ph. 6).
+
+**Observations pour les phases suivantes** (captures 04–09, à respecter le moment venu) : barre de l'éditeur avec fil d'Ariane `icône du tag › sous-tag` et boutons `list-tree` (sommaire), export et `…` ; cartes avec compteur de tâches `☑ 4/7` et miniature 64 px ; sidebar avec tags épinglés en pastilles puis arbre « Tags » ; jetons `@todo` / `#tag` dans la recherche et barre « 3 occurrences ↑ ↓ » ; sommaire flottant à droite ; chevrons de folding et pastille « 7 items · 4 done ».
+
+### Vérification des tokens
+Script `npm run check:tokens` (inclus dans `npm run check`) :
+- `src/styles/tokens.css` est **identique octet pour octet** à `design/ursa-tokens.css`, lui-même identique au fichier fourni et au bloc CSS de DESIGN.md ;
+- les **6 thèmes** (`coral`, `sage`, `ink`, `kraft`, `graphite`, `blue`) sont présents et définissent chacun les 40 tokens de couleur (les thèmes sombres surchargent en plus papier, stickers et post-it) ;
+- les 209 variables utilisées dans `src/` sont toutes définies (84 tokens du design, 125 tokens de composants ou locaux) ; aucun token de composant ne redéfinit un token du design, sauf les durées en mouvement réduit (DESIGN §4) ;
+- aucune couleur littérale dans le TypeScript (le CSS est couvert par Stylelint).
+
+Rendu des 6 thèmes vérifié visuellement : `docs/captures/phase-2/six-themes.png` (le sélecteur de palette arrive en phase 6).
 
 ### Checklist de test manuel (phase 2)
 1. Copie `samples/Démo éditeur.md` dans `Documents\Ursa`, ouvre-la : titres avec marqueurs H1–H6 dans la marge, gras/italique/barré/surlignage/code rendus, aucune syntaxe visible.
@@ -183,6 +214,8 @@ Découpée et livrée en sous-étapes : 2a grammaire, 2b rendu inline, 2c blocs,
 8. Ouvre `samples/Note longue (5000 lignes).md` (copie-la aussi), tape au milieu : la frappe reste fluide, le défilement aussi.
 9. Menu `…` › Mode machine à écrire : la ligne courante reste centrée en tapant ; l'option est conservée au redémarrage.
 10. Les emoji (🐻, 👩🏽‍💻, 🇫🇷) se sélectionnent et s'effacent d'un bloc, sans décalage du curseur.
+11. Ouvre `samples/Maquette éditeur.md` à côté de `design/maquettes/02-editeur.png` : même rendu ; curseur sur une ligne avec du `code`, un lien et un `## ` : backticks hors de la pastille, lien sans soulignement, `##` plus léger.
+12. Barre de l'éditeur : « Modifié à l'instant » se met à jour en tapant ; menu `…` › Masquer la liste des notes (Ctrl Maj \\) ; en-tête de liste « Modification ⌄ » ouvre le menu de tri.
 
 ---
 

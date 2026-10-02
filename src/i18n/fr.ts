@@ -1,3 +1,5 @@
+import type { RelativeKind } from "../core/dates";
+
 /** French UI strings — the reference catalogue: every other language must provide the same keys. */
 export const fr = {
   /** Fallback note title and file name. */
@@ -28,7 +30,7 @@ export const fr = {
     close: "Fermer",
   },
   search: {
-    placeholder: "Rechercher",
+    placeholder: "Rechercher des notes, #tags, @todo…",
     label: "Rechercher dans les notes",
     clear: "Effacer la recherche",
   },
@@ -44,6 +46,12 @@ export const fr = {
     sort: {
       modified: "Date de modification",
       created: "Date de création",
+      title: "Titre",
+    },
+    /** Short label of the sort button in the list header. */
+    sortShort: {
+      modified: "Modification",
+      created: "Création",
       title: "Titre",
     },
     pinned: "Épinglée",
@@ -62,6 +70,9 @@ export const fr = {
     copyCode: "Copier le code",
     copied: "Copié",
     typewriter: "Mode machine à écrire",
+    /** "Modifié à l'instant", "Modifié hier", "Modifié le 28 sept."… */
+    editedAt: (kind: RelativeKind, when: string) =>
+      kind === "weekday" || kind === "date" ? `Modifié le ${when}` : `Modifié ${when}`,
   },
   layout: {
     resizeSidebar: "Redimensionner la barre latérale",

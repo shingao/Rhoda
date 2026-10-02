@@ -38,6 +38,8 @@
 
   /* Note list + card [§2.4] */
   --list-header-h: 52px;                   /* (decision) */
+  --sort-btn-h: 28px;                      /* « Modified ⌄ », maquettes 05–09 (decision: size) */
+  --sort-btn-icon: 12px;
   --list-pad-x: 10px;
   --card-pad: 14px;
   --card-gap: 14px;
@@ -50,7 +52,10 @@
 
   /* Editor */
   --editor-min: 420px;                     /* [§Layout] */
-  --editor-bar-h: 44px;                    /* (decision) */
+  --editor-bar-h: 52px;                    /* maquettes 02, 05–09, Papier */
+  --editor-bar-pad: 0 16px 0 28px;         /* maquette 02 */
+  --editor-meta-fs: 12.5px;                /* « Modifié … », maquette 02 */
+  --editor-meta-gap: var(--sp-3);
   --editor-pad-top: calc(var(--rhythm) * 2);
   --editor-pad-bottom: 40vh;               /* (decision) lets the last line scroll up */
   --caret-w: 2px;                          /* [§3] */

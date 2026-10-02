@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { ArrowDownWideNarrow, Trash2 } from "lucide-react";
+import { ChevronDown, Trash2 } from "lucide-react";
 import { useT } from "../../app/i18n";
 import { selectNote, trashNote } from "../../app/notes";
 import { matchShortcut, shortcutLabel } from "../../app/shortcuts";
@@ -7,7 +7,6 @@ import { listedNotes, updateSettings, useApp } from "../../app/store";
 import { useNow } from "../../app/useNow";
 import type { SortKey } from "../../core/note/sort";
 import { focusEditor } from "../../editor/session";
-import { IconButton } from "../../components/IconButton";
 import { Menu, type MenuEntry } from "../../components/Menu";
 import { useAutoHideScrollbar } from "../../components/useAutoHideScrollbar";
 import { NoteCard } from "./NoteCard";
@@ -105,15 +104,19 @@ export function NoteList() {
     <section className={s.panel} aria-label={t.list.title}>
       <header className={s.header}>
         <h2 className={s.title}>{t.list.title}</h2>
-        <IconButton
-          icon={ArrowDownWideNarrow}
-          label={t.list.sortBy(t.list.sort[sort])}
+        <button
+          type="button"
+          className={s.sort}
           aria-haspopup="menu"
+          aria-label={t.list.sortBy(t.list.sort[sort])}
           onClick={(e) => {
             const r = e.currentTarget.getBoundingClientRect();
-            setMenu({ kind: "sort", at: { x: r.left, y: r.bottom + 4 } });
+            setMenu({ kind: "sort", at: { x: r.right, y: r.bottom + 4 } });
           }}
-        />
+        >
+          {t.list.sortShort[sort]}
+          <ChevronDown className={s.sortIcon} aria-hidden />
+        </button>
       </header>
       <div ref={scroller} className={s.scroller}>
         {list.length === 0 ? (
@@ -147,6 +150,7 @@ export function NoteList() {
       {menu && (
         <Menu
           at={menu.at}
+          align={menu.kind === "sort" ? "end" : "start"}
           label={menu.kind === "sort" ? t.list.sortMenu : t.list.noteActions}
           entries={menuEntries(menu)}
           onClose={() => setMenu(null)}

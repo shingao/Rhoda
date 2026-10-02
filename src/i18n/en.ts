@@ -28,7 +28,7 @@ export const en: Messages = {
     close: "Close",
   },
   search: {
-    placeholder: "Search notes",
+    placeholder: "Search notes, #tags, @todo…",
     label: "Search notes",
     clear: "Clear search",
   },
@@ -44,6 +44,11 @@ export const en: Messages = {
     sort: {
       modified: "Date modified",
       created: "Date created",
+      title: "Title",
+    },
+    sortShort: {
+      modified: "Modified",
+      created: "Created",
       title: "Title",
     },
     pinned: "Pinned",
@@ -62,6 +67,7 @@ export const en: Messages = {
     copyCode: "Copy code",
     copied: "Copied",
     typewriter: "Typewriter mode",
+    editedAt: (kind, when) => `Edited ${kind === "yesterday" ? when.toLowerCase() : when}`,
   },
   layout: {
     resizeSidebar: "Resize sidebar",

@@ -2,6 +2,7 @@ import { mockIPC, mockWindows } from "@tauri-apps/api/mocks";
 import type { NoteFile } from "../core/note/note";
 import demoNote from "../../samples/Démo éditeur.md?raw";
 import longNote from "../../samples/Note longue (5000 lignes).md?raw";
+import mockupNote from "../../samples/Maquette éditeur.md?raw";
 
 /**
  * Development only: lets the frontend run in a plain browser (no Tauri) with
@@ -32,6 +33,7 @@ function seed(now: number): Array<[string, string, number]> {
     ["Meeting notes.md", "# Meeting notes\n\nAction items: ship the beta, write the changelog, ==book the room==.\n", now - 4 * DAY],
     ["Old ideas.md", "# Old ideas\n\nA note from last year.\n", now - 400 * DAY],
     ["Démo éditeur.md", demoNote, now - 60_000],
+    ["Maquette éditeur.md", mockupNote, now - 90_000],
     ["Note longue (5000 lignes).md", longNote, now - 30 * DAY],
   ];
 }

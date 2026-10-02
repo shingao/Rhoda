@@ -1,6 +1,8 @@
 /** Plain-text helpers on a note body (frontmatter already removed). */
 
 const HEADING = /^\s{0,3}#{1,6}\s+/;
+/** A line made only of tags (`#projets/ursa #recherche`): metadata, not shown in previews (maquettes 05–09). */
+const TAGS_ONLY = /^\s*(?:#[\p{L}\p{N}_\-/]*[\p{L}][\p{L}\p{N}_\-/]*\s*)+$/u;
 
 /** Index of the first non-blank line, or -1. */
 function titleLineIndex(lines: string[]): number {
@@ -39,6 +41,7 @@ export function previewFromBody(body: string, maxLength = 240): string {
       continue;
     }
     let line = raw;
+    if (!inFence && TAGS_ONLY.test(line)) continue;
     if (!inFence) {
       if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(line)) continue;
       line = line

@@ -102,12 +102,12 @@ export function buildDecorations(view: EditorView, revealed: ReadonlySet<number>
     const reveal = revealed.has(line.number);
     for (let c = node.firstChild; c; c = c.nextSibling) {
       if (c.name !== "HeaderMark") continue;
-      if (c.from === node.from) syntax(c.from, withSpace(c.to), reveal);
+      if (c.from === node.from) syntax(c.from, withSpace(c.to), reveal, "cm-heading-mark");
       else {
         // Optional closing hashes: hide them with the spaces before them.
         let start = c.from;
         while (start > line.from && doc.sliceString(start - 1, start) === " ") start--;
-        syntax(start, c.to, reveal);
+        syntax(start, c.to, reveal, "cm-heading-mark");
       }
     }
   }
@@ -126,7 +126,8 @@ export function buildDecorations(view: EditorView, revealed: ReadonlySet<number>
     if (!open || !close) return;
     const reveal = isRevealed(node.from);
     syntax(open.from, open.to, reveal);
-    addMark("cm-link", open.to, close.from);
+    // With its syntax visible, the link loses its underline (maquette 02b).
+    addMark(reveal ? "cm-link cm-link-revealed" : "cm-link", open.to, close.from);
     syntax(close.from, node.to, reveal);
   }
 
@@ -138,11 +139,12 @@ export function buildDecorations(view: EditorView, revealed: ReadonlySet<number>
     if (!open || !close || !target) return;
     syntax(open.from, open.to, reveal);
     syntax(close.from, close.to, reveal);
+    const cls = reveal ? "cm-wikilink cm-wikilink-revealed" : "cm-wikilink";
     if (alias) {
       syntax(target.from, alias.from, reveal);
-      addMark("cm-wikilink", alias.from, alias.to);
+      addMark(cls, alias.from, alias.to);
     } else {
-      addMark("cm-wikilink", target.from, target.to);
+      addMark(cls, target.from, target.to);
     }
   }
 
@@ -286,9 +288,12 @@ export function buildDecorations(view: EditorView, revealed: ReadonlySet<number>
         syntax(ref.from, ref.to, isRevealed(ref.from));
         return false;
       case "InlineCode": {
-        addMark("cm-inline-code", ref.from, ref.to);
+        // The pill wraps the code only; backticks sit outside it, faded and monospace (maquette 02b).
+        const [open, close] = ref.node.getChildren("CodeMark");
         const reveal = isRevealed(ref.from);
-        for (const m of ref.node.getChildren("CodeMark")) syntax(m.from, m.to, reveal);
+        if (open) syntax(open.from, open.to, reveal, "cm-syntax-mono");
+        if (close && close !== open) syntax(close.from, close.to, reveal, "cm-syntax-mono");
+        addMark("cm-inline-code", open?.to ?? ref.from, close && close !== open ? close.from : ref.to);
         return false;
       }
       case "Escape":

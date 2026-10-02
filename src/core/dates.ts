@@ -33,18 +33,24 @@ function formattersFor(locale: string) {
   return f;
 }
 
-/** Relative date following the rules of DESIGN.md §2.4, in the given language. */
-export function formatRelative(time: number, now: number, labels: RelativeDateLabels): string {
+export type RelativeKind = "justNow" | "minutes" | "hours" | "yesterday" | "weekday" | "date";
+
+/** Relative date following the rules of DESIGN.md §2.4, with its kind (for phrasing around it). */
+export function relativeDate(time: number, now: number, labels: RelativeDateLabels): { kind: RelativeKind; text: string } {
   const diff = now - time;
-  if (diff < MINUTE) return labels.justNow;
-  if (diff < HOUR) return labels.minutesAgo(Math.floor(diff / MINUTE));
+  if (diff < MINUTE) return { kind: "justNow", text: labels.justNow };
+  if (diff < HOUR) return { kind: "minutes", text: labels.minutesAgo(Math.floor(diff / MINUTE)) };
   const today = startOfDay(now);
-  if (time >= today) return labels.hoursAgo(Math.floor(diff / HOUR));
-  if (time >= today - DAY) return labels.yesterday;
+  if (time >= today) return { kind: "hours", text: labels.hoursAgo(Math.floor(diff / HOUR)) };
+  if (time >= today - DAY) return { kind: "yesterday", text: labels.yesterday };
   const f = formattersFor(labels.locale);
-  if (time >= today - 6 * DAY) return f.weekday.format(time);
-  if (new Date(time).getFullYear() === new Date(now).getFullYear()) return f.monthDay.format(time);
-  return f.monthDayYear.format(time);
+  if (time >= today - 6 * DAY) return { kind: "weekday", text: f.weekday.format(time) };
+  if (new Date(time).getFullYear() === new Date(now).getFullYear()) return { kind: "date", text: f.monthDay.format(time) };
+  return { kind: "date", text: f.monthDayYear.format(time) };
+}
+
+export function formatRelative(time: number, now: number, labels: RelativeDateLabels): string {
+  return relativeDate(time, now, labels).text;
 }
 
 /** ISO 8601 with the local UTC offset, e.g. 2026-10-02T11:24:00+02:00. */

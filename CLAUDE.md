@@ -8,7 +8,7 @@ Application de prise de notes locale pour Windows (usage perso). Esthétique et 
 |---|---|
 | Design (tokens, composants, états, Markdown live, motion, a11y, papier, stickers) | `DESIGN.md` |
 | Tokens CSS (copie verbatim) | `design/ursa-tokens.css` → `src/styles/tokens.css` |
-| Maquettes validées | `design/*.png` |
+| Maquettes validées | `design/maquettes/` (canevas HTML + captures PNG) |
 | Avancement, décisions, écarts | `PROGRESS.md` |
 
 Si DESIGN.md est muet : proposer une solution cohérente et la consigner dans `PROGRESS.md` (section « Décisions »).
@@ -69,7 +69,8 @@ npm run dev              # frontend seul dans un navigateur, coffre factice en m
 npm run typecheck        # tsc (app + config Vite)
 npm run lint             # eslint + stylelint (0 warning toléré : --max-warnings 0)
 npm run test             # vitest (logique core/)
-npm run check            # typecheck + lint + test
+npm run check            # typecheck + lint + tokens + test
+npm run check:tokens     # tokens.css == design/ursa-tokens.css, 6 thèmes, aucune var() indéfinie
 npm run build            # build frontend
 npm run tauri build      # packaging (.msi en phase 10)
 cd src-tauri && cargo clippy --all-targets -- -D warnings && cargo test

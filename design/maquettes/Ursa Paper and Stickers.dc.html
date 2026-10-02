@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Caveat:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap"><link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css"><link rel="stylesheet" href="ursa-tokens.css"><style>body{margin:0;background:#E6E3DE;font-family:system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#C4432F;text-decoration:none}a:hover{color:#AE3825}[class^="icon-"]{line-height:1;display:inline-flex}</style></helmet>
+<div style="padding:40px 44px 64px;display:flex;flex-direction:column;gap:64px">
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;flex-direction:column;gap:6px"><div style="display:flex;align-items:baseline;gap:10px"><span style="font:600 10px ui-monospace,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px">A</span><span style="font:600 13px system-ui,sans-serif;color:#1a1a1a">Fond de page par note — rythme vertical de 28 px</span></div>
+<span style="font:13px/1.55 system-ui,sans-serif;color:rgba(0,0,0,.6);max-width:860px">Chaque ligne d'éditeur fait 28 px ; titres, blocs et images occupent des multiples de 28. Les traits sont tracés à 24 px dans chaque unité, juste sous la ligne de base. Le quadrillage utilise un pas de 14 px (demi-unité, une ligne de texte sur deux carreaux). Un vrai pas de 5 mm (≈ 19 px) ne retomberait pas sur la grille de 28 px ; 14 px rend à peu près 5 mm sur un écran réglé à 125–150 %.</span></div>
+<div style="display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start" data-theme="coral">
+<sc-for list="{{ papers }}" as="p" hint-placeholder-count="4">
+<div data-screen-label="{{ p.label }}" style="display:flex;flex-direction:column;gap:10px">
+<span style="font:500 12px system-ui,sans-serif;color:rgba(0,0,0,.6)">{{ p.label }}</span>
+<div style="width:640px;height:600px;border-radius:10px;overflow:hidden;box-shadow:0 12px 40px rgba(60,40,20,.12);background:var(--bg-2);color:var(--text);font-family:var(--font-ui);display:flex;flex-direction:column;position:relative">
+<div style="height:52px;flex:none;display:flex;align-items:center;padding:0 12px 0 24px;color:var(--text-3);font-size:13px"><span style="flex:1;display:flex;align-items:center;gap:6px"><i class="icon-book-open" style="font-size:14px"></i>journal</span><span style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:var(--r-md);background:{{ p.menuBg }}"><i class="icon-ellipsis" style="font-size:16px"></i></span></div>
+<div style="flex:1;position:relative;background-image:{{ p.img }};background-size:{{ p.size }}">
+<sc-if value="{{ p.margin }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:0;bottom:0;left:calc(80px - var(--paper-margin-x));width:1.5px;background:var(--paper-margin)"></div></sc-if>
+<article style="width:480px;margin:0 0 0 80px;padding-top:28px;font-family:var(--font-editor);font-size:var(--editor-fs);line-height:var(--rhythm)">
+<h1 style="margin:0;font-size:var(--h1-fs);line-height:var(--h1-lh);font-weight:700;letter-spacing:-.015em"><span style="position:relative;top:10px">Mardi 2 octobre</span></h1>
+<div style="height:28px;display:flex;align-items:center;margin-bottom:28px"><span style="font:600 13px/22px var(--font-ui);padding:0 9px;border-radius:var(--r-pill);background:var(--accent-soft);color:var(--accent-text)">#journal</span></div>
+<p style="margin:0 0 28px">Levé avant le jour. Café sur le rebord de la fenêtre, la rue encore vide, juste un livreur qui remonte vers la place en sifflant.</p>
+<h2 style="margin:0;font-size:var(--h2-fs);line-height:var(--h2-lh);font-weight:700">Petites choses</h2>
+<div style="height:28px;display:flex;align-items:center;gap:12px"><span style="width:18px;height:18px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--text-faint)"></span>Rappeler Inès pour samedi</div>
+<div style="height:28px;display:flex;align-items:center;gap:12px"><span style="width:18px;height:18px;border-radius:50%;background:var(--text-3);color:var(--bg-2);display:flex;align-items:center;justify-content:center"><i class="icon-check" style="font-size:12px"></i></span><span style="color:var(--text-3)">Rempoter le basilic</span></div>
+<div style="height:28px;display:flex;align-items:center;gap:12px;margin-bottom:28px"><span style="width:18px;height:18px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--text-faint)"></span>Finir Le Pavillon d'or</div>
+<div style="height:140px;border-radius:var(--r-md);background:repeating-linear-gradient(135deg,var(--bg-sunken) 0 8px,var(--bg-1) 8px 16px);display:flex;align-items:center;justify-content:center;font:500 12px var(--font-mono);color:var(--text-3)">photo · 480 × 140 (5 unités)</div>
+</article>
+</div>
+<sc-if value="{{ p.picker }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;top:48px;right:12px;width:288px;border-radius:var(--r-xl);background:var(--bg-raised);box-shadow:var(--shadow-pop);padding:14px;display:flex;flex-direction:column;gap:12px">
+<span style="font-size:12px;font-weight:600;color:var(--text-3)">Page background</span>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+<sc-for list="{{ thumbs }}" as="t" hint-placeholder-count="4">
+<div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:100%;height:52px;border-radius:var(--r-md);background-color:var(--bg-2);background-image:{{ t.img }};background-size:{{ t.size }};box-shadow:{{ t.ring }}"></div><span style="font-size:12px;font-weight:{{ t.w }};color:{{ t.c }}">{{ t.label }}</span></div>
+</sc-for>
+</div>
+<div style="height:32px;display:flex;align-items:center;justify-content:space-between;font-size:13.5px"><span>Red margin</span><span style="width:34px;height:20px;border-radius:var(--r-pill);background:var(--accent-solid);position:relative"><span style="position:absolute;right:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)"></span></span></div>
+<span style="font-size:12px;color:var(--text-3);line-height:1.4">Saved in the note's front matter: <code style="font-family:var(--font-mono);font-size:11.5px">page: ruled-margin</code></span>
+</div>
+</sc-if>
+</div>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:10px"><span style="font:600 10px ui-monospace,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px">B</span><span style="font:600 13px system-ui,sans-serif;color:#1a1a1a">Note « journal » décorée — fond ligné + marge, 3 stickers, 2 post-it</span></div>
+<div style="display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start">
+<sc-for list="{{ frames }}" as="fr" hint-placeholder-count="2">
+<div data-screen-label="{{ fr.label }}" style="display:flex;flex-direction:column;gap:10px">
+<span style="font:500 12px system-ui,sans-serif;color:rgba(0,0,0,.6)">{{ fr.label }}</span>
+<div data-theme="{{ fr.theme }}" style="width:{{ fr.w }};height:860px;border-radius:10px;overflow:hidden;box-shadow:0 12px 40px rgba(40,30,20,.16);background:var(--bg-2);color:var(--text);font-family:var(--font-ui);display:flex;flex-direction:column;position:relative">
+<div style="height:52px;flex:none;display:flex;align-items:center;padding:0 16px 0 28px;color:var(--text-3);font-size:13px">
+<span style="flex:1;display:flex;align-items:center;gap:6px"><i class="icon-book-open" style="font-size:14px"></i>journal</span>
+<span style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:var(--r-md);background:{{ fr.drawerBtnBg }};color:{{ fr.drawerBtnC }}"><i class="icon-sticker" style="font-size:16px"></i></span>
+<span style="width:32px;height:32px;display:flex;align-items:center;justify-content:center"><i class="icon-ellipsis" style="font-size:16px"></i></span>
+</div>
+<div style="flex:1;position:relative;background-image:linear-gradient(to bottom,transparent 24px,var(--paper-line) 24px,var(--paper-line) 25px,transparent 25px);background-size:100% 28px">
+<div style="position:absolute;top:0;bottom:0;left:calc(160px - var(--paper-margin-x));width:1.5px;background:var(--paper-margin)"></div>
+<article style="width:560px;margin:0 0 0 160px;padding-top:56px;font-family:var(--font-editor);font-size:var(--editor-fs);line-height:var(--rhythm)">
+<h1 style="margin:0;font-size:var(--h1-fs);line-height:var(--h1-lh);font-weight:700;letter-spacing:-.015em"><span style="position:relative;top:10px">Mardi 2 octobre</span></h1>
+<div style="height:28px;display:flex;align-items:center;gap:6px;margin-bottom:28px"><span style="font:600 13px/22px var(--font-ui);padding:0 9px;border-radius:var(--r-pill);background:var(--accent-soft);color:var(--accent-text)">#journal</span></div>
+<p style="margin:0 0 28px">Levé avant le jour. Café sur le rebord de la fenêtre, la rue encore vide, juste un livreur qui remonte vers la place en sifflant.</p>
+<p style="margin:0 0 28px">J'ai repris les notes sur le voyage. Moins de choses à voir, plus de temps pour <em>marcher sans but</em>, perdre une après-midi entière dans un quartier.</p>
+<h2 style="margin:0;font-size:var(--h2-fs);line-height:var(--h2-lh);font-weight:700">Petites choses</h2>
+<div style="height:28px;display:flex;align-items:center;gap:12px"><span style="width:18px;height:18px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--text-faint)"></span>Rappeler Inès pour samedi</div>
+<div style="height:28px;display:flex;align-items:center;gap:12px"><span style="width:18px;height:18px;border-radius:50%;background:var(--text-3);color:var(--bg-2);display:flex;align-items:center;justify-content:center"><i class="icon-check" style="font-size:12px"></i></span><span style="color:var(--text-3)">Rempoter le basilic</span></div>
+<div style="height:28px;display:flex;align-items:center;gap:12px;margin-bottom:28px"><span style="width:18px;height:18px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--text-faint)"></span><span>Finir <em>Le Pavillon d'or</em></span></div>
+<h2 style="margin:0;font-size:var(--h2-fs);line-height:var(--h2-lh);font-weight:700">Lu aujourd'hui</h2>
+<p style="margin:0;font-style:italic;color:var(--text-2)">« Le beau, c'est ce qui ne se laisse pas posséder. » Mishima, encore. Je relis le chapitre 3 demain matin.</p>
+</article>
+
+<div style="position:absolute;left:560px;top:28px;width:96px;height:96px;transform:rotate(7deg)">
+<sc-if value="{{ e.coffee }}" hint-placeholder-val="{{ false }}"><img src="{{ e.coffee }}" alt="" style="width:100%;height:100%;filter:var(--sticker-shadow);display:block"></sc-if>
+<sc-if value="{{ fr.hoverSticker }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:-6px;border:1px dashed var(--accent);border-radius:4px"></div>
+<span style="position:absolute;left:-10px;top:-10px;width:8px;height:8px;border-radius:2px;background:var(--bg-2);box-shadow:0 0 0 1.5px var(--accent)"></span>
+<span style="position:absolute;right:-10px;top:-10px;width:8px;height:8px;border-radius:2px;background:var(--bg-2);box-shadow:0 0 0 1.5px var(--accent)"></span>
+<span style="position:absolute;left:-10px;bottom:-10px;width:8px;height:8px;border-radius:2px;background:var(--bg-2);box-shadow:0 0 0 1.5px var(--accent)"></span>
+<span style="position:absolute;right:-10px;bottom:-10px;width:8px;height:8px;border-radius:2px;background:var(--bg-2);box-shadow:0 0 0 1.5px var(--accent)"></span>
+<span style="position:absolute;left:50%;top:-26px;width:1px;height:20px;background:var(--accent)"></span>
+<span style="position:absolute;left:50%;top:-34px;margin-left:-5px;width:10px;height:10px;border-radius:50%;background:var(--bg-2);box-shadow:0 0 0 1.5px var(--accent)"></span>
+</sc-if>
+</div>
+<div style="position:absolute;left:62px;top:318px;width:64px;height:64px;transform:rotate(-8deg)"><sc-if value="{{ e.leaf }}" hint-placeholder-val="{{ false }}"><img src="{{ e.leaf }}" alt="" style="width:100%;height:100%;filter:var(--sticker-shadow);display:block"></sc-if></div>
+<div style="position:absolute;left:724px;top:520px;width:56px;height:56px;transform:rotate(5deg)"><sc-if value="{{ e.sparkles }}" hint-placeholder-val="{{ false }}"><img src="{{ e.sparkles }}" alt="" style="width:100%;height:100%;filter:var(--sticker-shadow);display:block"></sc-if></div>
+
+<div style="position:absolute;left:752px;top:150px;width:168px;height:168px;transform:rotate(2.5deg);background:var(--postit-yellow);box-shadow:var(--postit-shadow);border-radius:2px;padding:22px 16px 0;box-sizing:border-box;font:500 22px/28px var(--font-hand);color:var(--postit-text)">
+<span style="position:absolute;left:50%;top:-9px;width:64px;height:18px;margin-left:-32px;background:var(--postit-tape);transform:rotate(-4deg)"></span>
+<div style="position:absolute;inset:0;border-radius:2px;background:linear-gradient(135deg,transparent 70%,rgba(0,0,0,.05))"></div>
+Samedi — marché d'Aligre avec Inès, 10 h
+<sc-if value="{{ fr.hoverPostit }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;left:50%;top:-50px;transform:translateX(-50%) rotate(-2.5deg);display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:var(--r-md);background:var(--bg-raised);box-shadow:var(--shadow-pop);font-family:var(--font-ui)">
+<span style="width:16px;height:16px;border-radius:50%;background:var(--postit-yellow);box-shadow:0 0 0 2px var(--bg-raised),0 0 0 3.5px var(--accent)"></span><span style="width:16px;height:16px;border-radius:50%;background:var(--postit-pink)"></span><span style="width:16px;height:16px;border-radius:50%;background:var(--postit-green)"></span><span style="width:16px;height:16px;border-radius:50%;background:var(--postit-blue)"></span>
+<span style="width:1px;height:18px;background:var(--separator);margin:0 2px"></span>
+<span style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;color:var(--text-2)"><i class="icon-minimize-2" style="font-size:14px"></i></span><span style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;color:var(--text-2)"><i class="icon-trash-2" style="font-size:14px"></i></span>
+</div>
+</sc-if>
+</div>
+<div style="position:absolute;left:788px;top:388px;width:148px;height:148px;transform:rotate(-3deg);background:var(--postit-pink);box-shadow:var(--postit-shadow);border-radius:2px;padding:20px 14px 0;box-sizing:border-box;font:500 22px/28px var(--font-hand);color:var(--postit-text)">
+<div style="position:absolute;inset:0;border-radius:2px;background:linear-gradient(135deg,transparent 70%,rgba(0,0,0,.05))"></div>
+Terreau + 2 pots de 12 cm
+</div>
+
+<sc-if value="{{ fr.drawer }}" hint-placeholder-val="{{ false }}">
+<aside style="position:absolute;top:8px;right:16px;bottom:16px;width:320px;border-radius:var(--r-xl);background:var(--bg-raised);box-shadow:var(--shadow-pop);display:flex;flex-direction:column;overflow:hidden">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px"><span style="font-size:15px;font-weight:700">Stickers</span><i class="icon-x" style="font-size:15px;color:var(--text-3)"></i></div>
+<div style="padding:0 12px"><div style="height:32px;display:flex;align-items:center;gap:8px;padding:0 10px;border-radius:var(--r-md);background:var(--bg-sunken);color:var(--text-3);font-size:13.5px"><i class="icon-search" style="font-size:14px"></i>Search stickers</div></div>
+<div style="display:flex;flex-wrap:wrap;gap:6px;padding:12px 12px 4px">
+<sc-for list="{{ cats }}" as="c" hint-placeholder-count="6"><span style="height:26px;display:flex;align-items:center;padding:0 10px;border-radius:var(--r-pill);font-size:12.5px;font-weight:600;background:{{ c.bg }};color:{{ c.c }}">{{ c.label }}</span></sc-for>
+</div>
+<div style="padding:10px 16px 4px;font-size:11.5px;font-weight:600;color:var(--text-3)">Nature</div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:0 10px">
+<sc-for list="{{ drawerEmoji }}" as="d" hint-placeholder-count="12"><span style="height:68px;display:flex;align-items:center;justify-content:center;border-radius:var(--r-lg)" style-hover="background:var(--hover)"><img src="{{ d }}" alt="" style="width:48px;height:48px;filter:var(--sticker-shadow)"></span></sc-for>
+</div>
+<div style="padding:14px 16px 6px;font-size:11.5px;font-weight:600;color:var(--text-3)">Sticky notes</div>
+<div style="display:flex;gap:10px;padding:0 16px">
+<span style="width:48px;height:48px;border-radius:2px;background:var(--postit-yellow);box-shadow:var(--postit-shadow);display:flex;align-items:center;justify-content:center;color:var(--postit-text);transform:rotate(-2deg)"><i class="icon-plus" style="font-size:16px"></i></span>
+<span style="width:48px;height:48px;border-radius:2px;background:var(--postit-pink);box-shadow:var(--postit-shadow);display:flex;align-items:center;justify-content:center;color:var(--postit-text);transform:rotate(1.5deg)"><i class="icon-plus" style="font-size:16px"></i></span>
+<span style="width:48px;height:48px;border-radius:2px;background:var(--postit-green);box-shadow:var(--postit-shadow);display:flex;align-items:center;justify-content:center;color:var(--postit-text);transform:rotate(-1deg)"><i class="icon-plus" style="font-size:16px"></i></span>
+<span style="width:48px;height:48px;border-radius:2px;background:var(--postit-blue);box-shadow:var(--postit-shadow);display:flex;align-items:center;justify-content:center;color:var(--postit-text);transform:rotate(2deg)"><i class="icon-plus" style="font-size:16px"></i></span>
+</div>
+<div style="flex:1"></div>
+<div style="padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--bg-1)">
+<span style="height:34px;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:var(--r-md);background:var(--bg-sunken);font-size:13.5px;font-weight:600"><i class="icon-image-plus" style="font-size:15px"></i>Import image…</span>
+<span style="font-size:12px;color:var(--text-3);text-align:center">PNG, WebP, SVG · or drop a file on the note</span>
+</div>
+</aside>
+</sc-if>
+</div>
+</div>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:baseline;gap:10px"><span style="font:600 10px ui-monospace,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px">C</span><span style="font:600 13px system-ui,sans-serif;color:#1a1a1a">États — stickers et post-it</span></div>
+<div data-theme="coral" style="width:1340px;height:330px;border-radius:10px;overflow:hidden;box-shadow:0 12px 40px rgba(60,40,20,.12);background-color:var(--bg-2);background-image:linear-gradient(to bottom,transparent 24px,var(--paper-line) 24px,var(--paper-line) 25px,transparent 25px);background-size:100% 28px;position:relative;font-family:var(--font-ui);color:var(--text)">
+<sc-for list="{{ stateLabels }}" as="s" hint-placeholder-count="6"><span style="position:absolute;left:{{ s.x }};top:272px;width:200px;text-align:center;font-size:12px;font-weight:600;color:var(--text-3)">{{ s.t }}</span></sc-for>
+<div style="position:absolute;left:62px;top:96px;width:96px;height:96px;transform:rotate(-5deg)"><sc-if value="{{ e.croissant }}" hint-placeholder-val="{{ false }}"><img src="{{ e.croissant }}" alt="" style="width:100%;height:100%;filter:var(--sticker-shadow)"></sc-if></div>
+<div style="position:absolute;left:282px;top:96px;width:96px;height:96px;transform:rotate(6deg)">
+<sc-if value="{{ e.croissant }}" hint-placeholder-val="{{ false }}"><img src="{{ e.croissant }}" alt="" style="width:100%;height:100%;filter:var(--sticker-shadow)"></sc-if>
+<div style="position:absolute;inset:-6px;border:1px dashed var(--accent);border-radius:4px"></div>
+<span style="position:absolute;left:-10px;top:-10px;width:8px;height:8px;border-radius:2px;background:var(--bg-2);box-shadow:0 0 0 1.5px var(--accent)"></span><span style="position:absolute;right:-10px;top:-10px;width:8px;height:8px;border-radius:2px;background:var(--bg-2);box-shadow:0 0 0 1.5px var(--accent)"></span><span style="position:absolute;left:-10px;bottom:-10px;width:8px;height:8px;border-radius:2px;background:var(--bg-2);box-shadow:0 0 0 1.5px var(--accent)"></span><span style="position:absolute;right:-10px;bottom:-10px;width:8px;height:8px;border-radius:2px;background:var(--bg-2);box-shadow:0 0 0 1.5px var(--accent)"></span>
+<span style="position:absolute;left:50%;top:-26px;width:1px;height:20px;background:var(--accent)"></span><span style="position:absolute;left:50%;top:-34px;margin-left:-5px;width:10px;height:10px;border-radius:50%;background:var(--bg-2);box-shadow:0 0 0 1.5px var(--accent)"></span>
+</div>
+<div style="position:absolute;left:502px;top:88px;width:96px;height:96px;transform:rotate(-2deg) scale(1.06)"><sc-if value="{{ e.croissant }}" hint-placeholder-val="{{ false }}"><img src="{{ e.croissant }}" alt="" style="width:100%;height:100%;filter:var(--sticker-shadow-lift)"></sc-if><span style="position:absolute;left:50%;bottom:-36px;transform:translateX(-50%);padding:2px 7px;border-radius:var(--r-sm);background:rgba(20,16,12,.72);color:#fff;font:500 11px var(--font-mono);white-space:nowrap">−2°</span></div>
+<div style="position:absolute;left:708px;top:64px;width:148px;height:148px;transform:rotate(-2deg);background:var(--postit-green);box-shadow:var(--postit-shadow);border-radius:2px;padding:20px 14px 0;box-sizing:border-box;font:500 22px/28px var(--font-hand);color:var(--postit-text)"><span style="position:absolute;left:50%;top:-9px;width:60px;height:18px;margin-left:-30px;background:var(--postit-tape);transform:rotate(3deg)"></span>Arroser les tomates</div>
+<div style="position:absolute;left:928px;top:64px;width:148px;height:148px;transform:rotate(1.5deg);background:var(--postit-blue);box-shadow:var(--postit-shadow);border-radius:2px;padding:20px 14px 0;box-sizing:border-box;font:500 22px/28px var(--font-hand);color:var(--postit-text)">Appeler le dentiste<span style="display:inline-block;width:2px;height:22px;background:var(--postit-text);vertical-align:-4px;margin-left:2px"></span><div style="position:absolute;inset:-5px;border-radius:4px;box-shadow:0 0 0 2px var(--focus-ring)"></div></div>
+<div style="position:absolute;left:1150px;top:124px;height:28px;display:flex;align-items:center;gap:6px;padding:0 12px 0 8px;border-radius:var(--r-pill);background:var(--postit-yellow);box-shadow:0 1px 2px rgba(60,40,10,.18);transform:rotate(-1.5deg);font:600 17px var(--font-hand);color:var(--postit-text)"><i class="icon-sticky-note" style="font-size:13px"></i>Samedi — marché…</div>
+</div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  componentDidMount() {
+    setTimeout(() => document.querySelectorAll('img').forEach(i => { if (i.complete && !i.naturalWidth) console.warn('IMGFAIL', i.src); else if (i.complete) console.log('IMGOK', i.src.split('/').pop()); }), 2500);
+  }
+  renderVals() {
+    const E = (name, file) => 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/' + encodeURIComponent(name) + '/3D/' + file + '_3d.png';
+    const ruled = { img: 'linear-gradient(to bottom,transparent 24px,var(--paper-line) 24px,var(--paper-line) 25px,transparent 25px)', size: '100% 28px' };
+    const grid = { img: 'linear-gradient(to bottom,transparent 10px,var(--paper-grid-line) 10px,var(--paper-grid-line) 11px,transparent 11px),linear-gradient(to right,transparent 13px,var(--paper-grid-line) 13px,var(--paper-grid-line) 14px,transparent 14px)', size: '14px 14px' };
+    const dots = { img: 'radial-gradient(circle at 14px 24px,var(--paper-dot) 1.1px,transparent 1.7px)', size: '28px 28px' };
+    const plain = { img: 'none', size: 'auto' };
+    const ring = '0 0 0 2px var(--bg-raised),0 0 0 3.5px var(--accent)';
+    return {
+            papers: [
+        { label: 'A1 — Uni', ...plain, menuBg: 'transparent' },
+        { label: 'A2 — Lignes de cahier + marge rouge (sélecteur ouvert)', ...ruled, margin: true, picker: true, menuBg: 'var(--active)' },
+        { label: 'A3 — Quadrillage (pas 14 px)', ...grid, menuBg: 'transparent' },
+        { label: 'A4 — Pointillés bullet journal (pas 28 px)', ...dots, menuBg: 'transparent' }
+      ],
+      thumbs: [
+        { label: 'Plain', img: 'none', size: 'auto' },
+        { label: 'Ruled', img: 'linear-gradient(to bottom,transparent 9px,var(--paper-line) 9px,var(--paper-line) 10px,transparent 10px)', size: '100% 10px', on: true },
+        { label: 'Grid', img: 'linear-gradient(to bottom,transparent 6px,var(--paper-grid-line) 6px,var(--paper-grid-line) 7px,transparent 7px),linear-gradient(to right,transparent 6px,var(--paper-grid-line) 6px,var(--paper-grid-line) 7px,transparent 7px)', size: '7px 7px' },
+        { label: 'Dots', img: 'radial-gradient(circle at 5px 5px,var(--paper-dot) .9px,transparent 1.3px)', size: '10px 10px' }
+      ].map(t => ({ ...t, ring: t.on ? ring : 'inset 0 0 0 1px var(--separator)', w: t.on ? 700 : 500, c: t.on ? 'var(--text)' : 'var(--text-2)' })),
+      frames: [
+        { label: 'B1 — Clair (Graphite & corail) · tiroir à stickers ouvert · sticker survolé', theme: 'coral', w: '1360px', drawer: true, hoverSticker: true, drawerBtnBg: 'var(--accent-soft)', drawerBtnC: 'var(--accent-text)' },
+        { label: 'B2 — Sombre graphite · post-it survolé', theme: 'graphite', w: '1040px', hoverPostit: true, drawerBtnBg: 'transparent', drawerBtnC: 'inherit' }
+      ],
+      e: {
+        coffee: E('Hot beverage', 'hot_beverage'),
+        leaf: E('Fallen leaf', 'fallen_leaf'),
+        sparkles: E('Sparkles', 'sparkles'),
+        croissant: E('Croissant', 'croissant')
+      },
+      cats: ['Recent', 'Nature', 'Food', 'Travel', 'Objects', 'Mine'].map((label, i) => ({ label, bg: i === 1 ? 'var(--accent-soft)' : 'var(--bg-sunken)', c: i === 1 ? 'var(--accent-text)' : 'var(--text-2)' })),
+      drawerEmoji: [
+        ['Fallen leaf', 'fallen_leaf'], ['Maple leaf', 'maple_leaf'], ['Cherry blossom', 'cherry_blossom'], ['Sunflower', 'sunflower'],
+        ['Potted plant', 'potted_plant'], ['Mushroom', 'mushroom'], ['Cactus', 'cactus'], ['Herb', 'herb'],
+        ['Sun', 'sun'], ['Crescent moon', 'crescent_moon'], ['Rainbow', 'rainbow'], ['Snowflake', 'snowflake']
+      ].map(([n, f]) => E(n, f)),
+      stateLabels: [
+        { x: '10px', t: 'Sticker · repos' }, { x: '230px', t: 'Sticker · survol / sélection' }, { x: '450px', t: 'Sticker · glisser / rotation' },
+        { x: '682px', t: 'Post-it · repos' }, { x: '902px', t: 'Post-it · édition (focus)' }, { x: '1110px', t: 'Post-it · replié' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -14,7 +14,14 @@
   gap: var(--sp-1);
   height: var(--editor-bar-h);
   flex: none;
-  padding: 0 var(--sp-2);
+  padding: var(--editor-bar-pad);
+}
+
+.edited {
+  margin-right: var(--editor-meta-gap);
+  font-size: var(--editor-meta-fs);
+  color: var(--text-3);
+  white-space: nowrap;
 }
 
 .spacer {

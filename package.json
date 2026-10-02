@@ -10,9 +10,10 @@
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
     "lint": "eslint . --max-warnings 0 && stylelint \"src/**/*.css\" --max-warnings 0",
     "test": "vitest run",
-    "check": "npm run typecheck && npm run lint && npm run test",
+    "check": "npm run typecheck && npm run lint && npm run check:tokens && npm run test",
     "tauri": "tauri",
-    "sample:long": "node scripts/make-long-note.mjs"
+    "sample:long": "node scripts/make-long-note.mjs",
+    "check:tokens": "node scripts/check-tokens.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.1",

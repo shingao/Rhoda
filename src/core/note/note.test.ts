@@ -42,6 +42,10 @@ describe("text", () => {
     const body = "# T\n\n- [ ] Buy **milk**\n> quoted [link](http://x)\n```js\ncode()\n```\n---\n1. last";
     expect(previewFromBody(body)).toBe("Buy milk quoted link code() last");
   });
+
+  it("skips tag-only lines in the preview", () => {
+    expect(previewFromBody("# Voyage\n#voyages/japon-2026 #projets\n\nNeuf jours #idée")).toBe("Neuf jours #idée");
+  });
 });
 
 describe("filename", () => {

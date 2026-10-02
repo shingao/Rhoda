@@ -7,6 +7,11 @@
   opacity: var(--syntax-opacity);
 }
 
+.cm-syntax-mono {
+  font-family: var(--font-mono);
+  font-size: var(--syntax-mono-fs);
+}
+
 /* Headings [§3] + margin marker [§2.14] */
 .cm-editor .cm-line.cm-h {
   position: relative;
@@ -44,6 +49,11 @@
   font-weight: var(--fw-semibold);
   font-variant: small-caps;
   color: var(--text-3);
+}
+
+/* "## " of the active heading: faded and lighter (maquette 02b) */
+.cm-heading-mark {
+  font-weight: var(--fw-medium);
 }
 
 .cm-editor .cm-line.cm-h::before {
@@ -105,10 +115,18 @@
   text-decoration-color: var(--accent);
 }
 
+.cm-link.cm-link-revealed {
+  text-decoration: none;
+}
+
 .cm-wikilink {
   font-weight: var(--fw-semibold);
   color: var(--accent-text);
   box-shadow: inset 0 calc(-1 * var(--wikilink-underline)) 0 var(--accent-soft);
+}
+
+.cm-wikilink.cm-wikilink-revealed {
+  box-shadow: none;
 }
 
 /* Tag pill [§2.5]: identical on the active line, the # stays visible */
