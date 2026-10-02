@@ -82,6 +82,8 @@ cd src-tauri && cargo clippy --all-targets -- -D warnings && cargo test
 - `src/editor/session.ts` possède l'unique `EditorView` et un `EditorState` par note ; les mises à jour venues du disque sont annotées pour ne pas déclencher de sauvegarde.
 - L'éditeur ne lit jamais le store : `src/editor/hooks.ts` déclare ce dont il a besoin (liens, tags, rétroliens, autocomplétion), `src/app/editorBridge.ts` le branche. Confirmations via `confirmAction()` (`src/app/confirm.ts`), messages courts via `showToast()`.
 - Réglages des tags (icône, couleur, épingle, repli) : `.ursa/tags.json`, gérés par `src/app/tagOps.ts`.
+- Sections de note (`src/editor/sections/`) : titres via la grammaire partagée (`headings.ts`), replis (`fold.ts`, état attaché à la ligne du titre), isolement (`focus.ts`), sommaire (`outline.ts`). Ce qui est caché : `visibility.ts` (`hiddenRanges`, `isHidden`, `revealPosition`) — à utiliser par la recherche et les stickers. Replis mémorisés dans `.ursa/folds.json` (`src/app/folds.ts`).
+- Opérations en masse (tags, liens, suppression définitive) : copie préalable dans `.ursa/backups/<date-heure>-<opération>/`, « Annuler » dans le toast (`undoAction`), purge à 30 jours.
 - Identité d'une note : l'`id` du frontmatter (provisoire en mémoire pour une note externe, écrit à la 1re écriture). L'index est indexé par `id`, jamais par chemin.
 - Échecs disque (fichier verrouillé) : jamais bloquants ni destructeurs ; texte gardé en attente, ancien nom conservé, nouvelle tentative plus tard.
 - **Textes d'interface** : uniquement via `src/i18n/` (`fr.ts` = référence, `en.ts` mêmes clés) et `useT()` / `currentMessages()`. Aucune chaîne visible en dur dans les composants.

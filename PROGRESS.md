@@ -1,6 +1,6 @@
 # Ursa — PROGRESS
 
-État : **Phase 4 en cours** (sauvegardes de sécurité faites).
+État : **Phase 4 terminée** (à valider sur Windows) — en attente du « go » pour la phase 5.
 
 | Phase | Sujet | État |
 |---|---|---|
@@ -8,8 +8,8 @@
 | 1 | Squelette et fichiers | ✅ validée |
 | 2 | Éditeur Markdown live | ✅ validée |
 | 3 | Tags, liens, todos, sections | ✅ validée |
-| 4 | Sommaire, folding, focus de section | 🚧 en cours |
-| 5 | Recherche | — |
+| 4 | Sommaire, folding, focus de section | ✅ fait (à valider sur Windows) |
+| 5 | Recherche | ⏳ en attente du go |
 | 6 | Thèmes, fonds de page, rythme, réglages | — |
 | 7 | Images, aperçus de liens, PDF | — |
 | 8 | Stickers et post-it | — |
@@ -283,7 +283,7 @@ Maquettes utilisées : `sélecteur icone de tag.png` (06) pour la sidebar et le 
 - Aperçu au survol des liens, autocomplétion, rétroliens, toast : pas de maquette ; habillage des menus/popovers (§2.13).
 
 ### Problème connu
-- CodeMirror émet parfois l'avertissement « Measure loop restarted more than 5 times » dans la console en passant d'une note défilée à la note de 5 000 lignes. Présent dès la phase 2 (vérifié sur le code de la phase 2), sans effet visible ; à examiner avec le sommaire et le folding (ph. 4), qui touchent aux mêmes mesures.
+- ~~Avertissement CodeMirror « Measure loop restarted »~~ : corrigé en phase 4 (voir P4-9).
 
 ### Ajout après validation : sauvegarde avant opération en masse
 - Avant un **renommage ou une suppression de tag**, une **mise à jour des wiki-links** (changement de titre) ou une **suppression définitive** (une note ou toute la corbeille), les fichiers qui vont changer sont copiés dans `.ursa/backups/<date-heure>-<opération>/` (ex. `2026-10-02_15-04-05-rename-tag/`, chemins relatifs conservés). Le texte non encore écrit de ces notes est sauvegardé d'abord, pour que la copie soit bien l'état précédent.
@@ -304,6 +304,77 @@ Copie `samples/*.md` dans `Documents\Ursa` et ajoute quelques notes avec tags (`
 8. Clic droit sur une note › Épingler / Archiver / Placer dans la corbeille ; dans Corbeille : Restaurer, puis Supprimer définitivement (confirmation) → le fichier est dans la Corbeille de Windows. « Vider la corbeille » idem pour toutes.
 9. Fil d'Ariane de l'éditeur : premier tag de la note avec son icône ; clic sur un segment = filtre.
 10. Les cartes affichent `☑ fait/total` pour les notes avec des tâches ; cocher une tâche met le compteur à jour.
+
+## Phase 4 — Sommaire, folding, isolement de section
+
+Livrée en sous-étapes, un commit chacune : 4.0 sauvegardes avant opération en masse (demandé après la validation de la phase 3, décrit plus haut), 4a folding, 4b sommaire, 4c isolement de section, 4d boucle de mesure de CodeMirror.
+
+### Fait
+- **Folding des titres** (`src/editor/sections/`) :
+  - chevron 18 px à 22 px à gauche de la colonne, visible au survol du titre, toujours visible (fond `--hover`) quand la section est repliée, rotation 160 ms ;
+  - une section va jusqu'au prochain titre de même niveau ou supérieur ; les lignes vides de fin restent visibles (l'espacement ne change pas) ; une section vide n'a pas de chevron ;
+  - pastille après le titre : « 7 tâches · 4 faites » si la section contient des tâches, sinon « ··· » ; clic = déplier ;
+  - les titres viennent de la grammaire partagée : un `#` dans un bloc de code n'est jamais un titre repliable ;
+  - **copier** une sélection qui traverse une section repliée copie tout le Markdown (CodeMirror copie le texte du document) ;
+  - **curseur** : la zone repliée est atomique, les flèches la sautent ; si le curseur y atterrit (recherche, Ctrl+Z) ou si son texte est modifié (annulation, remplacement, frappe juste après la pastille), la section se déplie ;
+  - **supprimer le titre** (ou le fusionner avec la ligne du dessus) déplie le contenu, rien n'est perdu ;
+  - la ligne d'un titre replié garde la hauteur du rythme (28 px ; 56 px pour un H1), vérifié au navigateur, pour le fond ligné de la phase 6 ;
+  - **clé robuste** : un repli est attaché à la ligne de son titre et suit toutes les modifications, y compris le renommage du titre et le changement de niveau. Les réécritures d'Ursa (tags, liens) ne déplient rien ;
+  - **mémorisé par note** dans `.ursa/folds.json`, par texte, niveau et rang du titre : on retrouve le bon titre même si des titres ont été ajoutés avant ou si le titre a été renommé dans un autre éditeur. Restauré à l'ouverture et après un rechargement depuis le disque ;
+  - commandes : replier / déplier la section du curseur, tout replier, tout déplier (raccourcis et menu `…`).
+- **Sommaire** (`features/outline/`, maquette « sommaire en overlay flottant ») :
+  - bouton `list-tree` dans la barre de l'éditeur (actif : fond accent), Ctrl+Maj+O, Échap ou `x` pour fermer ; fermé par défaut, état mémorisé globalement ;
+  - titres indentés de 14 px par niveau, premier niveau en 600 `--text` ; section courante (scroll-spy) en `--accent-soft` / `--accent-text` ;
+  - **fenêtre large** : la colonne d'écriture se décale vers la gauche (transition 240 ms) et le panneau ne recouvre jamais le texte (mesuré : panneau à 1656 px, texte jusqu'à 1432 px pour une fenêtre de 1920) ; **fenêtre étroite** : overlay flottant avec `--shadow-pop` ;
+  - chevrons synchronisés avec l'éditeur (repliés toujours visibles, les autres au survol) ; les titres d'une section repliée disparaissent du sommaire ;
+  - **clic sur un titre replié** (ou caché dans une section repliée) : il se déplie, puis défilement doux jusqu'à lui (instantané si « réduire les animations ») ;
+  - navigation ↑ / ↓ dans la liste.
+- **Isoler une section** (« focus sur cette section ») : Ctrl+Maj+Entrée ou menu `…`. Tout ce qui est hors de la section est masqué ; une barre « Section isolée… Afficher toute la note » la surmonte ; Échap ou le bouton pour sortir. Ctrl+A sélectionne la section seulement. Même robustesse que le folding (suit les modifications et le renommage ; se termine si le titre disparaît, si le curseur sort, ou si du texte masqué est modifié).
+- **Préparé pour les phases 5 et 8** : `src/editor/sections/visibility.ts` expose `hiddenRanges`, `isHidden` (folds + isolement) et `revealPosition` (déplie ce qui cache une position, sort de l'isolement si besoin). La recherche s'en servira pour montrer un résultat caché, les stickers pour se masquer quand leur ancre est cachée.
+- **Avertissement « Measure loop restarted » corrigé** (voir P4-9) ; en prime, chaque note retrouve sa position de défilement quand on y revient.
+- **Rythme** : les lignes H2 faisaient 29 px au lieu de 28 depuis la phase 2 (images `cm-widgetBuffer` de CodeMirror alignées en `text-top`) ; corrigé, tous les titres sont sur le rythme.
+- Note d'exemple `samples/Maquette sommaire.md` (contenu de la maquette, avec un bloc de code contenant `# pas un titre`).
+- **Vérifié dans la vraie app** (Linux/Xvfb) : suppression d'un tag → `.ursa/backups/2026-10-02_18-41-32-delete-tag/` contient les 2 notes ; « Annuler » → fichiers restaurés, toast « Opération annulée » ; tout replier → `.ursa/folds.json` écrit ; sommaire en overlay sur fenêtre étroite.
+- Tests : **112 Vitest** (dont 17 folding / isolement sur `EditorState` réel avec la grammaire : code, copie, curseur, modifications, renommage, suppression du titre, imbrication, section vide ; 5 sur les clés de repli ; 8 sur les sauvegardes), **14 Rust** (dont 4 sur les sauvegardes).
+- Captures : `docs/captures/phase-4/` (chevron au survol, sections repliées, tout replié, sommaire large / étroit, clic sur un titre replié, section isolée, menu `…`, toast « Annuler », app réelle).
+
+### Décisions (phase 4)
+| # | Sujet | Décision |
+|---|---|---|
+| P4-0 | Bouton du toast | Bouton texte « Annuler » en `--accent-soft` sur le toast sombre ; le toast dure 8 s quand il propose une action (`--toast-action-duration`), minuterie suspendue au survol et au focus. |
+| P4-1 | Étendue d'une section repliée | Jusqu'à la dernière ligne non vide avant le titre suivant de même niveau ou supérieur ; les lignes vides restent visibles. |
+| P4-2 | Sections imbriquées | Un repli à l'intérieur d'une section repliée est conservé : en dépliant la section parente, la sous-section reste repliée. |
+| P4-3 | Raccourcis | Compatibles AZERTY (pas de `[ ] \` qui demandent AltGr, pas de Ctrl+Alt qui vaut AltGr) : Ctrl+Maj+↑ / ↓ section, Ctrl+Maj+Pg préc / Pg suiv tout, Ctrl+Maj+Entrée isoler, Ctrl+Maj+O sommaire. Déclarés dans `shortcuts.ts` (portée « editor » convertie pour CodeMirror). |
+| P4-4 | Persistance des replis | `.ursa/folds.json`, par texte + niveau + rang du titre. Correspondance : même texte et niveau (rang le plus proche) ; sinon même rang et même niveau si ce titre n'est pas réclamé par un autre (renommé ailleurs). Les notes supprimées sont retirées à l'enregistrement. L'isolement n'est pas mémorisé. |
+| P4-5 | Sommaire ancré | Ancré (la colonne se décale) dès que l'éditeur a la place de la colonne (660 + 2 × 48) plus le panneau (248 + 16 + 16) ; sinon overlay. Même carte flottante dans les deux cas, comme sur la maquette. |
+| P4-6 | Isolement | Barre de 2 unités de rythme au-dessus du titre ; le reste est masqué par des décorations de bloc (lignes entières). |
+| P4-7 | Clic sur un titre du sommaire | Défile sans déplacer le curseur ni prendre le focus (on peut parcourir le sommaire au clavier). |
+| P4-8 | Réécritures d'Ursa | Mises à jour de tags et de liens marquées `keepFolds` : elles ne déplient pas et ne font pas sortir de l'isolement. |
+| P4-9 | « Measure loop restarted » | Cause : pour estimer la hauteur des lignes non affichées, CodeMirror mesure une ligne courte de texte brut à l'écran ; quand c'était une ligne de code (22,3 px) au lieu d'une ligne de texte (28 px), toute l'estimation basculait de 20 % (≈ 140 000 ↔ 112 000 px) et la mesure bouclait. Les lignes de code et les titres Setext portent désormais une marque qui les exclut de l'échantillon. Vérifié : plus aucun avertissement (sauts de défilement, changements de note), la mesure converge en 2 passes. |
+
+### Comparaison avec les maquettes (phase 4)
+Maquette : `sommaire en overlayflottant.png` (et DESIGN §2.13, §2.15).
+
+**Conforme** : chevrons à gauche des titres entre le marqueur « H2 » et le texte, chevron `>` sur les sections repliées ; pastille « 7 tâches · 4 faites » et « ··· » en `--bg-sunken` ; panneau 248 px, rayon `--r-xl`, `--bg-raised` + `--shadow-pop`, 8 px sous la barre, 16 px du bord droit ; en-tête « Sommaire » 12/600 `--text-3` + `x` ; titres indentés, premier niveau plus gras ; section courante en `--accent-soft` / `--accent-text` ; chevrons `>` dans le sommaire devant les sections repliées ; bouton `list-tree` actif en fond accent.
+
+**Écarts** :
+- Sur fenêtre large, la colonne se décale au lieu d'être recouverte (demande explicite, D6) ; la maquette montre le panneau par-dessus le texte.
+- Bouton partage / export de la barre : phase 10.
+- Le chevron des sections dépliées n'est pas affiché en permanence dans le sommaire (au survol seulement) : la maquette n'en montre que devant les sections repliées.
+
+### Checklist de test manuel (phase 4)
+Copie `samples/Maquette sommaire.md` dans `Documents\Ursa` et ouvre-la.
+1. Survole « Avant le départ » : un chevron apparaît à gauche ; clique : la section se replie avec « 7 tâches · 4 faites » ; clic sur la pastille : elle se déplie. Le bloc de code `# pas un titre` n'a jamais de chevron.
+2. Replie « Avant le départ », place le curseur sur la ligne du titre, ↓ : le curseur saute la zone repliée. Sélectionne du paragraphe du dessus jusqu'à « Itinéraire », Ctrl+C, colle dans le Bloc-notes : les tâches cachées sont là.
+3. Section repliée : renomme son titre, ajoute des lignes au-dessus, passe `##` en `###` : elle reste repliée. Supprime le texte du titre : le contenu réapparaît, intact.
+4. Tape un mot dans une section, replie-la (Ctrl+Maj+↑), puis Ctrl+Z : la section se déplie et le mot disparaît.
+5. Ctrl+Maj+Pg préc (tout replier), Ctrl+Maj+Pg suiv (tout déplier), Ctrl+Maj+↑ / ↓ dans une section : fonctionnent sur ton clavier AZERTY.
+6. Replie deux sections, ferme Ursa, rouvre : elles sont toujours repliées (`.ursa\folds.json`). Renomme un titre replié dans le Bloc-notes : il reste replié à la réouverture.
+7. Ctrl+Maj+O : le sommaire s'ouvre. Fenêtre maximisée : la colonne se décale, le panneau ne recouvre aucun texte ; fenêtre étroite : il flotte par-dessus. La section courante se surligne en faisant défiler. L'état ouvert est conservé au redémarrage.
+8. Dans le sommaire : clic sur le chevron d'une section = repli/dépli synchronisé avec l'éditeur ; clic sur le titre d'une section repliée = elle se déplie puis défile jusqu'à elle.
+9. Ctrl+Maj+Entrée dans « Jour 1 » : seule cette section reste, sous une barre « Section isolée… » ; Ctrl+A ne sélectionne qu'elle ; Échap ou « Afficher toute la note » pour revenir.
+10. Ouvre `Note longue (5000 lignes).md`, fais glisser l'ascenseur d'un bout à l'autre, change de note et reviens : défilement fluide, position retrouvée (et, avec les outils de dev ouverts, aucun avertissement « Measure loop »).
+11. Sauvegardes : supprime un tag (clic droit), clique « Annuler » dans le toast avant 8 s : les notes retrouvent leur tag ; `.ursa\backups\` contient un dossier `<date-heure>-delete-tag`.
 
 ---
 
@@ -428,10 +499,10 @@ Contradictions entre le brief et DESIGN.md, ou silences de DESIGN.md. Propositio
 | D3 | Décalage stickers | `dx, dy` en % de la largeur de colonne | offset en px | **[Brief]** % (suit le redimensionnement). |
 | D4 | Stickers importés | `assets/stickers/` | `.ursa/stickers/` | **[Brief]** `assets/stickers/` : ce sont des données utilisateur, pas un cache. |
 | D5 | Rotation à la pose | ±8° | stickers ±8°, post-it ±3° | **[DESIGN]** ±8° stickers, ±3° post-it. |
-| D6 | Sommaire | colonne décalée sur grand écran, overlay sur petit | toujours overlay, colonne immobile (§2.15) | **[Brief]** : décalage si la place le permet, overlay sinon. |
+| D6 | Sommaire | colonne décalée sur grand écran, overlay sur petit | toujours overlay, colonne immobile (§2.15) | **[Brief]** : décalage si la place le permet, overlay sinon (fait en phase 4, P4-5). |
 | D7 | Palettes sombres | 4 palettes en clair **et** sombre | 4 claires + 2 sombres (`graphite`, `blue`) | coral→`graphite`, ink→`blue` ; je proposerai en ph. 6 des tokens sombres pour sage et kraft, à valider. |
 | D8 | Opérateurs de recherche | + `@pinned` | + `@pdf` | Union des deux. |
-| D9 | Raccourcis de folding | Ctrl+K = recherche | « tout replier » = Ctrl K Ctrl 0 / J | Conflit avec Ctrl+K → Ctrl+Alt+[ / ] pour tout replier/déplier, Ctrl+Shift+[ / ] pour la section. |
+| D9 | Raccourcis de folding | Ctrl+K = recherche | « tout replier » = Ctrl K Ctrl 0 / J ; section = Ctrl Shift [ / ] | Remplacé en phase 4 (P4-3) : `[ ] \` demandent AltGr sur AZERTY et Ctrl+Alt = AltGr. Section : Ctrl+Maj+↑ / ↓ ; tout : Ctrl+Maj+Pg préc / Pg suiv ; isoler : Ctrl+Maj+Entrée ; sommaire : Ctrl+Maj+O. |
 | D10 | Contrôles fenêtre et recherche de la titlebar | — | icônes en `--text`, recherche en `--bg-sunken` (§2.1, 2.3) | Sur `--bg-0` foncé (coral, ink), `--text` est illisible → `--chrome-text` et `--chrome-sunken`, comme l'indique la famille `--chrome-*` (§1). |
 | D11 | Token de rythme | `--baseline` | `--rhythm` | **[DESIGN]** `--rhythm`. |
 | D12 | Ctrl+U | souligné | — (pas de souligné en Markdown) | `<u>…</u>` rendu souligné, balises masquées comme la syntaxe. À confirmer en ph. 10. |
