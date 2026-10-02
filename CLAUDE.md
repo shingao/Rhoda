@@ -65,13 +65,21 @@ Règle de dépendances : `core/` ne dépend de rien (testable en isolation) ; `f
 ```bash
 npm install
 npm run tauri dev        # lancer l'app (Windows)
-npm run typecheck        # tsc --noEmit
+npm run dev              # frontend seul dans un navigateur, coffre factice en mémoire (devMock)
+npm run typecheck        # tsc (app + config Vite)
 npm run lint             # eslint + stylelint (0 warning toléré : --max-warnings 0)
 npm run test             # vitest (logique core/)
+npm run check            # typecheck + lint + test
 npm run build            # build frontend
 npm run tauri build      # packaging (.msi en phase 10)
-cd src-tauri && cargo clippy -- -D warnings
+cd src-tauri && cargo clippy --all-targets -- -D warnings && cargo test
 ```
+
+## Flux de données (phase 1)
+
+- `src/app/notes.ts` est le seul endroit qui modifie des notes : sauvegarde (debounce 500 ms), renommage (2 s), création, corbeille, réconciliation avec le watcher. Toutes les opérations disque passent par sa file sérielle.
+- `src/editor/session.ts` possède l'unique `EditorView` et un `EditorState` par note ; les mises à jour venues du disque sont annotées pour ne pas déclencher de sauvegarde.
+- Identité d'une note : `uid` d'exécution (stable aux renommages) ; `id` du frontmatter pour la persistance.
 
 ## Données sur disque
 

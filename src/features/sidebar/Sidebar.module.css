@@ -1,0 +1,77 @@
+.sidebar {
+  --ring-bg: var(--bg-0);
+
+  height: 100%;
+  padding: var(--sidebar-pad);
+  overflow-y: auto;
+  background: var(--bg-0);
+  color: var(--chrome-text);
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--sidebar-item-gap);
+  width: 100%;
+  height: var(--sidebar-item-h);
+  padding: 0 var(--sidebar-item-px);
+  border-radius: var(--r-md);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-medium);
+  color: var(--chrome-text);
+  text-align: left;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-instant) linear;
+}
+
+.item:hover {
+  background: var(--chrome-hover);
+}
+
+.icon {
+  width: var(--sidebar-icon);
+  height: var(--sidebar-icon);
+  flex: none;
+  color: var(--chrome-text-2);
+}
+
+.label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.count {
+  font-size: var(--fs-xs);
+  color: var(--chrome-text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.selected,
+.selected:hover {
+  background: var(--chrome-active);
+  box-shadow: var(--chrome-active-shadow);
+  font-weight: var(--fw-semibold);
+}
+
+.selected .icon {
+  color: var(--chrome-icon-active);
+}
+
+.item:focus-visible {
+  box-shadow:
+    0 0 0 var(--focus-gap) var(--ring-bg),
+    0 0 0 var(--focus-outer) var(--focus-ring);
+}

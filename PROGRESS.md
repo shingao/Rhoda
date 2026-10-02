@@ -1,12 +1,12 @@
 # Ursa — PROGRESS
 
-État : **Phase 0 terminée** — en attente du « go » pour la phase 1.
+État : **Phase 1 terminée** — en attente de ton retour, puis du « go » pour la phase 2.
 
 | Phase | Sujet | État |
 |---|---|---|
 | 0 | Cadrage | ✅ fait |
-| 1 | Squelette et fichiers | ⏳ en attente du go |
-| 2 | Éditeur Markdown live | — |
+| 1 | Squelette et fichiers | ✅ fait (à valider sur Windows) |
+| 2 | Éditeur Markdown live | ⏳ en attente du go |
 | 3 | Tags, liens, todos, sections | — |
 | 4 | Sommaire, folding, focus de section | — |
 | 5 | Recherche | — |
@@ -28,6 +28,54 @@
 
 ### Reste à faire / bloquant
 - **Maquettes absentes** : le dépôt ne contient aucun dossier `/design` avec des PNG. DESIGN.md cite des fichiers `Ursa Main.dc.html`, `Ursa Themes.dc.html`, `Ursa Screens.dc.html`, `Ursa Paper and Stickers.dc.html` qui ne sont pas fournis non plus. → À déposer dans `design/` avant la phase 1 (sinon je travaille d'après DESIGN.md seul et je le signale).
+
+---
+
+## Phase 1 — Squelette et fichiers
+
+### Fait
+- **Scaffold** Tauri 2 + React 19 + TypeScript strict + Vite 8 ; ESLint (0 warning) + Stylelint (garde-fou tokens : hex/rgb/hsl/`ms` interdits hors fichiers de tokens, `font-size`/`font-weight`/`border-radius` uniquement via variables) + Vitest ; clippy `-D warnings`.
+- **Tokens** : `src/styles/tokens.css` (copie verbatim), `src/styles/tokens.components.css` (valeurs des specs DESIGN.md, section citée pour chacune, + réduction de mouvement). Polices Hanken Grotesk et JetBrains Mono embarquées (`@fontsource`). Palette `coral` par défaut.
+- **Fenêtre** sans décorations Windows, ombre native, taille/position mémorisées (plugin `window-state`). **Titlebar** : bouton sidebar + « Ursa », champ de recherche (visuel ; Ctrl+K y met le focus), bouton « New note », contrôles fenêtre (Fermer rouge au survol, icônes estompées si fenêtre inactive). Zones vides = déplacement, double-clic = agrandir.
+- **Layout** : sidebar (`--bg-0`) + « feuille » arrondie (liste `--bg-1` + éditeur `--bg-2`, `--shadow-sheet`). Colonnes redimensionnables (poignée 6 px, ligne accent pendant le drag, double-clic = défaut, bornes des tokens, éditeur ≥ 420 px), repliables (animation 240 ms), largeurs et repli persistés.
+- **Fichiers** (Rust) : scan récursif (ignore dossiers cachés, `.ursa/`, `assets/`), lecture UTF-8, écriture atomique (temp + rename, retry si verrou Windows), création avec nom unique, renommage (suffixe ` (2)` en cas de collision, changement de casse autorisé), chemins validés (impossible de sortir du coffre), `.ursa/version`. Watcher `notify` (debounce 250 ms).
+- **Cycle de vie des notes** (TS) : sauvegarde auto 500 ms après la dernière frappe ; renommage d'après le titre 2 s après la dernière frappe, et immédiatement au changement de note, à la perte de focus de la fenêtre et à la fermeture ; toutes les écritures passent par une file sérielle. Fins de ligne CRLF/LF préservées. `id` UUID v7 + `created` à la création ; `id` ajouté à la 1re écriture d'une note externe.
+- **Watcher côté app** : nos propres écritures sont reconnues (contenu identique) et ignorées ; modif externe → liste et éditeur mis à jour en direct (curseur conservé) ; ajout/suppression externes ; renommage externe d'une note avec `id` → même note conservée. Une note avec des modifications locales non sauvegardées garde la version locale.
+- **Corbeille** : Suppr (liste), clic droit › Move to Trash ou menu `…` de l'éditeur → `trashed: <date>` dans le frontmatter, la note disparaît de la liste (la vue Trash et la restauration arrivent en phase 3).
+- **Liste** : cartes (date relative, titre, aperçu 2 lignes sans Markdown, icône épingle), épinglées en tête, tri modifié/créé/titre (menu, mémorisé), navigation clavier (flèches, Home/End, Entrée → éditeur, Suppr), roving tabindex, `listbox`/`option`.
+- **Éditeur** : CodeMirror 6 en Markdown brut, colonne centrée `--editor-max`, police/taille/interligne des tokens, curseur 2 px accent (sans clignotement si mouvement réduit), historique d'annulation conservé par note.
+- **Composants** : Button, IconButton, Tooltip (500 ms, enchaînement instantané < 800 ms), Menu (clavier, items danger, radio), Resizer, scrollbar overlay auto-masquée.
+- **Tests** : 14 tests Vitest (frontmatter, titre/aperçu, noms de fichiers, CRLF, tri, dates), 4 tests Rust (chemins, noms uniques, validation).
+- **Vérifications faites ici** : typecheck, lint, tests, `vite build`, `cargo clippy`, et lancement réel du binaire Tauri sous Linux/Xvfb (coffre créé, notes chargées, ajout + modification externes répercutés en direct). Rendu WebView2 Windows non vérifiable ici.
+
+### Reste à faire (phases suivantes)
+- Rendu Markdown live (ph. 2) ; sections Untagged/Todo/Today/Pinned/Archive/Trash, épingler/archiver/restaurer (ph. 3) ; recherche (ph. 5) ; écran Réglages, dont le choix du dossier (ph. 6) ; virtualisation de la liste et F6 entre zones (ph. 10).
+
+### Décisions (phase 1)
+| # | Sujet | Décision |
+|---|---|---|
+| P1-1 | Sous-étapes | Annoncées en 3 (scaffold / fichiers / liste+éditeur) mais livrées en **un seul commit** : elles dépendent les unes des autres et des commits intermédiaires n'auraient pas compilé. |
+| P1-2 | Sidebar | Seule la section « Notes » (avec compteur) est affichée ; les autres sont en phase 3. |
+| P1-3 | Barre de l'éditeur | DESIGN la cite sans la spécifier : 44 px, bouton de repli de la liste à gauche, menu `…` à droite. |
+| P1-4 | En-tête de liste | 52 px : titre de panneau « Notes » 17/700 + bouton de tri (menu radio). La date des cartes suit le tri (date de création si tri par création). |
+| P1-5 | Raccourcis colonnes | Ctrl+\ sidebar (DESIGN), **Ctrl+Shift+\ liste** (ajout). Touche physique : sur AZERTY, c'est la touche `*` / `µ` à gauche d'Entrée. |
+| P1-6 | Note sans titre | Fichier `Untitled.md`, titre affiché « Untitled » en `--text-3`. Nouvelle note = `# ` prêt à recevoir le titre. |
+| P1-7 | Encodage | Fichiers non UTF-8 ignorés (log) ; BOM UTF-8 retiré à la lecture et non réécrit. |
+| P1-8 | Sous-dossiers | Lus et surveillés ; les nouvelles notes sont créées à la racine du coffre. |
+| P1-9 | Notes archivées | Lues (`archived: true`) et exclues de « Notes », comme chez Bear. |
+| P1-10 | Emplacement du coffre | `vaultPath` dans `%APPDATA%\com.ursa.notes\settings.json` (null = Documents\Ursa) ; l'interface pour le changer arrive avec l'écran Réglages (ph. 6). |
+| P1-11 | Éditeur | Marge haute = 2 unités de rythme, marge basse 40 vh pour pouvoir remonter la dernière ligne ; frontmatter jamais affiché dans l'éditeur. |
+| P1-12 | CSP | Stricte, avec `dangerousDisableAssetCspModification: ["style-src"]`, nécessaire car CodeMirror injecte ses styles à l'exécution. |
+| P1-13 | Mode navigateur | `npm run dev` hors Tauri sert un coffre factice en mémoire (`src/services/devMock.ts`, exclu du build) pour itérer sur l'UI et faire des captures. |
+| P1-14 | Icône | Originale : la Grande Ourse (Ursa Major) sur fond graphite, étoiles de pointage en corail (`design/app-icon.svg`). |
+| P1-15 | Fermeture de la recherche | Bouton effacer 22 px (DESIGN), icône 14 px (non spécifiée). |
+
+### Écarts avec le design (phase 1)
+- **Pas de maquettes PNG** : comparaison faite uniquement avec DESIGN.md, via captures du frontend dans Chromium. À refaire quand les maquettes seront dans `design/`.
+- Titlebar en `--chrome-*` au lieu de `--text` / `--bg-sunken` (D10).
+- Scrollbar : le pouce s'élargit à 8 px au survol du pouce lui-même, pas de toute la zone de 10 px (limite de `::-webkit-scrollbar`).
+- Snap Layouts de Windows 11 absents au survol de « Agrandir » (limite Tauri, cf. risque 6).
+- Markdown brut dans l'éditeur (attendu : live preview en phase 2).
 
 ---
 

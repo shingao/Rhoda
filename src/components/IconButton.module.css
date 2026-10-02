@@ -1,0 +1,41 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-btn);
+  height: var(--icon-btn);
+  flex: none;
+  border-radius: var(--r-md);
+  color: var(--text-2);
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-instant) linear;
+}
+
+.icon {
+  width: var(--icon-btn-icon);
+  height: var(--icon-btn-icon);
+}
+
+.default:hover {
+  background: var(--hover);
+}
+
+.default:active,
+.default.active {
+  background: var(--active);
+}
+
+.chrome {
+  color: var(--chrome-text-2);
+}
+
+.chrome:hover,
+.chrome:active {
+  background: var(--chrome-hover);
+}
+
+.button:disabled {
+  opacity: var(--disabled-opacity);
+  pointer-events: none;
+}

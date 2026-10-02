@@ -1,0 +1,52 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-0);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.sheet {
+  display: flex;
+  flex: 1;
+  min-width: var(--editor-min);
+  overflow: hidden;
+  border-top-left-radius: var(--r-xl);
+  box-shadow: var(--shadow-sheet);
+}
+
+.column {
+  position: relative;
+  flex: none;
+  overflow: hidden;
+  transition: width var(--dur-slow) var(--ease-in-out);
+}
+
+.columnInner {
+  height: 100%;
+}
+
+.editor {
+  flex: 1;
+  min-width: 0;
+}
+
+.resizing,
+.resizing * {
+  cursor: col-resize !important;
+}
+
+.resizing .column {
+  transition: none;
+}
+
+@media (forced-colors: active) {
+  .sheet {
+    border: 1px solid CanvasText;
+  }
+}

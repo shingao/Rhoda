@@ -1,0 +1,52 @@
+import { invoke } from "@tauri-apps/api/core";
+import type { SortKey } from "../core/note/sort";
+
+export interface Settings {
+  /** Absolute path of the notes folder; null = default (Documents/Ursa). */
+  vaultPath: string | null;
+  theme: "coral";
+  sort: SortKey;
+  layout: {
+    /** Widths in px; null = default from DESIGN tokens. */
+    sidebarWidth: number | null;
+    listWidth: number | null;
+    sidebarCollapsed: boolean;
+    listCollapsed: boolean;
+  };
+}
+
+export const DEFAULT_SETTINGS: Settings = {
+  vaultPath: null,
+  theme: "coral",
+  sort: "modified",
+  layout: { sidebarWidth: null, listWidth: null, sidebarCollapsed: false, listCollapsed: false },
+};
+
+function isObject(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null && !Array.isArray(v);
+}
+
+/** Deep-merges stored values over defaults, ignoring anything of the wrong type. */
+function merge<T>(defaults: T, stored: unknown): T {
+  if (!isObject(defaults) || !isObject(stored)) return defaults;
+  const out: Record<string, unknown> = { ...defaults };
+  for (const [key, def] of Object.entries(defaults)) {
+    const value = stored[key];
+    if (value === undefined) continue;
+    if (isObject(def)) out[key] = merge(def, value);
+    else if (def === null || typeof value === typeof def) out[key] = value;
+  }
+  return out as T;
+}
+
+export async function loadSettings(): Promise<Settings> {
+  try {
+    return merge(DEFAULT_SETTINGS, await invoke<unknown>("load_settings"));
+  } catch {
+    return DEFAULT_SETTINGS;
+  }
+}
+
+export function saveSettings(settings: Settings): Promise<void> {
+  return invoke("save_settings", { value: settings });
+}

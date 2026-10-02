@@ -1,0 +1,221 @@
+/* Ursa — design tokens. Default palette = coral (Graphite & corail). */
+:root {
+  /* Typography */
+  --font-ui: "Hanken Grotesk", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font-editor: "Hanken Grotesk", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font-editor-serif: "Newsreader", "Cambria", "Georgia", serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", "Cascadia Mono", Consolas, monospace;
+  --font-hand: "Caveat", "Ink Free", "Segoe Print", cursive;
+
+  --fs-2xs: 11px;  --fs-xs: 12px;  --fs-sm: 13px;  --fs-md: 14px;
+  --fs-lg: 15px;   --fs-xl: 17px;  --fs-2xl: 20px;
+  --fw-regular: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700;
+  --lh-tight: 1.2; --lh-snug: 1.35; --lh-ui: 1.45;
+
+  /* Editor — strict vertical rhythm on a 28px baseline grid */
+  --rhythm: 28px;                 /* = line-height of every editor line */
+  --editor-fs: 16.5px;            /* user setting: 14–20px; rhythm stays 28px */
+  --editor-lh: var(--rhythm);
+  --h1-fs: 33px; --h1-lh: 56px;   /* 2 rhythm units */
+  --h2-fs: 23px; --h2-lh: 28px;
+  --h3-fs: 19px; --h3-lh: 28px;
+  --h4-fs: 17px; --h4-lh: 28px;
+
+  /* Spacing (4px scale) */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px;
+  --sp-6: 24px; --sp-7: 28px; --sp-8: 32px; --sp-10: 40px; --sp-12: 48px; --sp-16: 64px;
+
+  /* Radii */
+  --r-xs: 3px; --r-sm: 5px; --r-md: 7px; --r-lg: 10px; --r-xl: 12px; --r-pill: 999px;
+
+  /* Motion */
+  --dur-instant: 60ms; --dur-fast: 100ms; --dur-base: 160ms; --dur-slow: 240ms;
+  --ease-out: cubic-bezier(.2, .7, .2, 1);
+  --ease-in-out: cubic-bezier(.4, 0, .2, 1);
+  --ease-in: cubic-bezier(.4, 0, 1, 1);
+
+  /* Layout */
+  --titlebar-h: 46px;
+  --sidebar-w: 232px; --sidebar-min: 180px; --sidebar-max: 320px;
+  --list-w: 340px;    --list-min: 260px;    --list-max: 480px;
+  --outline-w: 248px;                       /* floating overlay */
+  --editor-max: 660px;                      /* user setting: 560–860px */
+  --editor-pad-x: 48px;
+  --syntax-opacity: .38;
+
+  /* Page backgrounds (per note) */
+  --paper-pitch: var(--rhythm);   /* ruled + dots */
+  --paper-grid: 14px;             /* grid = half rhythm */
+  --paper-rule-y: 24px;           /* rule position inside each 28px line box */
+  --paper-margin-x: 36px;         /* red margin: distance left of the text column */
+  --paper-line: color-mix(in oklab, var(--text) 9%, transparent);
+  --paper-grid-line: color-mix(in oklab, var(--text) 6%, transparent);
+  --paper-dot: color-mix(in oklab, var(--text) 24%, transparent);
+  --paper-margin: color-mix(in oklab, #D9573F 42%, transparent);
+
+  /* Stickers & sticky notes */
+  --sticker-shadow: drop-shadow(0 1px 1px rgba(40, 25, 10, .14)) drop-shadow(0 5px 7px rgba(40, 25, 10, .16));
+  --sticker-shadow-lift: drop-shadow(0 2px 2px rgba(40, 25, 10, .14)) drop-shadow(0 12px 14px rgba(40, 25, 10, .22));
+  --postit-yellow: #FBEBA0; --postit-pink: #F8D2DC; --postit-green: #D3EBC8; --postit-blue: #CFE2F5;
+  --postit-text: #3B342B;
+  --postit-shadow: 0 1px 1px rgba(60, 40, 10, .10), 0 12px 14px -9px rgba(60, 40, 10, .38);
+  --postit-tape: rgba(255, 255, 255, .55);
+}
+
+/* Palette definitions.
+   bg-0 = chrome (titlebar + sidebar, darkest / most coloured)
+   bg-1 = note list (intermediate)
+   bg-2 = editor ("sheet of paper", lightest)               */
+
+:root, [data-theme="coral"] {
+  color-scheme: light;
+  --bg-0: #2A2826;  --bg-1: #F3EFE9;  --bg-2: #FFFDF9;
+  --bg-raised: #FFFDF9; --bg-sunken: #E8E2D9; --bg-code: #F5F1EA;
+  --chrome-text: #E8E2DA; --chrome-text-2: #9A928A; --chrome-text-3: #9A928A;
+  --chrome-hover: rgba(255, 255, 255, .05); --chrome-active: #3A3632; --chrome-active-shadow: none;
+  --chrome-sunken: #36332F; --chrome-icon-active: #E0654A;
+  --chrome-tag-bg: #4A342D; --chrome-tag-text: #F2A48F;
+  --hover: rgba(70, 50, 30, .06); --active: rgba(70, 50, 30, .11); --selected: #FFFDF9;
+  --text: #2B2622; --text-2: #5F574F; --text-3: #6B6259; --text-faint: #ADA49A;
+  --accent: #E0654A; --accent-hover: #C9563C; --accent-text: #B23F27; --accent-solid: #C24A30;
+  --accent-soft: #FBE2DA; --on-accent: #FFFFFF;
+  --selection: rgba(224, 101, 74, .2);
+  --highlight: #F8E7B2; --match: #F9D0C2;
+  --danger: #B8321F; --danger-soft: #F8DEDA;
+  --focus-ring: #C24A30;
+  --separator: rgba(70, 50, 30, .08);
+  --scrim: rgba(30, 24, 18, .32);
+  --shadow-card: 0 1px 3px rgba(70, 45, 20, .08);
+  --shadow-sheet: 0 0 0 1px rgba(0, 0, 0, .06), 0 2px 18px rgba(0, 0, 0, .22);
+  --shadow-pop: 0 0 0 1px rgba(70, 45, 20, .07), 0 12px 32px rgba(70, 45, 20, .16);
+}
+
+[data-theme="sage"] {
+  color-scheme: light;
+  --bg-0: #D9E0D2;  --bg-1: #EEF1E9;  --bg-2: #FCFCF8;
+  --bg-raised: #FCFCF8; --bg-sunken: #E2E7DB; --bg-code: #F1F3EC;
+  --chrome-text: #26302A; --chrome-text-2: #4A564D; --chrome-text-3: #4A564D;
+  --chrome-hover: rgba(30, 50, 35, .06); --chrome-active: #F4F6F0; --chrome-active-shadow: 0 1px 3px rgba(30, 50, 35, .10);
+  --chrome-sunken: #CAD3C2; --chrome-icon-active: #B5543A;
+  --chrome-tag-bg: #EDD3C6; --chrome-tag-text: #8F3C29;
+  --hover: rgba(30, 50, 35, .05); --active: rgba(30, 50, 35, .10); --selected: #FCFCF8;
+  --text: #26302A; --text-2: #4F5A52; --text-3: #56615A; --text-faint: #A3ACA2;
+  --accent: #B5543A; --accent-hover: #9E4430; --accent-text: #9E4430; --accent-solid: #B5543A;
+  --accent-soft: #F4DDD3; --on-accent: #FFFFFF;
+  --selection: rgba(181, 84, 58, .18);
+  --highlight: #F3E7A8; --match: #F2CDBE;
+  --danger: #B0321F; --danger-soft: #F5DCD6;
+  --focus-ring: #B5543A;
+  --separator: rgba(30, 50, 35, .08);
+  --scrim: rgba(25, 35, 28, .28);
+  --shadow-card: 0 1px 3px rgba(30, 50, 35, .08);
+  --shadow-sheet: 0 0 0 1px rgba(30, 50, 35, .05), 0 2px 14px rgba(30, 50, 35, .09);
+  --shadow-pop: 0 0 0 1px rgba(30, 50, 35, .07), 0 12px 32px rgba(30, 50, 35, .16);
+}
+
+[data-theme="ink"] {
+  color-scheme: light;
+  --bg-0: #1E2A3C;  --bg-1: #F2F0EB;  --bg-2: #FFFDF7;
+  --bg-raised: #FFFDF7; --bg-sunken: #E7E4DD; --bg-code: #F4F2EC;
+  --chrome-text: #E3E7EE; --chrome-text-2: #9BA7B9; --chrome-text-3: #9BA7B9;
+  --chrome-hover: rgba(200, 220, 255, .06); --chrome-active: #2D3B51; --chrome-active-shadow: none;
+  --chrome-sunken: #2A374B; --chrome-icon-active: #E8735D;
+  --chrome-tag-bg: #3E3141; --chrome-tag-text: #F2A693;
+  --hover: rgba(30, 40, 60, .05); --active: rgba(30, 40, 60, .10); --selected: #FFFDF7;
+  --text: #1F2733; --text-2: #4E5663; --text-3: #5D6470; --text-faint: #A4A8AE;
+  --accent: #D9573F; --accent-hover: #C24A33; --accent-text: #AE3F29; --accent-solid: #C24A33;
+  --accent-soft: #F8E0D8; --on-accent: #FFFFFF;
+  --selection: rgba(217, 87, 63, .18);
+  --highlight: #F6E6AE; --match: #F6CFC2;
+  --danger: #B8321F; --danger-soft: #F8DEDA;
+  --focus-ring: #C24A33;
+  --separator: rgba(30, 40, 60, .08);
+  --scrim: rgba(12, 18, 28, .36);
+  --shadow-card: 0 1px 3px rgba(30, 40, 60, .08);
+  --shadow-sheet: 0 0 0 1px rgba(0, 0, 0, .06), 0 2px 18px rgba(0, 0, 0, .25);
+  --shadow-pop: 0 0 0 1px rgba(30, 40, 60, .08), 0 12px 32px rgba(30, 40, 60, .18);
+}
+
+[data-theme="kraft"] {
+  color-scheme: light;
+  --bg-0: #E4DCCB;  --bg-1: #F2EDE3;  --bg-2: #FFFDFA;
+  --bg-raised: #FFFDFA; --bg-sunken: #E7E0D3; --bg-code: #F5F1EA;
+  --chrome-text: #2E2A33; --chrome-text-2: #585060; --chrome-text-3: #585060;
+  --chrome-hover: rgba(60, 45, 20, .06); --chrome-active: #FAF6EE; --chrome-active-shadow: 0 1px 3px rgba(60, 45, 20, .10);
+  --chrome-sunken: #D6CCB8; --chrome-icon-active: #7C5CB0;
+  --chrome-tag-bg: #DCD0E8; --chrome-tag-text: #5E4290;
+  --hover: rgba(60, 45, 20, .05); --active: rgba(60, 45, 20, .10); --selected: #FFFDFA;
+  --text: #2E2A33; --text-2: #57505C; --text-3: #5F5862; --text-faint: #ADA5A0;
+  --accent: #7C5CB0; --accent-hover: #6A4B9E; --accent-text: #6A4B9E; --accent-solid: #7C5CB0;
+  --accent-soft: #E9E0F4; --on-accent: #FFFFFF;
+  --selection: rgba(124, 92, 176, .18);
+  --highlight: #F5E6A8; --match: #E2D3F2;
+  --danger: #B0321F; --danger-soft: #F5DCD6;
+  --focus-ring: #7C5CB0;
+  --separator: rgba(60, 45, 20, .08);
+  --scrim: rgba(40, 32, 20, .28);
+  --shadow-card: 0 1px 3px rgba(60, 45, 20, .08);
+  --shadow-sheet: 0 0 0 1px rgba(60, 45, 20, .05), 0 2px 14px rgba(60, 45, 20, .09);
+  --shadow-pop: 0 0 0 1px rgba(60, 45, 20, .07), 0 12px 32px rgba(60, 45, 20, .16);
+}
+
+/* Dark themes — same hierarchy: chrome darkest, editor lightest. */
+[data-theme="graphite"] {
+  color-scheme: dark;
+  --bg-0: #18181A;  --bg-1: #212123;  --bg-2: #2A2A2D;
+  --bg-raised: #333336; --bg-sunken: #2E2E31; --bg-code: #232326;
+  --chrome-text: #EBE8E3; --chrome-text-2: #A8A39C; --chrome-text-3: #98938C;
+  --chrome-hover: rgba(255, 255, 255, .05); --chrome-active: #2C2C2F; --chrome-active-shadow: none;
+  --chrome-sunken: #262628; --chrome-icon-active: #EE7A63;
+  --chrome-tag-bg: #45302B; --chrome-tag-text: #F4A08E;
+  --hover: rgba(255, 255, 255, .05); --active: rgba(255, 255, 255, .09); --selected: #323235;
+  --text: #EBE8E3; --text-2: #B6B1AA; --text-3: #9A958E; --text-faint: #66625D;
+  --accent: #EE7A63; --accent-hover: #F38E7A; --accent-text: #F4A08E; --accent-solid: #EE7A63;
+  --accent-soft: #45302B; --on-accent: #1B1B1C;
+  --selection: rgba(238, 122, 99, .28);
+  --highlight: #54472C; --match: #63382E;
+  --danger: #F07063; --danger-soft: #45292A;
+  --focus-ring: #EE7A63;
+  --separator: rgba(255, 255, 255, .06);
+  --scrim: rgba(0, 0, 0, .5);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, .35);
+  --shadow-sheet: 0 0 0 1px rgba(255, 255, 255, .04), 0 2px 16px rgba(0, 0, 0, .35);
+  --shadow-pop: 0 0 0 1px rgba(255, 255, 255, .07), 0 16px 40px rgba(0, 0, 0, .5);
+  --paper-line: color-mix(in oklab, var(--text) 8%, transparent);
+  --paper-margin: color-mix(in oklab, #EE7A63 38%, transparent);
+  --sticker-shadow: drop-shadow(0 1px 1px rgba(0, 0, 0, .35)) drop-shadow(0 5px 8px rgba(0, 0, 0, .35));
+  --sticker-shadow-lift: drop-shadow(0 2px 2px rgba(0, 0, 0, .35)) drop-shadow(0 12px 16px rgba(0, 0, 0, .45));
+  --postit-yellow: #E6D68E; --postit-pink: #E2BCC6; --postit-green: #BCD5B1; --postit-blue: #B8CCE0;
+  --postit-shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 12px 16px -8px rgba(0, 0, 0, .6);
+  --postit-tape: rgba(255, 255, 255, .28);
+}
+
+[data-theme="blue"] {
+  color-scheme: dark;
+  --bg-0: #121720;  --bg-1: #192029;  --bg-2: #202834;
+  --bg-raised: #28313E; --bg-sunken: #252E3A; --bg-code: #1A212B;
+  --chrome-text: #E5E9EF; --chrome-text-2: #A0AAB8; --chrome-text-3: #8E98A6;
+  --chrome-hover: rgba(200, 220, 255, .05); --chrome-active: #1E2632; --chrome-active-shadow: none;
+  --chrome-sunken: #1C232E; --chrome-icon-active: #F07D67;
+  --chrome-tag-bg: #412E33; --chrome-tag-text: #F5A291;
+  --hover: rgba(200, 220, 255, .05); --active: rgba(200, 220, 255, .09); --selected: #29323F;
+  --text: #E5E9EF; --text-2: #AAB3C0; --text-3: #8E98A6; --text-faint: #5C6675;
+  --accent: #F07D67; --accent-hover: #F49280; --accent-text: #F5A291; --accent-solid: #F07D67;
+  --accent-soft: #412E33; --on-accent: #141921;
+  --selection: rgba(240, 125, 103, .28);
+  --highlight: #4A4631; --match: #5B3539;
+  --danger: #F2766A; --danger-soft: #42292F;
+  --focus-ring: #F07D67;
+  --separator: rgba(200, 220, 255, .06);
+  --scrim: rgba(4, 8, 14, .55);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, .35);
+  --shadow-sheet: 0 0 0 1px rgba(200, 220, 255, .04), 0 2px 16px rgba(0, 0, 0, .4);
+  --shadow-pop: 0 0 0 1px rgba(200, 220, 255, .08), 0 16px 40px rgba(0, 0, 0, .55);
+  --paper-line: color-mix(in oklab, var(--text) 8%, transparent);
+  --paper-margin: color-mix(in oklab, #F07D67 38%, transparent);
+  --sticker-shadow: drop-shadow(0 1px 1px rgba(0, 0, 0, .35)) drop-shadow(0 5px 8px rgba(0, 0, 0, .35));
+  --sticker-shadow-lift: drop-shadow(0 2px 2px rgba(0, 0, 0, .35)) drop-shadow(0 12px 16px rgba(0, 0, 0, .45));
+  --postit-yellow: #E3D490; --postit-pink: #DDBAC6; --postit-green: #B8D2B0; --postit-blue: #B4C9DF;
+  --postit-shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 12px 16px -8px rgba(0, 0, 0, .6);
+  --postit-tape: rgba(255, 255, 255, .25);
+}

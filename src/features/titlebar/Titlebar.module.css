@@ -1,0 +1,52 @@
+.titlebar {
+  --ring-bg: var(--bg-0);
+
+  display: flex;
+  align-items: center;
+  height: var(--titlebar-h);
+  flex: none;
+  background: var(--bg-0);
+  color: var(--chrome-text);
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  height: 100%;
+  min-width: max-content;
+  padding-left: var(--sp-2);
+  flex: none;
+  transition: width var(--dur-slow) var(--ease-in-out);
+}
+
+.noTransition {
+  transition: none;
+}
+
+.appName {
+  font-size: var(--titlebar-title-fs);
+  font-weight: var(--fw-bold);
+  color: var(--chrome-text);
+}
+
+.center {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+  height: 100%;
+  align-items: center;
+  flex: 1;
+  padding: 0 var(--sp-4);
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  flex: none;
+}
+
+.newNote {
+  margin-right: var(--titlebar-new-mr);
+}

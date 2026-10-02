@@ -1,0 +1,23 @@
+.resizer {
+  position: relative;
+  z-index: 5;
+  width: 0;
+  flex: none;
+}
+
+.handle {
+  position: absolute;
+  inset-block: 0;
+  left: calc(var(--resizer-hit) / -2);
+  width: var(--resizer-hit);
+  cursor: col-resize;
+}
+
+.dragging::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: calc((var(--resizer-hit) - var(--resizer-line)) / 2);
+  width: var(--resizer-line);
+  background: var(--accent);
+}

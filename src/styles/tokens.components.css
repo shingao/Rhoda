@@ -1,0 +1,118 @@
+/* Ursa — component tokens.
+   Values taken from the component specs of DESIGN.md (section in brackets)
+   so that no size, colour or duration is hard-coded in component styles.
+   Decisions not covered by DESIGN.md are marked "(decision)" and logged in PROGRESS.md. */
+:root {
+  /* Focus ring [§2] — gap colour comes from --ring-bg, set by each zone */
+  --focus-gap: 2px;
+  --focus-outer: 4px;
+  --ring-bg: var(--bg-2);
+
+  /* Disabled state [§2] */
+  --disabled-opacity: .45;
+
+  /* Titlebar [§2.1] */
+  --titlebar-title-fs: 13.5px;
+  --titlebar-new-mr: 14px;
+  --winctl-w: 46px;
+  --winctl-icon: 13px;
+  --winctl-close-hover: #C42B1C;
+  --winctl-close-pressed: #B22A1C;
+  --winctl-close-icon: #FFFFFF;
+
+  /* Search field [§2.3] */
+  --search-w: 460px;
+  --search-h: 32px;
+  --search-icon: 15px;
+  --search-fs: 13.5px;
+  --search-focus-ring: 1.5px;
+  --search-clear: 22px;
+  --search-clear-icon: 14px;              /* (decision) */
+
+  /* Sidebar item [§2.2] */
+  --sidebar-pad: var(--sp-2);              /* (decision) */
+  --sidebar-item-h: 32px;
+  --sidebar-item-px: 10px;
+  --sidebar-item-gap: 11px;
+  --sidebar-icon: 16px;
+
+  /* Note list + card [§2.4] */
+  --list-header-h: 52px;                   /* (decision) */
+  --list-pad-x: 10px;
+  --card-pad: 14px;
+  --card-gap: 14px;
+  --card-spacing: 4px;
+  --card-meta-fs: 11.5px;
+  --card-meta-icon: 12px;
+  --card-title-fs: var(--fs-lg);
+  --card-preview-fs: var(--fs-sm);
+  --panel-title-fs: var(--fs-xl);          /* [§Échelles] titres de panneau 17/700 */
+
+  /* Editor */
+  --editor-min: 420px;                     /* [§Layout] */
+  --editor-bar-h: 44px;                    /* (decision) */
+  --editor-pad-top: calc(var(--rhythm) * 2);
+  --editor-pad-bottom: 40vh;               /* (decision) lets the last line scroll up */
+  --caret-w: 2px;                          /* [§3] */
+  --caret-blink: 1000ms;                   /* [§3] */
+
+  /* Buttons [§2.18] */
+  --btn-h: 34px;
+  --btn-h-titlebar: 30px;
+  --btn-px: 16px;
+  --btn-px-titlebar: 12px;
+  --btn-fs: 13.5px;
+  --btn-fs-titlebar: var(--fs-sm);
+  --btn-gap: 6px;
+  --btn-icon: 15px;
+  --btn-press-shift: .5px;
+  --icon-btn: 32px;
+  --icon-btn-icon: 16px;
+
+  /* Context menu [§2.21] */
+  --menu-min-w: 200px;
+  --menu-pad: 4px;
+  --menu-item-h: 30px;
+  --menu-item-px: 10px;
+  --menu-fs: 13.5px;
+  --menu-icon: 15px;
+  --menu-sep-margin: 4px 6px;
+  --popover-shift: -4px;                   /* [§4] translateY(−4px→0) */
+  --dur-popover-in: 120ms;                 /* [§4] */
+  --dur-popover-out: 80ms;                 /* [§4] */
+
+  /* Tooltip [§2.22] */
+  --tooltip-pad: 4px 8px;
+  --tooltip-offset: 6px;
+  --tooltip-delay: 500ms;
+  --tooltip-warmup: 800ms;
+
+  /* Scrollbar [§2.23] */
+  --scrollbar-zone: 10px;
+  --scrollbar-inset: 2px;                  /* 10 − 2×2 = 6px thumb */
+  --scrollbar-inset-hover: 1px;            /* 8px thumb */
+  --scrollbar-color: color-mix(in oklab, var(--text-faint) 50%, transparent);
+  --scrollbar-color-hover: color-mix(in oklab, var(--text-faint) 80%, transparent);
+  --scrollbar-hide-delay: 800ms;
+
+  /* Column resizer [§Layout] */
+  --resizer-hit: 6px;
+  --resizer-line: 2px;
+
+  /* Empty states (decision) */
+  --empty-icon: 28px;
+}
+
+/* Reduced motion [§4]: everything instant except opacity fades (80 ms). */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-instant: 0ms;
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+    --dur-popover-in: 80ms;
+    --dur-popover-out: 80ms;
+    --popover-shift: 0px;
+    --caret-blink: 0ms;
+  }
+}

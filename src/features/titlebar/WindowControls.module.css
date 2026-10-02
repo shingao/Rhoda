@@ -1,0 +1,37 @@
+.controls {
+  display: flex;
+  height: 100%;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--winctl-w);
+  height: 100%;
+  color: var(--chrome-text);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.inactive .button {
+  color: var(--chrome-text-3);
+}
+
+.icon {
+  width: var(--winctl-icon);
+  height: var(--winctl-icon);
+}
+
+.button:hover {
+  background: var(--chrome-hover);
+}
+
+.close:hover {
+  background: var(--winctl-close-hover);
+  color: var(--winctl-close-icon);
+}
+
+.close:active {
+  background: var(--winctl-close-pressed);
+  color: var(--winctl-close-icon);
+}

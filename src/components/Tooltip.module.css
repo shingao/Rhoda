@@ -1,0 +1,31 @@
+.anchor {
+  display: inline-flex;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 1000;
+  display: flex;
+  gap: var(--sp-2);
+  padding: var(--tooltip-pad);
+  border-radius: var(--r-sm);
+  background: var(--text);
+  color: var(--bg-2);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, var(--tooltip-offset));
+  animation: tooltip-in var(--dur-popover-in) var(--ease-out);
+}
+
+.shortcut {
+  color: var(--text-faint);
+}
+
+@keyframes tooltip-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(var(--tooltip-offset) + var(--popover-shift)));
+  }
+}

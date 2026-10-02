@@ -1,0 +1,104 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: var(--fs-md);
+  line-height: var(--lh-ui);
+  color: var(--text);
+  background: var(--bg-0);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  cursor: default;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: default;
+}
+
+/* Focus ring [§2]: keyboard only, never the browser outline. */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  box-shadow:
+    0 0 0 var(--focus-gap) var(--ring-bg),
+    0 0 0 var(--focus-outer) var(--focus-ring);
+  transition: box-shadow var(--dur-instant) linear;
+}
+
+/* Overlay scrollbar [§2.23]: visible while scrolling or hovering the panel. */
+::-webkit-scrollbar {
+  width: var(--scrollbar-zone);
+  height: var(--scrollbar-zone);
+  background: transparent;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+}
+
+::-webkit-scrollbar-thumb {
+  border: var(--scrollbar-inset) solid transparent;
+  border-radius: var(--r-pill);
+  background-clip: padding-box;
+  background-color: transparent;
+}
+
+.u-scroll:hover::-webkit-scrollbar-thumb,
+.u-scroll.is-scrolling::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-color);
+}
+
+.u-scroll::-webkit-scrollbar-thumb:hover {
+  border-width: var(--scrollbar-inset-hover);
+  background-color: var(--scrollbar-color-hover);
+}
+
+.u-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Windows high contrast [§5]. */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 2px solid Highlight;
+  }
+}
+
+/* The caret already shows editor focus. */
+.cm-content:focus-visible {
+  box-shadow: none;
+}

@@ -1,0 +1,83 @@
+.field {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  width: var(--search-w);
+  max-width: 100%;
+  height: var(--search-h);
+  padding: 0 var(--sp-3);
+  border-radius: var(--r-md);
+  background: var(--chrome-sunken);
+  color: var(--chrome-text);
+  cursor: text;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-instant) linear;
+}
+
+.field:focus-within {
+  background: var(--bg-2);
+  color: var(--text);
+  box-shadow: 0 0 0 var(--search-focus-ring) var(--accent);
+}
+
+.icon {
+  width: var(--search-icon);
+  height: var(--search-icon);
+  flex: none;
+  color: var(--chrome-text-3);
+}
+
+.field:focus-within .icon {
+  color: var(--text-3);
+}
+
+.input {
+  min-width: 0;
+  flex: 1;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: var(--search-fs);
+}
+
+.input::placeholder {
+  color: var(--chrome-text-3);
+}
+
+.field:focus-within .input::placeholder {
+  color: var(--text-3);
+}
+
+.input:focus-visible {
+  box-shadow: none;
+}
+
+.kbd {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  color: var(--chrome-text-3);
+}
+
+.field:focus-within .kbd {
+  visibility: hidden;
+}
+
+.clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--search-clear);
+  height: var(--search-clear);
+  border-radius: var(--r-sm);
+  color: var(--text-3);
+}
+
+.clear svg {
+  width: var(--search-clear-icon);
+  height: var(--search-clear-icon);
+}
+
+.clear:hover {
+  background: var(--hover);
+}
