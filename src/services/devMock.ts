@@ -3,6 +3,7 @@ import type { NoteFile } from "../core/note/note";
 import demoNote from "../../samples/Démo éditeur.md?raw";
 import longNote from "../../samples/Note longue (5000 lignes).md?raw";
 import mockupNote from "../../samples/Maquette éditeur.md?raw";
+import outlineNote from "../../samples/Maquette sommaire.md?raw";
 
 /**
  * Development only: lets the frontend run in a plain browser (no Tauri) with
@@ -51,6 +52,7 @@ function seed(now: number): Array<[string, string, number]> {
     ["Projet archivé.md", "---\narchived: true\n---\n# Projet archivé\n\nTerminé l'an dernier. #travail\n", now - 90 * DAY],
     ["Démo éditeur.md", demoNote, now - 60_000],
     ["Maquette éditeur.md", mockupNote, now - 90_000],
+    ["Maquette sommaire.md", outlineNote, now - 30_000],
     ["Note longue (5000 lignes).md", longNote, now - 30 * DAY],
   ];
 }

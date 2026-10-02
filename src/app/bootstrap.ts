@@ -3,6 +3,7 @@ import { errorMessage } from "../services/errors";
 import { loadSettings, saveSettings } from "../services/settings";
 import { vaultApi } from "../services/vault";
 import { connectEditor } from "./editorBridge";
+import { loadFolds } from "./folds";
 import { flushAll, handleDiskChanges, loadNotes, prepareClose, purgeOldBackups } from "./notes";
 import { getState, setState, useApp } from "./store";
 import { loadTagConfig } from "./tagOps";
@@ -26,6 +27,7 @@ export async function bootstrap(): Promise<void> {
     const path = settings.vaultPath ?? (await vaultApi.defaultPath());
     await loadNotes(await vaultApi.open(path));
     await loadTagConfig();
+    await loadFolds();
     void purgeOldBackups();
     setState({ vault: { kind: "ready", path } });
 

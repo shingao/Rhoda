@@ -16,9 +16,16 @@ export const SHORTCUTS = {
   "layout.toggleSidebar": { keys: "Ctrl+Backslash", scope: "global" },
   "layout.toggleList": { keys: "Ctrl+Shift+Backslash", scope: "global" },
   "note.trash": { keys: "Delete", scope: "list" },
+  "outline.toggle": { keys: "Ctrl+Shift+O", scope: "global" },
+  // Folding: no [ ] \ (AltGr on AZERTY); arrows and page keys are the same on every layout.
+  "fold.section": { keys: "Ctrl+Shift+ArrowUp", scope: "editor" },
+  "unfold.section": { keys: "Ctrl+Shift+ArrowDown", scope: "editor" },
+  "fold.all": { keys: "Ctrl+Shift+PageUp", scope: "editor" },
+  "unfold.all": { keys: "Ctrl+Shift+PageDown", scope: "editor" },
 } as const satisfies Record<string, { keys: string; scope: ShortcutScope }>;
 
-export type ShortcutScope = "global" | "list";
+/** "editor" shortcuts run inside CodeMirror (see `editorKey`). */
+export type ShortcutScope = "global" | "list" | "editor";
 export type ShortcutId = keyof typeof SHORTCUTS;
 
 const chords = Object.fromEntries(
@@ -36,6 +43,12 @@ export function matchShortcut(e: KeyEventLike, scope: ShortcutScope): ShortcutId
 /** Label shown in tooltips and menus, e.g. "Ctrl Maj \". */
 export function shortcutLabel(id: ShortcutId, messages: Messages): string {
   return formatChord(chords[id], messages.keys);
+}
+
+/** CodeMirror key name of an editor shortcut, e.g. "Ctrl-Shift-ArrowUp". */
+export function editorKey(id: ShortcutId): string {
+  const c = chords[id];
+  return [c.ctrl && "Ctrl", c.shift && "Shift", c.alt && "Alt", c.key].filter(Boolean).join("-");
 }
 
 export type ShortcutHandlers = Partial<Record<ShortcutId, () => void>>;

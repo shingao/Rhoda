@@ -1,7 +1,10 @@
 import type { Compartment} from "@codemirror/state";
 import { Annotation, EditorSelection, EditorState, type Extension } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
-import { refreshPreview } from "./hooks";
+import { foldKeys, matchFoldKeys, type FoldKey } from "../core/folds";
+import { editorHooks, refreshPreview } from "./hooks";
+import { foldField, foldedRanges, setFolds } from "./sections/fold";
+import { headingsIn } from "./sections/headings";
 
 /**
  * Owns the single EditorView and one EditorState per note (keyed by note id),
@@ -17,6 +20,40 @@ let extensions: Extension = [];
 const states = new Map<string, EditorState>();
 /** Options that can change at runtime (typewriter mode…), re-applied to every note's state. */
 const dynamic = new Map<Compartment, Extension>();
+
+/** Delay before reporting fold changes for saving. */
+const FOLD_REPORT_DELAY = 500;
+let foldReport: { id: string; timer: ReturnType<typeof setTimeout> } | null = null;
+
+/** Fold state of a note as keys that survive edits made while it is closed. */
+function currentFoldKeys(state: EditorState): FoldKey[] {
+  const folds = foldedRanges(state);
+  if (folds.length === 0) return [];
+  const headings = headingsIn(state);
+  const folded = new Set(folds.map((f) => f.heading));
+  return foldKeys(
+    headings,
+    headings.flatMap((h, i) => (folded.has(h.from) ? [i] : [])),
+  );
+}
+
+function reportFolds(id: string, state: EditorState, now = false): void {
+  if (foldReport) clearTimeout(foldReport.timer);
+  const run = () => {
+    foldReport = null;
+    editorHooks().foldsChanged(id, currentFoldKeys(state));
+  };
+  if (now) run();
+  else foldReport = { id, timer: setTimeout(run, FOLD_REPORT_DELAY) };
+}
+
+/** Folds the headings matching saved keys (note opened, or reloaded from disk). */
+function restoreFolds(keys: FoldKey[]): void {
+  if (!view || keys.length === 0) return;
+  const headings = headingsIn(view.state);
+  const folds = matchFoldKeys(keys, headings).map((i) => headings[i]!.from);
+  if (folds.length) view.dispatch({ effects: setFolds.of(folds) });
+}
 
 function applyDynamic(): void {
   if (!view || dynamic.size === 0) return;
@@ -41,6 +78,10 @@ export function mountEditor(parent: HTMLElement, ext: Extension, onEdit: (id: st
       if (u.docChanged && currentId && !u.transactions.some((t) => t.annotation(fromDisk))) {
         onEdit(currentId, u.state.doc.toString());
       }
+      const folds = u.state.field(foldField);
+      if (currentId && (folds !== u.startState.field(foldField) || (u.docChanged && folds.folds.length > 0))) {
+        reportFolds(currentId, u.state);
+      }
     }),
   ];
   view = new EditorView({ parent, state: EditorState.create({ extensions: stateExtensions() }) });
@@ -60,9 +101,12 @@ export function unmountEditor(): void {
 export function showNote(id: string | null, body: string): void {
   if (!view || id === currentId) return;
   if (currentId) states.set(currentId, view.state);
+  if (foldReport && view) reportFolds(foldReport.id, view.state, true);
   currentId = id;
-  view.setState(states.get(id ?? "") ?? EditorState.create({ doc: id ? body : "", extensions: stateExtensions() }));
+  const kept = states.get(id ?? "");
+  view.setState(kept ?? EditorState.create({ doc: id ? body : "", extensions: stateExtensions() }));
   applyDynamic();
+  if (!kept && id) restoreFolds(editorHooks().savedFolds(id));
   // A kept state may show stale links or backlinks.
   refreshEditor();
 }
@@ -80,12 +124,14 @@ export function replaceFromDisk(id: string, body: string): void {
   }
   const { state } = view;
   if (state.doc.toString() === body) return;
+  const keys = currentFoldKeys(state);
   const clamp = (n: number) => Math.min(n, body.length);
   view.dispatch({
     changes: { from: 0, to: state.doc.length, insert: body },
     selection: EditorSelection.create(state.selection.ranges.map((r) => EditorSelection.range(clamp(r.anchor), clamp(r.head)))),
     annotations: [fromDisk.of(true)],
   });
+  restoreFolds(keys);
 }
 
 /** Latest text of a note in the editor (open or kept in memory), or null. */

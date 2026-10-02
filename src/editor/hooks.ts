@@ -1,4 +1,5 @@
 import { StateEffect } from "@codemirror/state";
+import type { FoldKey } from "../core/folds";
 
 /**
  * What the editor needs from the rest of the app, injected at startup so the
@@ -19,6 +20,10 @@ export interface EditorHooks {
   backlinks(): Backlink[];
   /** Floating preview of a linked note (hover). */
   linkPreview(target: string): { title: string; text: string } | null;
+  /** Folds saved for a note (`.ursa/folds.json`). */
+  savedFolds(noteId: string): FoldKey[];
+  /** The folds of a note changed (or its folded headings were renamed). */
+  foldsChanged(noteId: string, keys: FoldKey[]): void;
 }
 
 export interface Backlink {
@@ -36,6 +41,8 @@ let hooks: EditorHooks = {
   completions: () => ({ tags: [], titles: [] }),
   backlinks: () => [],
   linkPreview: () => null,
+  savedFolds: () => [],
+  foldsChanged: () => undefined,
 };
 
 export function setEditorHooks(next: Partial<EditorHooks>): void {

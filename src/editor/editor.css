@@ -2,6 +2,12 @@
    Line-level rules use `.cm-editor .cm-line.<class>` so they win over
    CodeMirror's own line padding (injected at runtime). */
 
+/* CodeMirror's zero-width images around widgets default to `text-top`, which
+   makes a 23 px heading line 29 px tall: keep them inside the line box (rhythm). */
+.cm-editor .cm-widgetBuffer {
+  vertical-align: top;
+}
+
 /* Syntax shown on the active line(s) */
 .cm-syntax {
   opacity: var(--syntax-opacity);
@@ -510,4 +516,85 @@
     opacity: 0;
     transform: translateY(var(--popover-shift));
   }
+}
+
+/* Folding [§2.13]: chevron 22 px left of the column, on hover; always shown when folded */
+.cm-fold-anchor {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 1lh;
+  vertical-align: top;
+}
+
+.cm-fold-chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 50%;
+  left: calc(-1 * var(--fold-chevron-left));
+  width: var(--fold-chevron);
+  height: var(--fold-chevron);
+  border-radius: var(--r-xs);
+  color: var(--text-faint);
+  opacity: 0;
+  transform: translateY(-50%);
+  cursor: pointer;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.cm-fold-chevron svg {
+  width: var(--fold-chevron-icon);
+  height: var(--fold-chevron-icon);
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+.cm-fold-chevron:hover,
+.cm-fold-chevron.is-folded {
+  color: var(--text-2);
+  background: var(--hover);
+  opacity: 1;
+}
+
+.cm-line:hover .cm-fold-chevron {
+  opacity: 1;
+}
+
+.cm-fold-chevron.is-folded svg {
+  transform: rotate(-90deg);
+}
+
+/* Badge after a folded heading: "···" or "7 tâches · 4 faites"; click = unfold.
+   The outer box is exactly one line tall and top-aligned, so the pill is centred
+   on the heading and the line keeps its rhythm height. */
+.cm-fold-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 1lh;
+  margin-left: var(--fold-badge-gap);
+  vertical-align: top;
+  cursor: pointer;
+  user-select: none;
+}
+
+.cm-fold-pill {
+  display: inline-flex;
+  align-items: center;
+  height: var(--fold-badge-h);
+  padding: var(--fold-badge-pad);
+  border-radius: var(--r-pill);
+  background: var(--bg-sunken);
+  color: var(--text-3);
+  font-family: var(--font-ui);
+  font-size: var(--fold-badge-fs);
+  font-style: normal;
+  font-variant: normal;
+  font-weight: var(--fw-medium);
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.cm-fold-badge:hover .cm-fold-pill {
+  color: var(--text-2);
 }

@@ -7,6 +7,9 @@ import { backlinks } from "./backlinks";
 import { completions } from "./completion";
 import { markdownLanguage } from "./language";
 import { linkPreview } from "./linkPreview";
+import { foldChevrons } from "./sections/chevrons";
+import { folding, foldAll, foldCurrent, unfoldAll, unfoldCurrent } from "./sections/fold";
+import { editorKey } from "../app/shortcuts";
 import { livePreview } from "./livePreview/plugin";
 import "./editor.css";
 
@@ -57,6 +60,14 @@ export function editorExtensions(): Extension {
     rawMarkdown ? [] : livePreview,
     rawMarkdown ? [] : [linkPreview(), backlinks],
     completions(),
+    folding,
+    foldChevrons,
+    keymap.of([
+      { key: editorKey("fold.section"), run: foldCurrent },
+      { key: editorKey("unfold.section"), run: unfoldCurrent },
+      { key: editorKey("fold.all"), run: foldAll },
+      { key: editorKey("unfold.all"), run: unfoldAll },
+    ]),
     keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
     // Functions, so the texts follow the language setting.
     placeholder(() => {

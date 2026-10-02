@@ -252,6 +252,15 @@
   --completion-max-h: 260px;
   --completion-w: 240px;
 
+  /* Folding chevron and badge [§2.13] */
+  --fold-chevron: 18px;
+  --fold-chevron-left: 22px;               /* left edge, from the text column */
+  --fold-chevron-icon: 14px;
+  --fold-badge-h: 20px;
+  --fold-badge-pad: 0 var(--sp-2);
+  --fold-badge-fs: 12px;
+  --fold-badge-gap: var(--sp-2);
+
   /* Empty states (decision) */
   --empty-icon: 28px;
 }

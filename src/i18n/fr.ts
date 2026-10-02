@@ -19,6 +19,10 @@ export const fr = {
     Enter: "Entrée",
     Escape: "Échap",
     Backslash: "\\",
+    ArrowUp: "↑",
+    ArrowDown: "↓",
+    PageUp: "Pg préc",
+    PageDown: "Pg suiv",
   } as Record<string, string>,
   titlebar: {
     showSidebar: "Afficher la barre latérale",
@@ -183,6 +187,13 @@ export const fr = {
     },
     backupFailed: "Opération abandonnée : la sauvegarde de sécurité a échoué.",
     linksNotUpdated: "Liens non mis à jour : la sauvegarde de sécurité a échoué. Nouvel essai à la prochaine modification.",
+  },
+  folding: {
+    fold: "Replier la section",
+    unfold: "Déplier la section",
+    foldAll: "Tout replier",
+    unfoldAll: "Tout déplier",
+    tasks: (total: number, done: number) => `${total} tâche${total > 1 ? "s" : ""} · ${done} faite${done > 1 ? "s" : ""}`,
   },
   links: {
     updated: (links: number, notes: number) =>

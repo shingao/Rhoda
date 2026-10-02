@@ -17,6 +17,10 @@ export const en: Messages = {
     Enter: "Enter",
     Escape: "Esc",
     Backslash: "\\",
+    ArrowUp: "↑",
+    ArrowDown: "↓",
+    PageUp: "PgUp",
+    PageDown: "PgDn",
   },
   titlebar: {
     showSidebar: "Show sidebar",
@@ -174,6 +178,13 @@ export const en: Messages = {
     },
     backupFailed: "Cancelled: the safety backup failed.",
     linksNotUpdated: "Links not updated: the safety backup failed. Will retry at the next edit.",
+  },
+  folding: {
+    fold: "Fold section",
+    unfold: "Unfold section",
+    foldAll: "Fold all",
+    unfoldAll: "Unfold all",
+    tasks: (total: number, done: number) => `${total} item${total > 1 ? "s" : ""} · ${done} done`,
   },
   links: {
     updated: (links, notes) => `${links} link${links > 1 ? "s" : ""} updated in ${notes} note${notes > 1 ? "s" : ""}`,

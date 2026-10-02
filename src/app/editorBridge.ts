@@ -3,6 +3,7 @@ import { snippetAround } from "../core/note/text";
 import { setEditorHooks, type Backlink } from "../editor/hooks";
 import { focusEditor, refreshEditor } from "../editor/session";
 import { confirmAction } from "./confirm";
+import { rememberFolds, savedFolds } from "./folds";
 import { currentMessages } from "./i18n";
 import { noteIndex, resolveTitle } from "./noteIndex";
 import { createNote, revealNote, setFilter } from "./notes";
@@ -67,6 +68,8 @@ export function connectEditor(): void {
       return { tags: [...index.tags.byKey.values()].map((n) => n.path), titles };
     },
     backlinks: () => backlinksOf(getState().selectedId),
+    savedFolds,
+    foldsChanged: rememberFolds,
     linkPreview: (target) => {
       const id = resolve(target);
       const note = id ? getState().notes[id] : undefined;
