@@ -1,5 +1,5 @@
 import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
-import type { Extension } from "@codemirror/state";
+import { Prec, type Extension } from "@codemirror/state";
 import { drawSelection, EditorView, keymap, placeholder } from "@codemirror/view";
 import { cssMs } from "../app/cssTokens";
 import { currentMessages } from "../app/i18n";
@@ -65,7 +65,8 @@ export function editorExtensions(): Extension {
     completions(),
     folding,
     isolationField,
-    findField,
+    // Highest precedence = innermost: occurrence marks nest inside tag pills and links instead of splitting them.
+    Prec.highest(findField),
     foldChevrons,
     outlineReporter,
     keymap.of([

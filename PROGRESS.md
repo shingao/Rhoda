@@ -1,6 +1,6 @@
 # Ursa — PROGRESS
 
-État : **Phase 4 terminée** (à valider sur Windows) — en attente du « go » pour la phase 5.
+État : **Phase 5 terminée** (à valider sur Windows) — en attente du « go » pour la phase 6.
 
 | Phase | Sujet | État |
 |---|---|---|
@@ -8,9 +8,9 @@
 | 1 | Squelette et fichiers | ✅ validée |
 | 2 | Éditeur Markdown live | ✅ validée |
 | 3 | Tags, liens, todos, sections | ✅ validée |
-| 4 | Sommaire, folding, focus de section | ✅ fait (à valider sur Windows) |
-| 5 | Recherche | ⏳ en attente du go |
-| 6 | Thèmes, fonds de page, rythme, réglages | — |
+| 4 | Sommaire, folding, focus de section | ✅ validée |
+| 5 | Recherche | ✅ fait (à valider sur Windows) |
+| 6 | Thèmes, fonds de page, rythme, réglages | ⏳ en attente du go (+ section « Sauvegardes », voir phase 5) |
 | 7 | Images, aperçus de liens, PDF | — |
 | 8 | Stickers et post-it | — |
 | 9 | OCR local | — |
@@ -375,6 +375,75 @@ Copie `samples/Maquette sommaire.md` dans `Documents\Ursa` et ouvre-la.
 9. Ctrl+Maj+Entrée dans « Jour 1 » : seule cette section reste, sous une barre « Section isolée… » ; Ctrl+A ne sélectionne qu'elle ; Échap ou « Afficher toute la note » pour revenir.
 10. Ouvre `Note longue (5000 lignes).md`, fais glisser l'ascenseur d'un bout à l'autre, change de note et reviens : défilement fluide, position retrouvée (et, avec les outils de dev ouverts, aucun avertissement « Measure loop »).
 11. Sauvegardes : supprime un tag (clic droit), clique « Annuler » dans le toast avant 8 s : les notes retrouvent leur tag ; `.ursa\backups\` contient un dossier `<date-heure>-delete-tag`.
+
+## Phase 5 — Recherche
+
+Livrée en sous-étapes : 5a moteur (cœur testé, banc de 1 000 notes), 5b interface de recherche globale, 5c recherche et remplacement dans la note.
+
+### Fait
+- **Moteur** (`src/core/search/`, sans dépendance à React ni à Tauri) :
+  - **pliage pour le français** : casse, accents et ligatures ignorés (`ete` trouve « été », `oeuvre` trouve « œuvre », `strasse` trouve « Straße », apostrophes typographiques unifiées), avec une table de correspondance vers le texte d'origine pour surligner exactement ;
+  - les **mots** se cherchent en début de mot (`ete` ne trouve pas « complète »), les **phrases** entre guillemets n'importe où ; tous les mots sont requis ;
+  - **syntaxe combinable** : `@todo`, `@done`, `@untagged`, `@pinned`, `@today`, `@images`, `@pdf`, `#tag` (un tag parent inclut ses sous-tags, accents ignorés), `"phrase exacte"`, `-mot`, `-"phrase"`, `-#tag`, `-@op` ;
+  - **classement** : titre > tag > contenu (cumulé sur les mots), puis récence ; sans mot (opérateurs seuls), l'ordre de tri de la liste ;
+  - le **frontmatter n'est jamais cherché** (seuls titre, tags, corps et sources annexes sont indexés) ;
+  - **index incrémental** : une entrée par objet note, recalculée seulement quand la note change (frappe, sauvegarde, rechargement par le watcher) ; préchauffé par lots de 50 notes pendant les temps morts, pour que la première frappe soit aussi rapide que les autres ;
+  - **sources de texte extensibles** : `registerTextSource({ name, text(note) })` ; l'OCR (phase 9) s'y branchera et ses correspondances s'afficheront avec « Trouvé dans l'image » (déjà prévu sur les cartes et testé avec une fausse source).
+- **Recherche globale** (Ctrl+K, maquette « recherche active ») :
+  - la liste devient « Résultats N notes » dès la frappe ; cartes avec un **extrait autour de la correspondance** (texte brut, coupé au mot) et les occurrences en `<mark>` `--match`, titre surligné aussi ;
+  - opérateurs et tags complets deviennent des **jetons** (opérateur en mono accent, tag en pastille) ; Retour arrière au début sélectionne le dernier jeton, un second le supprime ;
+  - **autocomplétion** dans la barre : `@` propose les opérateurs avec leur description, `#` les tags du coffre ;
+  - « N résultats » et le bouton effacer dans le champ ;
+  - **clavier** : ↑ / ↓ parcourent les résultats (la note s'affiche), **Entrée ouvre** le résultat choisi (ou le premier) avec le focus dans l'éditeur, **Échap vide** la recherche et rend le focus à l'éditeur ;
+  - **ouvrir un résultat** surligne toutes les occurrences dans la note, sélectionne la première, la fait défiler au centre et **déplie la section repliée** (ou sort de l'isolement) qui la cache, via `visibility.ts` ; barre « N occurrences ↑ ↓ » dans la barre de l'éditeur pour passer de l'une à l'autre ;
+  - **portée** : tout le coffre sauf la corbeille ; les notes archivées apparaissent avec un marqueur « Archivée » ; dans la vue Corbeille, la recherche porte sur la corbeille seulement ;
+  - **aucun résultat** : « Aucune note ne correspond à « … » », un conseil, et le bouton « Créer la note « … » ».
+- **Dans la note** :
+  - **Ctrl+F** : panneau flottant, compteur « 3 / 12 », Entrée / Maj+Entrée, ↑ ↓, Échap ; mêmes règles de casse et d'accents ; part de la sélection, sinon des mots de la recherche globale ; une occurrence cachée dans une section repliée est révélée ;
+  - **Ctrl+H** : remplacer (puis passer à la suivante) et **tout remplacer en une seule transaction**, annulable par **un seul Ctrl+Z** (pas d'ouverture des sections repliées) ; toast « N remplacements — Ctrl+Z pour annuler ».
+- **Performances** (1 000 notes générées, 2,6 M caractères, `src/dev/generateNotes.ts`) :
+  - moteur seul (Vitest) : index construit en 101 ms une fois, puis **3,2 ms en moyenne, 5,9 ms au pire par frappe** (requête + parcours + classement + extraits des cartes visibles) ;
+  - interface, build de production dans Chromium, de la touche à l'image affichée : **médiane 22,6 ms, 95e centile 36 ms, pire 46,5 ms**, aucune tâche longue ; pas besoin de worker. Leviers : liste calculée une fois par changement et partagée par le champ et la colonne, `useDeferredValue`, cartes rendues par pages de 30 au défilement.
+- **Vérifié dans la vraie app** (Linux/Xvfb) : Ctrl+K « ete », la note « Démo éditeur » s'ouvre sur `#été`, « 1 occurrence ↑ ↓ ».
+- Correctif : une occurrence dans une pastille de tag la coupait en deux ; les marques d'occurrence sont maintenant dessinées à l'intérieur des pastilles et des liens.
+- Tests : **131 Vitest** (dont 16 sur le moteur et la syntaxe, 4 sur le pliage, 2 bancs de performance, 3 sur la recherche dans la note dont « tout remplacer = un seul Ctrl+Z »), 14 Rust.
+- Captures : `docs/captures/phase-5/` (suggestions d'opérateurs, jetons et résultats, résultat ouvert à la correspondance, accents, aucun résultat, résultat dans une section repliée, note archivée, Ctrl+F, Ctrl+H, app réelle).
+
+### Décisions (phase 5)
+| # | Sujet | Décision |
+|---|---|---|
+| P5-1 | Portée | Tout le coffre (hors corbeille) quelle que soit la section ou le tag sélectionné, comme « Résultats » sur la maquette ; `#tag` sert à restreindre. Vue Corbeille : la corbeille seulement. |
+| P5-2 | Correspondance des mots | En début de mot (un mot tapé est un préfixe) ; phrases entre guillemets n'importe où. Le texte tapé dans Ctrl+F se cherche n'importe où (comme un éditeur). |
+| P5-3 | Classement | Score = somme, pour chaque mot, de sa meilleure place (titre 3, tag 2, contenu 1), puis date de modification. |
+| P5-4 | `@done` / `@images` / `@pdf` | `@done` = notes dont toutes les tâches sont faites ; `@images` = image Markdown ou `<img>` ; `@pdf` = lien vers un `.pdf` (union des listes du brief et de DESIGN, D8). |
+| P5-5 | Jetons | Un opérateur ou un tag devient un jeton quand on tape l'espace qui le suit ; `@to` en cours de frappe n'est pas cherché comme un mot. |
+| P5-6 | ↑ / ↓ dans le champ | Changent la note sélectionnée (l'éditeur l'affiche à sa première occurrence) sans quitter le champ ; Entrée y envoie le focus. |
+| P5-7 | Panneau Ctrl+F / Ctrl+H | DESIGN ne décrit que la barre « N occurrences ↑ ↓ » ; le champ de recherche dans la note est une carte flottante sous la barre de l'éditeur (même surface que les popovers), qui remplace la barre tant qu'elle est ouverte. |
+| P5-8 | Surlignage dans l'éditeur | Les mots de la recherche globale sont surlignés dans toute note ouverte pendant la recherche ; Ctrl+F prend le relais tant qu'il est ouvert. |
+| P5-9 | Liste longue | Cartes rendues par pages de 30 au défilement (virtualisation complète en phase 10). |
+| P5-10 | Mesure en production | `VITE_URSA_MOCK=1 npx vite build --outDir …` produit un build de production avec le coffre factice, pour mesurer sans le surcoût du mode développement de React (×7 sur cette page). |
+
+### Comparaison avec la maquette « recherche active »
+**Conforme** : champ actif fond `--bg-2` + anneau accent 1,5 px, jetons `@todo` (mono, `--accent-soft`) et `#voyages` (pastille), « N résultats » + `x` ; titre « Résultats » + « N notes » ; extraits avec occurrences `--match` ; occurrence courante dans l'éditeur en `--match` + anneau accent ; barre « N occurrences ↑ ↓ » en `--bg-sunken` dans la barre de l'éditeur.
+
+**Écarts** :
+- Résultat OCR (« Found in image » + rectangle sur la miniature) : prévu dans la carte, branché en phases 7 (miniatures) et 9 (OCR).
+- Les jetons apparaissent au moment où on tape l'espace qui suit l'opérateur ; un opérateur tapé au milieu du texte puis complété devient aussi un jeton, en fin de liste des jetons.
+
+### À faire en phase 6 (demandé à la validation de la phase 4)
+- Réglages › **Sauvegardes** : liste des dossiers de `.ursa/backups/` (date, opération, nombre de notes) avec un bouton « Restaurer » : même vérification qu'« Annuler », et confirmation si des notes ont été modifiées depuis.
+
+### Checklist de test manuel (phase 5)
+1. Ctrl+K, tape `kyoto` : la liste devient « Résultats », les cartes montrent un extrait avec « Kyoto » surligné ; les notes dont le titre contient le mot sont en tête.
+2. Tape `ete` : « été » est trouvé ; `oeuvre` trouve « œuvre ». `ete` ne trouve pas « complète ». Le contenu du frontmatter (ex. l'`id`) ne donne jamais de résultat.
+3. Tape `@to` : la liste d'autocomplétion propose `@todo` / `@today` ; Entrée, puis `#voy` et Entrée : deux jetons ; ajoute `kyoto`. Retour arrière deux fois au début du champ retire le dernier jeton.
+4. Essaie `"chemin du philosophe"`, `kyoto -ryokan`, `#voyages` (sous-tags inclus), `@done`, `@untagged`, `@pinned`, `@today`.
+5. ↑ / ↓ dans le champ : la note affichée change et défile jusqu'à l'occurrence ; Entrée : le focus passe dans l'éditeur, « N occurrences ↑ ↓ » permet de naviguer. Échap dans le champ : la recherche est vidée, le focus revient à l'éditeur.
+6. Replie une section, cherche un mot qui n'est que dans cette section, Entrée : la section se déplie sur l'occurrence.
+7. Archive une note puis cherche-la : elle apparaît avec « Archivée ». Mets une note à la corbeille : absente des résultats, présente si tu cherches depuis la vue Corbeille.
+8. Cherche `zzzz` : message clair et bouton « Créer la note « zzzz » ».
+9. Dans une note : Ctrl+F, tape `KYOTO` → « 1 / 4 », Entrée / Maj+Entrée ; Ctrl+H, remplace une occurrence, puis « Tout remplacer » ; un seul Ctrl+Z dans l'éditeur annule tout le remplacement.
+10. Performances : copie 1 000 notes dans le dossier (ou plus), tape dans la recherche : la saisie reste fluide.
 
 ---
 
