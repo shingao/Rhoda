@@ -8,6 +8,7 @@ import { shortcutLabel } from "../../app/shortcuts";
 import { activeQuery, currentList, useApp } from "../../app/store";
 import { fold } from "../../core/search/fold";
 import { OPERATORS } from "../../core/search/query";
+import { formatTag } from "../../core/tags";
 import { focusEditor } from "../../editor/session";
 import s from "./SearchField.module.css";
 
@@ -67,15 +68,22 @@ export function SearchField() {
   const showSuggestions = suggestOpen && focused && suggestions.length > 0;
 
   const update = (text: string, caretAt: number) => {
+    let chips = search.chips;
+    // Starting a search while a tag is selected in the sidebar: the search starts inside it.
+    const { filter } = useApp.getState();
+    if (!chips.length && !search.text && text.trim() && filter.kind === "tag") {
+      const node = noteIndex(notes).tags.byKey.get(filter.key);
+      if (node) chips = [formatTag(node.path)];
+    }
     const done = COMPLETED.exec(text.slice(0, caretAt));
     if (done && isChip(done[2]!)) {
       const start = done.index + done[1]!.length;
       const rest = text.slice(0, start) + text.slice(caretAt);
-      setSearch({ chips: [...search.chips, done[2]!], text: rest });
+      setSearch({ chips: [...chips, done[2]!], text: rest });
       setCaret(start);
       requestAnimationFrame(() => input.current?.setSelectionRange(start, start));
     } else {
-      setSearch({ chips: search.chips, text });
+      setSearch({ chips, text });
       setCaret(caretAt);
     }
     setArmed(false);

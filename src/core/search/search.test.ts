@@ -50,6 +50,15 @@ describe("search", () => {
     expect(run(all, "compl")).toEqual(["Lectures"]);
   });
 
+  it("apostrophes (straight and typographic) and hyphens split words", () => {
+    const words = [note("# Mots\nDe l'été et de l’hiver, un porte-monnaie, #voyages/japon-2026.\n")];
+    expect(run(words, "ete")).toEqual(["Mots"]);
+    expect(run(words, "hiver")).toEqual(["Mots"]);
+    expect(run(words, "monnaie")).toEqual(["Mots"]);
+    expect(run(words, "2026")).toEqual(["Mots"]);
+    expect(snippet(words[0]!, parseQuery("ete"))!.text).toContain("l'été");
+  });
+
   it("ranks title > tag > content, then the most recent", () => {
     expect(run(all, "kyoto")).toEqual(["Voyage à Kyoto", "Carnet", "Budget voyages 2026", "Ancienne"]);
   });
@@ -73,6 +82,7 @@ describe("search", () => {
 
   it("supports the operators", () => {
     expect(run(all, "@todo")).toEqual(["Voyage à Kyoto"]);
+    // Notes without any task are not "done".
     expect(run(all, "@done")).toEqual(["Courses"]);
     expect(run(all, "@untagged")).toEqual(["Lectures", "Courses", "Ancienne"]);
     expect(run(all, "@pinned")).toEqual(["Courses"]);

@@ -422,6 +422,7 @@ Livrée en sous-étapes : 5a moteur (cœur testé, banc de 1 000 notes), 5b inte
 | P5-8 | Surlignage dans l'éditeur | Les mots de la recherche globale sont surlignés dans toute note ouverte pendant la recherche ; Ctrl+F prend le relais tant qu'il est ouvert. |
 | P5-9 | Liste longue | Cartes rendues par pages de 30 au défilement (virtualisation complète en phase 10). |
 | P5-10 | Mesure en production | `VITE_URSA_MOCK=1 npx vite build --outDir …` produit un build de production avec le coffre factice, pour mesurer sans le surcoût du mode développement de React (×7 sur cette page). |
+| P5-11 | Retours de validation | Si un tag est sélectionné dans la sidebar quand on commence à taper, la recherche démarre avec le jeton `#tag` correspondant (Retour arrière le retire). L'apostrophe (droite et typographique) et le tiret coupent les mots : `ete` trouve « l'été », `monnaie` « porte-monnaie », `2026` « japon-2026 » (testé). `@done` exclut les notes sans tâche (testé). |
 
 ### Comparaison avec la maquette « recherche active »
 **Conforme** : champ actif fond `--bg-2` + anneau accent 1,5 px, jetons `@todo` (mono, `--accent-soft`) et `#voyages` (pastille), « N résultats » + `x` ; titre « Résultats » + « N notes » ; extraits avec occurrences `--match` ; occurrence courante dans l'éditeur en `--match` + anneau accent ; barre « N occurrences ↑ ↓ » en `--bg-sunken` dans la barre de l'éditeur.
