@@ -71,6 +71,12 @@
 
 **5. Raccourcis** — tous déclarés dans `src/app/shortcuts.ts` (`SHORTCUTS` : id → touches + portée `global` | `list`) ; les composants n'y font référence que par id, et les libellés des tooltips/menus en sont dérivés. Analyse/correspondance/affichage dans `src/core/keys.ts` (testé) : lettres comparées par caractère (fonctionne en AZERTY), ponctuation par touche physique. Restent hors config, volontairement : touches de navigation imposées par les conventions ARIA (flèches, Début/Fin, Entrée, Échap, Tab) et touches d'édition de CodeMirror. Phase 10 : surcharges utilisateur dans `settings.shortcuts` appliquées sur `SHORTCUTS`.
 
+**6. Échecs de sauvegarde visibles** — après **plus de 2 échecs consécutifs** de sauvegarde d'une note, une icône `circle-alert` (`--danger`) apparaît dans la barre de l'éditeur ; son tooltip (aussi atteignable au clavier) donne la raison : « Non sauvegardé : le fichier est verrouillé par un autre programme. Nouvel essai automatique. ». Le backend renvoie désormais des erreurs typées (`locked`, `permissionDenied`, `diskFull`, `readOnly`, `notFound`…) traduites dans `src/i18n`. L'icône disparaît à la première sauvegarde réussie. Les échecs de renommage restent silencieux.
+
+**7. Fermeture avec du contenu non sauvegardé** — à la fermeture, tout est d'abord sauvegardé ; s'il reste du texte non écrit, une modale (§2.17) « Modifications non enregistrées » liste les notes et la cause, avec **Réessayer** (action principale, focus initial : Entrée ne fait jamais perdre de texte), **Enregistrer une copie ailleurs…** (boîte de dialogue native « Enregistrer sous » pour une note, choix d'un dossier pour plusieurs ; le chemin est choisi côté Rust, l'interface ne peut pas écrire ailleurs que dans le coffre) et **Quitter quand même** (bouton danger). Échap ou clic hors de la modale = annuler la fermeture.
+
+**8. Libellés** — l'interface française fait foi : DESIGN.md a une section « 0. Langue et libellés » (tableau FR/EN) et tous ses libellés sont passés en français.
+
 ### Stratégie prévue (phase 3) : mise à jour automatique des [[wiki-links]] au changement de titre
 - **Déclencheur** : le même point de contrôle que le renommage du fichier (2 s d'inactivité, changement de note, perte de focus, fermeture), jamais à chaque frappe, pour ne pas réécrire les liens sur des titres intermédiaires (« Jap », « Japo »…). L'ancien titre est celui du dernier point de contrôle.
 - **Ciblage par `id`** : l'index des backlinks (construit avec le parseur Lezer partagé, donc les liens dans du code sont ignorés) associe chaque `[[…]]` résolu à l'`id` de la note cible. On ne réécrit que les liens résolus vers *cette* note ; si l'ancien titre était ambigu (plusieurs notes du même titre), on ne touche à rien.
@@ -118,7 +124,6 @@
 - Scrollbar : le pouce s'élargit à 8 px au survol du pouce lui-même, pas de toute la zone de 10 px (limite de `::-webkit-scrollbar`).
 - Snap Layouts de Windows 11 absents au survol de « Agrandir » (limite Tauri, cf. risque 6).
 - Markdown brut dans l'éditeur (attendu : live preview en phase 2).
-- Libellés en français (« Nouvelle note », « Rechercher »…) au lieu de l'anglais de DESIGN.md, à ta demande ; la largeur du bouton principal varie donc avec la langue.
 
 ---
 

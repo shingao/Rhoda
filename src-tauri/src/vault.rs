@@ -15,6 +15,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use serde::Serialize;
 use tauri::{AppHandle, Manager, State};
 
+use crate::error::{io_kind, CmdError, CmdResult, ErrorKind};
 use crate::watcher::{self, VaultWatcher};
 
 const INTERNAL_DIR: &str = ".ursa";
@@ -43,12 +44,6 @@ pub struct NoteFile {
     pub created: f64,
 }
 
-type CmdResult<T> = Result<T, String>;
-
-fn err<E: std::fmt::Display>(e: E) -> String {
-    e.to_string()
-}
-
 fn to_ms(t: io::Result<SystemTime>) -> f64 {
     t.ok()
         .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
@@ -59,10 +54,9 @@ fn to_ms(t: io::Result<SystemTime>) -> f64 {
 fn current_root(state: &State<'_, VaultState>) -> CmdResult<PathBuf> {
     state
         .root
-        .lock()
-        .map_err(err)?
+        .lock()?
         .clone()
-        .ok_or_else(|| "No vault is open".to_string())
+        .ok_or_else(|| CmdError::other("No vault is open"))
 }
 
 /// Joins a frontend-provided relative path to the root, refusing anything that
@@ -72,7 +66,7 @@ fn resolve(root: &Path, rel: &str) -> CmdResult<PathBuf> {
     if rel.components().all(|c| matches!(c, Component::Normal(_))) && rel.components().next().is_some() {
         Ok(root.join(rel))
     } else {
-        Err(format!("Invalid note path: {}", rel.display()))
+        Err(CmdError::new(ErrorKind::InvalidName, format!("Invalid note path: {}", rel.display())))
     }
 }
 
@@ -135,10 +129,7 @@ fn scan_dir(root: &Path, dir: &Path, out: &mut Vec<NoteFile>) {
 /// Errors worth retrying: on Windows an antivirus, the search indexer or a sync
 /// client may briefly hold the file (access denied / sharing violation).
 fn is_transient(e: &io::Error) -> bool {
-    const ERROR_SHARING_VIOLATION: i32 = 32;
-    const ERROR_LOCK_VIOLATION: i32 = 33;
-    matches!(e.kind(), io::ErrorKind::PermissionDenied | io::ErrorKind::ResourceBusy)
-        || (cfg!(windows) && matches!(e.raw_os_error(), Some(ERROR_SHARING_VIOLATION | ERROR_LOCK_VIOLATION)))
+    matches!(io_kind(e), ErrorKind::Locked | ErrorKind::PermissionDenied)
 }
 
 fn with_retry<T>(mut op: impl FnMut() -> io::Result<T>) -> io::Result<T> {
@@ -211,21 +202,21 @@ fn is_reserved_name(stem: &str) -> bool {
 
 /// Defensive check: the frontend sanitizes titles, the backend refuses anything
 /// that would still be an invalid Windows file name.
-fn validate_stem(stem: &str) -> CmdResult<()> {
+pub(crate) fn validate_stem(stem: &str) -> CmdResult<()> {
     let bad = stem.is_empty()
         || stem.starts_with('.')
         || stem.ends_with(['.', ' '])
         || stem.chars().any(|c| matches!(c, '<' | '>' | ':' | '"' | '/' | '\\' | '|' | '?' | '*') || c.is_control())
         || is_reserved_name(stem);
     if bad {
-        Err(format!("Invalid file name: {stem}"))
+        Err(CmdError::new(ErrorKind::InvalidName, format!("Invalid file name: {stem}")))
     } else {
         Ok(())
     }
 }
 
 /// Shortens `stem` so that `dir\stem 999.md` stays within MAX_PATH.
-fn fit_stem(dir: &Path, stem: &str) -> CmdResult<String> {
+pub(crate) fn fit_stem(dir: &Path, stem: &str) -> CmdResult<String> {
     let dir_units = dir.to_string_lossy().encode_utf16().count();
     let budget = MAX_PATH_UNITS.saturating_sub(dir_units + 1 + SUFFIX_RESERVE + NOTE_EXT.len());
     let mut fitted = String::new();
@@ -239,7 +230,7 @@ fn fit_stem(dir: &Path, stem: &str) -> CmdResult<String> {
     }
     let fitted = fitted.trim_end_matches(['.', ' ']);
     if fitted.is_empty() {
-        Err("The notes folder path is too long for a file name".into())
+        Err(CmdError::new(ErrorKind::InvalidName, "The notes folder path is too long for a file name"))
     } else {
         Ok(fitted.to_string())
     }
@@ -248,7 +239,7 @@ fn fit_stem(dir: &Path, stem: &str) -> CmdResult<String> {
 /// First free name among `stem.md`, `stem 2.md`, `stem 3.md`… compared without
 /// case, like NTFS. `current` is the note being renamed: if it already holds a
 /// candidate name (exactly or up to case) it keeps it rather than moving.
-fn unique_note_path(dir: &Path, stem: &str, current: Option<&Path>) -> io::Result<PathBuf> {
+pub(crate) fn unique_note_path(dir: &Path, stem: &str, current: Option<&Path>) -> io::Result<PathBuf> {
     let taken: HashSet<String> = fs::read_dir(dir)?
         .flatten()
         .map(|e| e.file_name().to_string_lossy().to_lowercase())
@@ -269,7 +260,7 @@ fn unique_note_path(dir: &Path, stem: &str, current: Option<&Path>) -> io::Resul
 
 #[tauri::command]
 pub fn default_vault_path(app: AppHandle) -> CmdResult<String> {
-    let docs = app.path().document_dir().map_err(err)?;
+    let docs = app.path().document_dir()?;
     Ok(docs.join("Ursa").to_string_lossy().into_owned())
 }
 
@@ -278,21 +269,21 @@ pub fn default_vault_path(app: AppHandle) -> CmdResult<String> {
 #[tauri::command]
 pub async fn open_vault(app: AppHandle, state: State<'_, VaultState>, path: String) -> CmdResult<Vec<NoteFile>> {
     let root = PathBuf::from(&path);
-    fs::create_dir_all(root.join(INTERNAL_DIR)).map_err(err)?;
+    fs::create_dir_all(root.join(INTERNAL_DIR))?;
     let version = root.join(INTERNAL_DIR).join("version");
     if !version.exists() {
-        atomic_write(&version, SCHEMA_VERSION).map_err(err)?;
+        atomic_write(&version, SCHEMA_VERSION)?;
     }
-    let root = dunce(fs::canonicalize(&root).map_err(err)?);
+    let root = dunce(fs::canonicalize(&root)?);
 
     let mut notes = Vec::new();
     scan_dir(&root, &root, &mut notes);
 
     // Drop the previous watcher before starting a new one.
-    *state.watcher.lock().map_err(err)? = None;
-    let w = watcher::start(app, root.clone()).map_err(err)?;
-    *state.watcher.lock().map_err(err)? = Some(w);
-    *state.root.lock().map_err(err)? = Some(root);
+    *state.watcher.lock()? = None;
+    let w = watcher::start(app, root.clone()).map_err(CmdError::other)?;
+    *state.watcher.lock()? = Some(w);
+    *state.root.lock()? = Some(root);
     Ok(notes)
 }
 
@@ -313,7 +304,7 @@ pub async fn read_note(state: State<'_, VaultState>, path: String) -> CmdResult<
     match read_note_file(&root, &abs) {
         Ok(note) => Ok(Some(note)),
         Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(None),
-        Err(e) => Err(err(e)),
+        Err(e) => Err(e.into()),
     }
 }
 
@@ -322,19 +313,18 @@ pub async fn read_note(state: State<'_, VaultState>, path: String) -> CmdResult<
 pub async fn write_note(state: State<'_, VaultState>, path: String, content: String) -> CmdResult<f64> {
     let root = current_root(&state)?;
     let abs = resolve(&root, &path)?;
-    atomic_write(&abs, &content).map_err(err)?;
+    atomic_write(&abs, &content)?;
     Ok(to_ms(fs::metadata(&abs).and_then(|m| m.modified())))
 }
 
-fn create_in(dir: &Path, stem: &str, content: &str) -> CmdResult<PathBuf> {
+pub(crate) fn create_in(dir: &Path, stem: &str, content: &str) -> CmdResult<PathBuf> {
     validate_stem(stem)?;
     let stem = fit_stem(dir, stem)?;
-    let dst = unique_note_path(dir, &stem, None).map_err(err)?;
+    let dst = unique_note_path(dir, &stem, None)?;
     let tmp = tmp_path_for(&dst);
-    write_synced(&tmp, content).map_err(err)?;
-    move_no_clobber(&tmp, &dst).map_err(|e| {
+    write_synced(&tmp, content)?;
+    move_no_clobber(&tmp, &dst).inspect_err(|_| {
         let _ = fs::remove_file(&tmp);
-        err(e)
     })?;
     Ok(dst)
 }
@@ -344,16 +334,16 @@ fn create_in(dir: &Path, stem: &str, content: &str) -> CmdResult<PathBuf> {
 pub async fn create_note(state: State<'_, VaultState>, stem: String, content: String) -> CmdResult<NoteFile> {
     let root = current_root(&state)?;
     let abs = create_in(&root, &stem, &content)?;
-    read_note_file(&root, &abs).map_err(err)
+    Ok(read_note_file(&root, &abs)?)
 }
 
 fn rename_in_place(src: &Path, stem: &str) -> CmdResult<PathBuf> {
     validate_stem(stem)?;
-    let dir = src.parent().ok_or("Invalid note path")?;
+    let dir = src.parent().ok_or_else(|| CmdError::new(ErrorKind::InvalidName, "Invalid note path"))?;
     let stem = fit_stem(dir, stem)?;
-    let dst = unique_note_path(dir, &stem, Some(src)).map_err(err)?;
+    let dst = unique_note_path(dir, &stem, Some(src))?;
     if dst.file_name() != src.file_name() {
-        move_no_clobber(src, &dst).map_err(err)?;
+        move_no_clobber(src, &dst)?;
     }
     Ok(dst)
 }
@@ -365,7 +355,7 @@ pub async fn rename_note(state: State<'_, VaultState>, from: String, stem: Strin
     let root = current_root(&state)?;
     let src = resolve(&root, &from)?;
     let dst = rename_in_place(&src, &stem)?;
-    note_rel(&root, &dst).ok_or_else(|| "Renamed note is outside the vault".into())
+    note_rel(&root, &dst).ok_or_else(|| CmdError::other("Renamed note is outside the vault"))
 }
 
 #[cfg(test)]

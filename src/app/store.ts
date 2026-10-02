@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { Note } from "../core/note/note";
 import { sortNotes, type SortKey } from "../core/note/sort";
+import type { VaultErrorKind } from "../services/errors";
 import { DEFAULT_SETTINGS, type Settings } from "../services/settings";
 
 export type VaultStatus = { kind: "loading" } | { kind: "ready"; path: string } | { kind: "error"; message: string };
@@ -13,6 +14,10 @@ interface AppState {
   settings: Settings;
   /** True while a column is being resized: disables width transitions. */
   resizing: boolean;
+  /** Notes whose save failed more than twice in a row, with the last reason. */
+  saveErrors: Record<string, VaultErrorKind>;
+  /** Shown when the window is closing with unsaved content. */
+  closePrompt: boolean;
 }
 
 export const useApp = create<AppState>()(() => ({
@@ -21,6 +26,8 @@ export const useApp = create<AppState>()(() => ({
   selectedId: null,
   settings: DEFAULT_SETTINGS,
   resizing: false,
+  saveErrors: {},
+  closePrompt: false,
 }));
 
 export const getState = useApp.getState;
@@ -36,6 +43,17 @@ export function removeNotes(ids: string[]): void {
     const notes = { ...s.notes };
     for (const id of ids) delete notes[id];
     return { notes, selectedId: s.selectedId && ids.includes(s.selectedId) ? null : s.selectedId };
+  });
+}
+
+export function setSaveError(id: string, kind: VaultErrorKind | null): void {
+  setState((s) => {
+    if (kind === null && !(id in s.saveErrors)) return s;
+    if (kind !== null && s.saveErrors[id] === kind) return s;
+    const saveErrors = { ...s.saveErrors };
+    if (kind === null) delete saveErrors[id];
+    else saveErrors[id] = kind;
+    return { saveErrors };
   });
 }
 

@@ -22,7 +22,7 @@ const fake = vi.hoisted(() => {
   const vaultApi = {
     read: async (path: string) => (files.has(path) ? file(path) : null),
     write: async (path: string, content: string) => {
-      if (state.lockWrites) throw new Error("sharing violation");
+      if (state.lockWrites) throw { kind: "locked", message: "sharing violation" };
       const mtime = ++state.clock;
       files.set(path, { content, mtime, created: files.get(path)?.created ?? mtime });
       state.touched.push(path);
@@ -57,7 +57,7 @@ vi.mock("../editor/session", () => ({
   focusEditor: vi.fn(),
 }));
 
-const { createNote, editNote, flushAll, handleDiskChanges, loadNotes, trashNote } = await import("./notes");
+const { createNote, editNote, flushAll, handleDiskChanges, loadNotes, prepareClose, trashNote, unsavedNotes } = await import("./notes");
 const { getState, setState, useApp } = await import("./store");
 const session = await import("../editor/session");
 
@@ -86,7 +86,7 @@ beforeEach(async () => {
   fake.state.touched = [];
   fake.state.lockWrites = false;
   fake.state.lockRenames = false;
-  setState({ notes: {}, selectedId: null });
+  setState({ notes: {}, selectedId: null, saveErrors: {} });
   vi.mocked(session.replaceFromDisk).mockClear();
 });
 
@@ -177,6 +177,38 @@ describe("file names", () => {
     fake.state.lockWrites = false;
     await vi.advanceTimersByTimeAsync(2100);
     expect(fake.files.get("W.md")!.content).toContain("precious");
+  });
+});
+
+describe("save failures", () => {
+  it("stays silent for two failures, then flags the note with the reason", async () => {
+    seed("L.md", "---\nid: l\n---\n# L\n");
+    await loadNotes(diskFiles());
+    fake.state.lockWrites = true;
+    editNote("l", "# L\nnew");
+    await vi.advanceTimersByTimeAsync(600); // 1st failure
+    await vi.advanceTimersByTimeAsync(2_000); // 2nd
+    expect(getState().saveErrors).toEqual({});
+    await vi.advanceTimersByTimeAsync(5_000); // 3rd
+    expect(getState().saveErrors).toEqual({ l: "locked" });
+
+    fake.state.lockWrites = false;
+    await vi.advanceTimersByTimeAsync(15_000);
+    expect(getState().saveErrors).toEqual({});
+    expect(fake.files.get("L.md")!.content).toContain("new");
+  });
+
+  it("reports unsaved text when closing, and lets a retry succeed", async () => {
+    seed("C.md", "---\nid: c\n---\n# C\n");
+    await loadNotes(diskFiles());
+    fake.state.lockWrites = true;
+    editNote("c", "# C\nunsaved words");
+    expect(await prepareClose()).toBe(false);
+    expect(unsavedNotes()).toEqual([{ id: "c", title: "C", content: "---\nid: c\n---\n# C\nunsaved words" }]);
+
+    fake.state.lockWrites = false;
+    expect(await prepareClose()).toBe(true);
+    expect(unsavedNotes()).toEqual([]);
   });
 });
 

@@ -12,6 +12,26 @@ Principes :
 
 ---
 
+## 0. Langue et libellés
+
+L'interface est **en français par défaut** (anglais disponible) ; **les libellés français font foi**. Dans ce document, chaque libellé entre « » est le libellé français à afficher. Les chaînes vivent dans `src/i18n/fr.ts` (référence) et `src/i18n/en.ts`. Les tailles de composants n'imposent pas de largeur fixe aux libellés : les boutons et menus s'adaptent à la longueur du texte.
+
+| Contexte | Français (fait foi) | Anglais |
+|---|---|---|
+| Bouton principal | Nouvelle note | New note |
+| Recherche | Rechercher · N résultats · Résultats · Trouvé dans l'image · N occurrences | Search notes · N results · Results · Found in image · N matches |
+| Sections | Notes · Sans tag · À faire · Aujourd'hui · Épinglées · Archives · Corbeille | Notes · Untagged · Todo · Today · Pinned · Archive · Trash |
+| Note | Sans titre · Placer dans la corbeille · Épinglée | Untitled · Move to Trash · Pinned |
+| Dates relatives | à l'instant · il y a 12 min · il y a 2 h · hier · lun. · 28 sept. · 28 sept. 2025 | just now · 12 min ago · 2 h ago · Yesterday · Mon · Sep 28 · Sep 28, 2025 |
+| Touches | Ctrl · Maj · Alt · Suppr · Entrée · Échap | Ctrl · Shift · Alt · Del · Enter · Esc |
+| Sommaire / palette | Sommaire · Commandes | Contents · Commands |
+| Tags | Icône de #tag · Retirer l'icône | Icon for #tag · Remove icon |
+| Export | Modifier… · Exporter en PDF | Change… · Export PDF |
+| Fond de page | Fond de page · Marge rouge · Utiliser le thème actif | Page background · Red margin · Use current theme |
+| Stickers | Stickers · Récents · Nature · Cuisine · Voyage · Objets · Les miens · Post-it · Importer une image… · Premier plan · Arrière-plan · Afficher les décorations | Stickers · Recent · Nature · Food · Travel · Objects · Mine · Sticky notes · Import image… · Bring forward · Send back · Show decorations |
+
+---
+
 ## 1. Design tokens
 
 Fichier unique à importer en premier : `src/styles/tokens.css` (copie de `ursa-tokens.css`). Le thème s'applique avec `document.documentElement.dataset.theme = "coral" | "sage" | "ink" | "kraft" | "graphite" | "blue"`.
@@ -300,20 +320,20 @@ Convention d'états pour tous les composants interactifs :
 
 ### 2.1 Titlebar
 - Hauteur 46, fond `--bg-0`. Gauche (largeur = sidebar) : bouton `panel-left` 16 px + « Ursa » 13.5/700.
-- Centre : champ de recherche (2.3). Droite : bouton primaire « New note » (marge droite 14) puis contrôles Windows.
+- Centre : champ de recherche (2.3). Droite : bouton primaire « Nouvelle note » (marge droite 14) puis contrôles Windows.
 - **Contrôles Windows** : 3 zones 46×46, icônes `minus`, `square` (13 px) / `copy` si maximisé, `x`, couleur `--text`. Survol `--hover` ; Fermer : survol `#C42B1C` + icône blanche, pressé `#B22A1C`. Fenêtre inactive : icônes `--text-3`.
 
 ### 2.2 Sidebar item
 - 32 px de haut, padding 0 10, gap 11, rayon `--r-md`, 14/500 `--chrome-text`, icône 16 `--chrome-text-2`, compteur 12 `--chrome-text-3` aligné à droite.
 - Survol `--chrome-hover`. **Sélectionné** : fond `--chrome-active` + `--chrome-active-shadow`, texte 600, icône `--chrome-icon-active`. Focus : ring standard. Glisser‑déposer d'une note sur un item : fond `--accent-soft`.
-- Sections dans l'ordre : Notes, Untagged (`inbox`), Todo (`square-check`), Today (`calendar-days`), Pinned (`pin`), Archive (`archive`), Trash (`trash-2`). Compteurs masqués pour Archive/Trash.
+- Sections dans l'ordre : Notes, Sans tag (`inbox`), À faire (`square-check`), Aujourd'hui (`calendar-days`), Épinglées (`pin`), Archives (`archive`), Corbeille (`trash-2`). Compteurs masqués pour Archives/Corbeille.
 
 ### 2.3 Barre de recherche (titlebar)
-- 460×32, rayon `--r-md`, fond `--bg-sunken`, padding 0 12, icône `search` 15 `--text-3`, placeholder 13.5 `--text-3`, raccourci `Ctrl K` en `--font-mono` 11.
-- **Focus / saisie** : fond `--bg-2`, `box-shadow: 0 0 0 1.5px var(--accent)`, raccourci remplacé par « N results » 12 `--text-3` + bouton effacer `x` 22×22.
+- 460×32, rayon `--r-md`, fond `--bg-sunken`, padding 0 12, icône `search` 15 `--text-3`, placeholder « Rechercher » 13.5 `--text-3`, raccourci `Ctrl K` en `--font-mono` 11.
+- **Focus / saisie** : fond `--bg-2`, `box-shadow: 0 0 0 1.5px var(--accent)`, raccourci remplacé par « N résultats » 12 `--text-3` + bouton effacer `x` 22×22.
 - **Opérateurs** reconnus et rendus en jetons inline dès qu'ils sont complets : `@todo`, `@done`, `@today`, `@images`, `@pdf`, `@untagged` → jeton mono 12/500, padding 2 6, rayon `--r-xs`, fond `--accent-soft`, texte `--accent-text`. `#tag` → même rendu que la pastille de tag (2.5). Retour arrière sur un jeton le sélectionne puis le supprime.
-- Résultats : la liste passe en titre « Results » + compteur ; occurrences en `<mark>` fond `--match`. Correspondance trouvée par OCR : ligne méta `scan-text` + « Found in image » en `--accent-text`, et la zone détectée est indiquée sur la miniature (rectangle `--match` cerclé 1.5 px `--accent`).
-- Dans l'éditeur : barre flottante « 3 matches ↑ ↓ » (28 px, fond `--bg-sunken`) ; occurrence courante = `--match` + ring 1.5 px `--accent`, autres = `--match` seul.
+- Résultats : la liste passe en titre « Résultats » + compteur ; occurrences en `<mark>` fond `--match`. Correspondance trouvée par OCR : ligne méta `scan-text` + « Trouvé dans l'image » en `--accent-text`, et la zone détectée est indiquée sur la miniature (rectangle `--match` cerclé 1.5 px `--accent`).
+- Dans l'éditeur : barre flottante « 3 occurrences ↑ ↓ » (28 px, fond `--bg-sunken`) ; occurrence courante = `--match` + ring 1.5 px `--accent`, autres = `--match` seul.
 
 ### 2.4 Carte de note (liste)
 - Padding 14, gap 14, rayon `--r-lg`, espacement vertical entre cartes 4 px, marges latérales de liste 10.
@@ -321,7 +341,7 @@ Convention d'états pour tous les composants interactifs :
 - Miniature optionnelle 64×64, rayon `--r-md`, `object-fit: cover` (première image de la note).
 - Compteur de todos : toujours `--text-3` ; masqué s'il n'y a aucune case.
 - États : survol `--hover` · **sélectionné** fond `--selected` + `--shadow-card` · focus ring standard · multi‑sélection (Ctrl/Shift) : toutes les cartes en `--selected`, sans ombre sauf la dernière · épinglée : icône `pin` 12 `--text-3` dans la ligne méta.
-- Dates relatives : « just now » < 1 min, « 12 min ago », « 2 h ago », « Yesterday », jour abrégé (< 7 j), « Sep 28 », « Sep 28, 2025 » (autre année).
+- Dates relatives : « à l'instant » < 1 min, « il y a 12 min », « il y a 2 h » (même jour), « hier », jour abrégé (< 7 j, « lun. »), « 28 sept. », « 28 sept. 2025 » (autre année).
 
 ### 2.5 Tag
 **Pastille inline** (éditeur, carte, recherche) : 13/600 `--font-ui`, padding 1 9, rayon `--r-pill`, fond `--accent-soft`, texte `--accent-text`. Survol : fond `--active` superposé (cursor pointer, clic = filtre). Le `#` reste visible. Tags imbriqués affichés complets (`#voyages/japon-2026`).
@@ -330,9 +350,9 @@ Convention d'états pour tous les composants interactifs :
 
 ### 2.6 Sélecteur d'icône de tag (écran 06)
 - Popover 344 px, rayon `--r-xl`, fond `--bg-raised`, `--shadow-pop`, ancré à 6 px à droite de l'item, aligné verticalement au mieux dans la fenêtre.
-- En‑tête : aperçu 28×28 (`--accent-soft`) + « Icon for #tag » 14/700 + fermer.
+- En‑tête : aperçu 28×28 (`--accent-soft`) + « Icône de #tag » 14/700 + fermer.
 - Recherche 32 px (focus auto). Couleurs : 9 pastilles 20 px (défaut = `--text-2`, puis la palette `--tag-colors`) ; sélectionnée = `0 0 0 2px var(--bg-raised), 0 0 0 3.5px var(--accent)`.
-- Grille 8 colonnes × 36 px, gap 2, icônes 17 px ; groupe titré 11.5/600 `--text-3`. Sélectionnée : fond `--accent-soft`, ring inset 1.5 px `--accent`. Navigation flèches + Entrée. Pied : « Remove icon » / nombre d'icônes, 12.5 `--text-3`.
+- Grille 8 colonnes × 36 px, gap 2, icônes 17 px ; groupe titré 11.5/600 `--text-3`. Sélectionnée : fond `--accent-soft`, ring inset 1.5 px `--accent`. Navigation flèches + Entrée. Pied : « Retirer l'icône » / nombre d'icônes, 12.5 `--text-3`.
 - L'item d'arbre concerné reste mis en évidence (ring focus) tant que le popover est ouvert.
 
 ### 2.7 Checkbox (todo)
@@ -376,20 +396,20 @@ Convention d'états pour tous les composants interactifs :
 
 ### 2.15 Panneau Sommaire
 - **Fermé par défaut.** Ouvert : overlay flottant au‑dessus de l'éditeur (n'occupe pas de colonne, la colonne de texte ne bouge pas), `top` 8 px sous la barre de l'éditeur, `right` 16, largeur `--outline-w`, rayon `--r-xl`, fond `--bg-raised`, `--shadow-pop`, padding 4 8 10, hauteur max = éditeur − 24. Fermeture : bouton `x`, Esc, ou re‑clic sur `list-tree`. État ouvert/fermé mémorisé globalement.
-- En‑tête « Contents » 12/600 `--text-3` + fermer.
+- En‑tête « Sommaire » 12/600 `--text-3` + fermer.
 - Items min 28 px, 13/1.35, rayon `--r-sm`, padding gauche 8 + 14 px par niveau ; H1 600 `--text`, autres 500 `--text-2`. Section repliée : `chevron-right` 12 `--text-faint` devant.
 - **Section courante** (scroll‑spy) : fond `--accent-soft`, texte `--accent-text` 600. Survol `--hover`. Clic = scroll vers le titre (voir motion). Toggle via le bouton `list-tree` de la barre de l'éditeur (actif : fond `--accent-soft`, icône `--accent-text`).
 
 ### 2.16 Palette de commandes (Ctrl P)
 - 640 px, centrée horizontalement, top 120 px, rayon `--r-xl`, `--bg-raised`, `--shadow-pop`, scrim `--scrim` derrière.
 - Champ 56 px, 16 px, icône 18 ; séparé de la liste par `--separator`.
-- Groupes (Commands, Notes, Tags) : titre 11.5/600 `--text-3`. Lignes 40 px, padding 0 12, rayon `--r-md`, icône 16 `--text-2`, caractères correspondants en 700 `--accent-text`, raccourcis en `kbd` (22 px, `--bg-sunken`, mono 11). Ligne courante : `--active`. Max 8 lignes visibles par groupe, 420 px de liste.
+- Groupes (Commandes, Notes, Tags) : titre 11.5/600 `--text-3`. Lignes 40 px, padding 0 12, rayon `--r-md`, icône 16 `--text-2`, caractères correspondants en 700 `--accent-text`, raccourcis en `kbd` (22 px, `--bg-sunken`, mono 11). Ligne courante : `--active`. Max 8 lignes visibles par groupe, 420 px de liste.
 - Pied 40 px fond `--bg-1` : aides clavier 12 `--text-3`. Préfixe `>` = commandes uniquement, `#` = tags.
 
 ### 2.17 Modale
 - Rayon `--r-xl`, `--bg-raised`, `--shadow-pop`, padding 24, centrée, largeur 560 (export) / 860×660 (réglages). Scrim `--scrim` ; clic scrim ou Esc = fermer ; focus piégé, focus initial sur le premier contrôle.
 - En‑tête : titre 17/700, sous‑titre 13 `--text-3`, fermer 28×28. Pied : boutons alignés à droite, gap 8, marge haute 24.
-- **Export** : 5 tuiles format (Markdown, HTML, PDF, DOCX, JPG) en grille de 5, 84 px de haut, rayon `--r-lg`, fond `--bg-sunken`, icône 22, libellé 13/600 ; sélectionnée : `--accent-soft` + ring inset 1.5 px `--accent`, texte `--accent-text`. Options contextuelles au format (lignes 40 px : segmented, toggles). Destination : champ `--bg-sunken` en mono + « Change… ». Bouton primaire libellé « Export PDF » selon le format.
+- **Export** : 5 tuiles format (Markdown, HTML, PDF, DOCX, JPG) en grille de 5, 84 px de haut, rayon `--r-lg`, fond `--bg-sunken`, icône 22, libellé 13/600 ; sélectionnée : `--accent-soft` + ring inset 1.5 px `--accent`, texte `--accent-text`. Options contextuelles au format (lignes 40 px : segmented, toggles). Destination : champ `--bg-sunken` en mono + « Modifier… ». Bouton primaire libellé « Exporter en PDF » selon le format.
 - **Réglages** : nav gauche 200 px fond `--bg-1` (items = sidebar item) ; contenu padding 24 32, sections espacées de 22. Contenu : dossier des notes, thème (4 cartes aperçu 72 px, sélection = double ring), « suivre le thème Windows », police de l'éditeur (select), taille (stepper 14–22 px, pas 0.5), largeur de colonne (slider 560–860, pas 20), marqueurs de titre (toggle).
 
 ### 2.18 Bouton
@@ -538,7 +558,7 @@ Unité `--rhythm` = **28 px**. Toute ligne de l'éditeur (paragraphe, item de li
 
 ## 7. Fond de page (option par note)
 
-Stocké dans le front matter : `page: plain | ruled | ruled-margin | grid | dots`. Défaut `plain`. Choix via menu `…` de l'éditeur › « Page background » (popover 288 px, 4 vignettes 52 px de haut, sélection = double anneau accent, toggle « Red margin »).
+Stocké dans le front matter : `page: plain | ruled | ruled-margin | grid | dots`. Défaut `plain`. Choix via menu `…` de l'éditeur › « Fond de page » (popover 288 px, 4 vignettes 52 px de haut, sélection = double anneau accent, toggle « Marge rouge »).
 
 Le motif est peint sur le conteneur défilant de l'éditeur (`.cm-scroller` ou un calque derrière `.cm-content`), `background-attachment: local`, origine = haut du contenu, qui commence lui‑même sur une unité (padding‑top multiple de 28). Les traits ne passent jamais sous la barre d'outils de l'éditeur.
 
@@ -550,7 +570,7 @@ Le motif est peint sur le conteneur défilant de l'éditeur (`.cm-scroller` ou u
 | Quadrillage | 2 gradients 1 px `--paper-grid-line` (horizontal décalé de 10 px pour coïncider avec la réglure à 24 px) · `background-size: 14px 14px` | 14 px |
 | Pointillés | `radial-gradient(circle at 14px 24px, var(--paper-dot) 1.1px, transparent 1.7px)` · `background-size: 28px 28px` | 28 px |
 
-Couleurs dérivées du thème avec `color-mix(in oklab, var(--text) N%, transparent)` : lignes 9 % (8 % en sombre), quadrillage 6 %, points 24 %, marge = rouge #D9573F à 42 % (accent du thème à 38 % en sombre). Les motifs sont décoratifs : jamais d'exigence de contraste, masqués à l'export Markdown/HTML, conservés en PDF/JPG si « Use current theme » est actif. Vrai 5 mm ≈ 19 px, incompatible avec le pas de 28 ; le quadrillage utilise donc 14 px (demi‑unité).
+Couleurs dérivées du thème avec `color-mix(in oklab, var(--text) N%, transparent)` : lignes 9 % (8 % en sombre), quadrillage 6 %, points 24 %, marge = rouge #D9573F à 42 % (accent du thème à 38 % en sombre). Les motifs sont décoratifs : jamais d'exigence de contraste, masqués à l'export Markdown/HTML, conservés en PDF/JPG si « Utiliser le thème actif » est actif. Vrai 5 mm ≈ 19 px, incompatible avec le pas de 28 ; le quadrillage utilise donc 14 px (demi‑unité).
 
 ## 8. Stickers
 
@@ -559,8 +579,8 @@ Visuels décoratifs posés librement sur la note (pack par défaut : Fluent Emoj
 - **Taille** : 40–200 px, défaut 80 ; ratio verrouillé. **Rotation** à la pose : aléatoire uniforme dans **[−8°, +8°]**, éditable librement.
 - **Ombre** : `filter: var(--sticker-shadow)` (suit la silhouette PNG). En glisser : `--sticker-shadow-lift` + `scale(1.06)`.
 - **États** : repos (rien autour) · survol / sélection : cadre pointillé 1 px `--accent` à 6 px, 4 poignées d'angle 8×8 (fond `--bg-2`, contour 1.5 px `--accent`, rayon 2), poignée de rotation (tige 20 px + cercle 10 px au‑dessus) ; le tout tourne avec le sticker · glisser : curseur `grabbing`, ombre levée, badge d'angle « −2° » pendant la rotation (Shift = pas de 15°) · focus clavier : même cadre ; flèches = déplacer 1 px (Shift 10), `[` `]` = rotation ±1°, Suppr = retirer.
-- Z‑order : au‑dessus du texte, sous les post‑it ; clic droit › Bring forward / Send back.
-- Désactivables globalement (Réglages › Editor › « Show decorations ») et masqués en mode focus si l'option est cochée.
+- Z‑order : au‑dessus du texte, sous les post‑it ; clic droit › « Premier plan » / « Arrière-plan ».
+- Désactivables globalement (Réglages › Éditeur › « Afficher les décorations ») et masqués en mode focus si l'option est cochée.
 
 ## 9. Mini post‑it
 
@@ -575,7 +595,7 @@ Visuels décoratifs posés librement sur la note (pack par défaut : Fluent Emoj
 ## 10. Tiroir à stickers
 
 - Ouverture : bouton `sticker` de la barre de l'éditeur (actif : `--accent-soft` / `--accent-text`) ou Ctrl Shift S. Overlay flottant à droite, `top` 8, `right` 16, `bottom` 16, largeur 320, rayon `--r-xl`, `--bg-raised`, `--shadow-pop`.
-- Contenu : titre « Stickers » 15/700 + fermer · recherche 32 px · catégories en chips 26 px (Recent, Nature, Food, Travel, Objects, Mine ; active = `--accent-soft` / `--accent-text`, autres `--bg-sunken` / `--text-2`) · grille 4 colonnes, cellules 68 px, image 48 px avec `--sticker-shadow`, survol `--hover` · section « Sticky notes » : 4 carrés 48 px aux couleurs post‑it, icône `plus` · pied `--bg-1` : bouton secondaire « Import image… » (`image-plus`) + aide 12 `--text-3`.
+- Contenu : titre « Stickers » 15/700 + fermer · recherche 32 px · catégories en chips 26 px (Récents, Nature, Cuisine, Voyage, Objets, Les miens ; active = `--accent-soft` / `--accent-text`, autres `--bg-sunken` / `--text-2`) · grille 4 colonnes, cellules 68 px, image 48 px avec `--sticker-shadow`, survol `--hover` · section « Post-it » : 4 carrés 48 px aux couleurs post‑it, icône `plus` · pied `--bg-1` : bouton secondaire « Importer une image… » (`image-plus`) + aide 12 `--text-3`.
 - Interaction : glisser une cellule sur la note (aperçu fantôme à 70 % d'opacité) ou clic = pose au centre de la zone visible. Glisser un fichier image depuis l'Explorateur sur la note = import + pose.
 
 ## 11. Motion — ajouts

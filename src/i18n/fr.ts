@@ -66,6 +66,36 @@ export const fr = {
   },
   errors: {
     vaultOpen: (message: string) => `Impossible d'ouvrir le dossier des notes : ${message}`,
+    /** Why a write failed, completing "Non sauvegardé : …". */
+    reasons: {
+      locked: "le fichier est verrouillé par un autre programme",
+      permissionDenied: "accès au fichier refusé",
+      diskFull: "le disque est plein",
+      readOnly: "le dossier est en lecture seule",
+      notFound: "le dossier des notes est introuvable",
+      alreadyExists: "un fichier du même nom existe déjà",
+      invalidName: "nom de fichier invalide",
+      other: "erreur d'écriture inattendue",
+    },
+  },
+  saveStatus: {
+    unsaved: "Non sauvegardé",
+    tooltip: (reason: string) => `Non sauvegardé : ${reason}. Nouvel essai automatique.`,
+  },
+  modal: {
+    close: "Fermer",
+  },
+  closeDialog: {
+    title: "Modifications non enregistrées",
+    subtitle: (count: number) =>
+      count === 1 ? "Une note n'a pas pu être enregistrée." : `${count} notes n'ont pas pu être enregistrées.`,
+    reason: (reason: string) => `Cause : ${reason}.`,
+    stillFailing: "Le nouvel essai a échoué.",
+    copyFailed: "La copie n'a pas pu être enregistrée.",
+    retry: "Réessayer",
+    saveCopy: "Enregistrer une copie ailleurs…",
+    saveCopyTitle: "Enregistrer une copie des notes non sauvegardées",
+    quit: "Quitter quand même",
   },
 };
 

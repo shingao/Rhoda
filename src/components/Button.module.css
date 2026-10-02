@@ -53,6 +53,15 @@
   background-image: linear-gradient(var(--active), var(--active));
 }
 
+.danger {
+  background: var(--danger);
+  color: var(--on-accent);
+}
+
+.danger:hover {
+  filter: brightness(var(--danger-hover-brightness));
+}
+
 .button:disabled {
   opacity: var(--disabled-opacity);
   pointer-events: none;

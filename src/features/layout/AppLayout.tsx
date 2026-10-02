@@ -3,6 +3,7 @@ import { useT } from "../../app/i18n";
 import { clampWidth, defaultWidth, setColumnWidth } from "../../app/layout";
 import { setState, useApp } from "../../app/store";
 import { Resizer } from "../../components/Resizer";
+import { CloseDialog } from "../close/CloseDialog";
 import { EditorPane } from "../editor/EditorPane";
 import { NoteList } from "../notelist/NoteList";
 import { Sidebar } from "../sidebar/Sidebar";
@@ -45,6 +46,7 @@ export function AppLayout() {
           </div>
         </div>
       </div>
+      <CloseDialog />
     </div>
   );
 }

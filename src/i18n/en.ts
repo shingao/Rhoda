@@ -66,5 +66,33 @@ export const en: Messages = {
   },
   errors: {
     vaultOpen: (message) => `Could not open the notes folder: ${message}`,
+    reasons: {
+      locked: "the file is locked by another program",
+      permissionDenied: "access to the file was denied",
+      diskFull: "the disk is full",
+      readOnly: "the folder is read-only",
+      notFound: "the notes folder cannot be found",
+      alreadyExists: "a file with the same name already exists",
+      invalidName: "invalid file name",
+      other: "unexpected write error",
+    },
+  },
+  saveStatus: {
+    unsaved: "Not saved",
+    tooltip: (reason) => `Not saved: ${reason}. Retrying automatically.`,
+  },
+  modal: {
+    close: "Close",
+  },
+  closeDialog: {
+    title: "Unsaved changes",
+    subtitle: (count) => (count === 1 ? "One note could not be saved." : `${count} notes could not be saved.`),
+    reason: (reason) => `Cause: ${reason}.`,
+    stillFailing: "The new attempt failed.",
+    copyFailed: "The copy could not be saved.",
+    retry: "Try again",
+    saveCopy: "Save a copy elsewhere…",
+    saveCopyTitle: "Save a copy of the unsaved notes",
+    quit: "Quit anyway",
   },
 };

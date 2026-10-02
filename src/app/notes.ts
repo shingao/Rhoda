@@ -12,21 +12,26 @@ import {
   type NoteFile,
 } from "../core/note/note";
 import { focusEditor, forgetNote, replaceFromDisk, showNote } from "../editor/session";
+import { errorKind } from "../services/errors";
 import { vaultApi } from "../services/vault";
 import { currentMessages } from "./i18n";
-import { currentList, getState, putNote, removeNotes, setState } from "./store";
+import { currentList, getState, putNote, removeNotes, setSaveError, setState } from "./store";
 
 /**
  * Note lifecycle: autosave, rename-from-title, create, trash and reconciliation
  * with external changes. Every disk operation goes through one serial queue so
  * writes, renames and watcher reloads never interleave. Failures (a file locked
  * by another program) never lose anything: the text stays pending, the old
- * name is kept, and the operation is retried later without bothering the user.
+ * name is kept, and the operation is retried later. Rename failures stay
+ * silent; repeated save failures show an indicator, and closing the app with
+ * unsaved text asks what to do.
  */
 
 const SAVE_DELAY = 500;
 const RENAME_DELAY = 2000;
 const RETRY_DELAYS = [2_000, 5_000, 15_000, 30_000, 60_000];
+/** Consecutive save failures tolerated silently before the editor shows the "unsaved" indicator. */
+const SILENT_SAVE_FAILURES = 2;
 
 type Timer = ReturnType<typeof setTimeout>;
 
@@ -94,11 +99,14 @@ function save(id: string): Promise<void> {
     try {
       await persist(withBody(note, body));
       failures.delete(`save:${id}`);
+      setSaveError(id, null);
     } catch (e) {
       // Keep the text (unless newer text arrived meanwhile) and try again later.
       if (!pendingBodies.has(id)) pendingBodies.set(id, body);
       console.warn("[ursa] save failed, will retry", note.path, e);
-      schedule(saveTimers, id, nextRetryDelay(`save:${id}`), (i) => void save(i));
+      const key = `save:${id}`;
+      schedule(saveTimers, id, nextRetryDelay(key), (i) => void save(i));
+      if ((failures.get(key) ?? 0) > SILENT_SAVE_FAILURES) setSaveError(id, errorKind(e));
     }
   });
 }
@@ -140,6 +148,20 @@ export async function flushNote(id: string): Promise<void> {
 export async function flushAll(): Promise<void> {
   const ids = new Set([...pendingBodies.keys(), ...saveTimers.keys(), ...renameTimers.keys()]);
   await Promise.all([...ids].map(flushNote));
+}
+
+/** Notes whose latest text could not be written, as they would be saved. */
+export function unsavedNotes(): Array<{ id: string; title: string; content: string }> {
+  return [...pendingBodies].flatMap(([id, body]) => {
+    const note = noteById(id);
+    return note ? [{ id, title: note.title, content: serializeNote(withStoredId(withBody(note, body))) }] : [];
+  });
+}
+
+/** Before the window closes: saves everything; false if some text is still unsaved. */
+export async function prepareClose(): Promise<boolean> {
+  await flushAll();
+  return pendingBodies.size === 0;
 }
 
 export function selectNote(id: string | null): void {
@@ -265,6 +287,8 @@ export function handleDiskChanges(paths: string[]): Promise<void> {
       cancel(saveTimers, id);
       cancel(renameTimers, id);
       pendingBodies.delete(id);
+      failures.delete(`save:${id}`);
+      setSaveError(id, null);
     }
     removeNotes([...vanished.keys()]);
     if (selectedVanished) selectNote(currentList()[0]?.id ?? null);

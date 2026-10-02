@@ -59,6 +59,9 @@ export function installDevMock(): void {
       case "read_note":
         return files.has(args.path!) ? toFile(args.path!) : null;
       case "write_note": {
+        // Simulate a locked file: localStorage.setItem("ursa-dev-fail-writes", "locked")
+        const failure = localStorage.getItem("ursa-dev-fail-writes");
+        if (failure) throw { kind: failure, message: "simulated failure" };
         const mtime = Date.now();
         files.set(args.path!, { content: args.content!, mtime, created: files.get(args.path!)?.created ?? mtime });
         return mtime;

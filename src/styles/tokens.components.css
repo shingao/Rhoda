@@ -99,6 +99,23 @@
   --resizer-hit: 6px;
   --resizer-line: 2px;
 
+  /* Modal [§2.17] */
+  --modal-pad: var(--sp-6);
+  --modal-w: 560px;
+  --modal-close: 28px;
+  --modal-title-fs: var(--fs-xl);
+  --modal-subtitle-fs: var(--fs-sm);
+  --modal-footer-gap: var(--sp-2);
+  --modal-footer-mt: var(--sp-6);
+  --modal-scale-from: .98;
+  --modal-top: 18vh;                       /* (decision) */
+
+  /* Danger button [§2.18]: luminosity −6 % on hover */
+  --danger-hover-brightness: .94;
+
+  /* "Unsaved" indicator in the editor bar (decision) */
+  --unsaved-icon: 16px;
+
   /* Empty states (decision) */
   --empty-icon: 28px;
 }

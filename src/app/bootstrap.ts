@@ -1,7 +1,7 @@
 import { appWindow } from "../services/appWindow";
 import { loadSettings, saveSettings } from "../services/settings";
 import { vaultApi } from "../services/vault";
-import { flushAll, handleDiskChanges, loadNotes } from "./notes";
+import { flushAll, handleDiskChanges, loadNotes, prepareClose } from "./notes";
 import { getState, setState, useApp } from "./store";
 
 const SETTINGS_SAVE_DELAY = 300;
@@ -24,7 +24,11 @@ export async function bootstrap(): Promise<void> {
     setState({ vault: { kind: "ready", path } });
 
     window.addEventListener("blur", () => void flushAll());
-    await appWindow.onCloseRequested(flushAll);
+    await appWindow.onCloseRequested(async () => {
+      if (await prepareClose()) return true;
+      setState({ closePrompt: true });
+      return false;
+    });
   } catch (e) {
     setState({ vault: { kind: "error", message: String(e) } });
   }

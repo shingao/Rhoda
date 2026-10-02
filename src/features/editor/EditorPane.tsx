@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Ellipsis, PanelLeftClose, PanelLeftOpen, Trash2 } from "lucide-react";
+import { CircleAlert, Ellipsis, PanelLeftClose, PanelLeftOpen, Trash2 } from "lucide-react";
 import { useT } from "../../app/i18n";
 import { toggleColumn } from "../../app/layout";
 import { editNote, trashNote } from "../../app/notes";
@@ -8,6 +8,7 @@ import { useApp } from "../../app/store";
 import { attachAutoHideScrollbar } from "../../components/useAutoHideScrollbar";
 import { IconButton } from "../../components/IconButton";
 import { Menu } from "../../components/Menu";
+import { Tooltip } from "../../components/Tooltip";
 import { editorExtensions } from "../../editor/setup";
 import { mountEditor, showNote, unmountEditor } from "../../editor/session";
 import s from "./EditorPane.module.css";
@@ -17,6 +18,7 @@ export function EditorPane() {
   const host = useRef<HTMLDivElement>(null);
   const selectedId = useApp((st) => st.selectedId);
   const listCollapsed = useApp((st) => st.settings.layout.listCollapsed);
+  const saveError = useApp((st) => (st.selectedId ? st.saveErrors[st.selectedId] : undefined));
   const t = useT();
   const [menuAt, setMenuAt] = useState<{ x: number; y: number } | null>(null);
 
@@ -42,6 +44,13 @@ export function EditorPane() {
           onClick={() => toggleColumn("list")}
         />
         <div className={s.spacer} />
+        {saveError && (
+          <Tooltip label={t.saveStatus.tooltip(t.errors.reasons[saveError])}>
+            <span className={s.unsaved} role="status" tabIndex={0} aria-label={t.saveStatus.tooltip(t.errors.reasons[saveError])}>
+              <CircleAlert aria-hidden />
+            </span>
+          </Tooltip>
+        )}
         <IconButton
           icon={Ellipsis}
           label={t.editor.more}
