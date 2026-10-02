@@ -27,6 +27,8 @@ export interface EditorHooks {
   foldsChanged(noteId: string, keys: FoldKey[]): void;
   /** Headings and current section of the open note (Contents panel). */
   outlineChanged(data: OutlineData): void;
+  /** Occurrences of the search in the open note ("3 / 12"). */
+  findChanged(info: { count: number; current: number | null }): void;
 }
 
 export interface Backlink {
@@ -47,6 +49,7 @@ let hooks: EditorHooks = {
   savedFolds: () => [],
   foldsChanged: () => undefined,
   outlineChanged: () => undefined,
+  findChanged: () => undefined,
 };
 
 export function setEditorHooks(next: Partial<EditorHooks>): void {

@@ -628,3 +628,13 @@
   background: var(--active);
   color: var(--text);
 }
+
+/* Search occurrences [§2.3]: --match, the current one with a 1.5 px accent ring */
+.cm-find-match {
+  border-radius: var(--r-xs);
+  background: var(--match);
+}
+
+.cm-find-current {
+  box-shadow: 0 0 0 var(--find-current-ring) var(--accent);
+}

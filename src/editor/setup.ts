@@ -9,6 +9,7 @@ import { markdownLanguage } from "./language";
 import { linkPreview } from "./linkPreview";
 import { foldChevrons } from "./sections/chevrons";
 import { outlineReporter } from "./sections/outline";
+import { findField } from "./find/find";
 import { isolationField, leaveIsolation, selectIsolated, toggleIsolation } from "./sections/focus";
 import { folding, foldAll, foldCurrent, unfoldAll, unfoldCurrent } from "./sections/fold";
 import { editorKey } from "../app/shortcuts";
@@ -64,6 +65,7 @@ export function editorExtensions(): Extension {
     completions(),
     folding,
     isolationField,
+    findField,
     foldChevrons,
     outlineReporter,
     keymap.of([

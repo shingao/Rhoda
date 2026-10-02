@@ -28,6 +28,18 @@
   --search-focus-ring: 1.5px;
   --search-clear: 22px;
   --search-clear-icon: 14px;              /* (decision) */
+  --search-chip-fs: 12px;                  /* [§2.3] jetons mono 12/500 */
+  --search-chip-pad: 2px 6px;
+  --search-chip-max: 160px;
+  --search-count-fs: 12px;                 /* [§2.3] « N résultats » 12 */
+  --mark-pad: 0 1px;
+  --find-current-ring: 1.5px;              /* [§2.3] occurrence courante */
+  --find-pill-h: 28px;                     /* [§2.3] barre « 3 occurrences ↑ ↓ » */
+  --find-pill-fs: 12px;
+  --find-pill-btn: 22px;
+  --find-panel-w: 340px;                   /* (decision) Ctrl+F / Ctrl+H panel */
+  --find-input-h: 28px;                       /* (decision) occurrence highlight */
+  --results-page: 30;                      /* (decision) cards rendered per step */
 
   /* Sidebar item [§2.2] */
   --sidebar-pad: var(--sp-2);              /* (decision) */

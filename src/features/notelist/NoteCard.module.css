@@ -37,6 +37,27 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Discreet marker of an archived note in search results (decision P5-4) */
+.archived,
+.foundIn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  margin-left: var(--sp-2);
+}
+
+.foundIn {
+  color: var(--accent-text);
+}
+
+/* Occurrences [§2.3]: <mark> on --match */
+.mark {
+  padding: var(--mark-pad);
+  border-radius: var(--r-xs);
+  background: var(--match);
+  color: inherit;
+}
+
 .metaIcon {
   width: var(--card-meta-icon);
   height: var(--card-meta-icon);

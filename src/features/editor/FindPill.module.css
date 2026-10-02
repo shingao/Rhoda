@@ -1,0 +1,40 @@
+.pill {
+  --ring-bg: var(--bg-sunken);
+
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  height: var(--find-pill-h);
+  margin-right: var(--sp-2);
+  padding: 0 var(--sp-1) 0 var(--sp-3);
+  border-radius: var(--r-md);
+  background: var(--bg-sunken);
+  color: var(--text-2);
+  font-size: var(--find-pill-fs);
+  white-space: nowrap;
+}
+
+.count {
+  margin-right: var(--sp-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--find-pill-btn);
+  height: var(--find-pill-btn);
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+}
+
+.step svg {
+  width: var(--search-clear-icon);
+  height: var(--search-clear-icon);
+}
+
+.step:hover {
+  background: var(--hover);
+  color: var(--text);
+}

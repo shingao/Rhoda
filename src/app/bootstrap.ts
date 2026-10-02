@@ -4,6 +4,7 @@ import { loadSettings, saveSettings } from "../services/settings";
 import { vaultApi } from "../services/vault";
 import { connectEditor } from "./editorBridge";
 import { loadFolds } from "./folds";
+import { connectSearch } from "./search";
 import { flushAll, handleDiskChanges, loadNotes, prepareClose, purgeOldBackups } from "./notes";
 import { getState, setState, useApp } from "./store";
 import { loadTagConfig } from "./tagOps";
@@ -22,6 +23,7 @@ export async function bootstrap(): Promise<void> {
     document.documentElement.lang = settings.language;
     persistSettingsOnChange();
     connectEditor();
+    connectSearch();
 
     await vaultApi.onChanged((paths) => void handleDiskChanges(paths));
     const path = settings.vaultPath ?? (await vaultApi.defaultPath());

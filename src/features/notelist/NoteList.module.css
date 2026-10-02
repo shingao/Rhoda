@@ -73,3 +73,33 @@
   color: var(--text-3);
   font-size: var(--fs-sm);
 }
+
+/* Search results [§2.3]: « Résultats » + count */
+.resultCount {
+  margin-right: auto;
+  margin-left: var(--sp-2);
+  font-size: var(--fs-sm);
+  color: var(--text-3);
+}
+
+.noResults {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: var(--sp-6) var(--card-pad);
+}
+
+.noResults .empty {
+  margin: 0;
+  color: var(--text-2);
+}
+
+.noResultsHint {
+  margin: var(--sp-1) 0 var(--sp-4);
+  font-size: var(--fs-sm);
+  color: var(--text-3);
+}
+
+.sentinel {
+  height: 1px;
+}

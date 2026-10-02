@@ -70,6 +70,7 @@ export function connectEditor(): void {
     backlinks: () => backlinksOf(getState().selectedId),
     savedFolds,
     outlineChanged: (outline) => setState({ outline }),
+    findChanged: ({ count, current }) => setState((s) => ({ find: { ...s.find, count, current } })),
     foldsChanged: rememberFolds,
     linkPreview: (target) => {
       const id = resolve(target);

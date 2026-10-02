@@ -1,12 +1,14 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { ChevronDown } from "lucide-react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { ChevronDown, Plus } from "lucide-react";
+import { cssPx } from "../../app/cssTokens";
+import { createFromSearch } from "../../app/search";
 import { noteIndex } from "../../app/noteIndex";
 import { formatTag } from "../../core/tags";
 import { Button } from "../../components/Button";
 import { useT } from "../../app/i18n";
 import { selectNote, trashedNoteIds, trashNote } from "../../app/notes";
 import { matchShortcut } from "../../app/shortcuts";
-import { listedNotes, updateSettings, useApp } from "../../app/store";
+import { activeQuery, listedNotes, searchText, updateSettings, useApp } from "../../app/store";
 import { useNow } from "../../app/useNow";
 import type { SortKey } from "../../core/note/sort";
 import { focusEditor } from "../../editor/session";
@@ -30,10 +32,28 @@ export function NoteList() {
   const filter = useApp((st) => st.filter);
   const t = useT();
   const now = useNow();
-  const list = useMemo(() => listedNotes(notes, sort, filter, now), [notes, sort, filter, now]);
+  // Deferred: typing in the search field stays fluid while the list catches up.
+  const search = useDeferredValue(useApp((st) => st.search));
+  const query = activeQuery(search);
+  const list = useMemo(() => listedNotes(notes, sort, filter, now, query), [notes, sort, filter, now, query]);
+  // Cards are added by pages as the list scrolls (1 000 notes stay fast; virtualisation in phase 10).
+  const page = cssPx("--results-page");
+  // The page count restarts with every new search or view.
+  const pageKey = `${JSON.stringify(filter)}\u0000${searchText(search)}`;
+  const [paging, setPaging] = useState({ key: pageKey, limit: page });
+  const limit = paging.key === pageKey ? paging.limit : page;
+  const sentinel = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([e]) => e?.isIntersecting && setPaging({ key: pageKey, limit: limit + page }), { rootMargin: "400px" });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [list, limit, page, pageKey]);
   const inTrash = filter.kind === "section" && filter.section === "trash";
   const tagNode = filter.kind === "tag" ? noteIndex(notes).tags.byKey.get(filter.key) : undefined;
-  const title = filter.kind === "section" ? t.sidebar.sections[filter.section] : tagNode ? formatTag(tagNode.path) : t.list.title;
+  const viewTitle = filter.kind === "section" ? t.sidebar.sections[filter.section] : tagNode ? formatTag(tagNode.path) : t.list.title;
+  const title = query ? t.search.resultsTitle : viewTitle;
   const emptyText = filter.kind === "section" ? t.list.emptySection[filter.section] : t.list.emptyTag;
   const scroller = useRef<HTMLDivElement>(null);
   const cards = useRef(new Map<string, HTMLDivElement>());
@@ -107,6 +127,7 @@ export function NoteList() {
     <section className={s.panel} aria-label={title}>
       <header className={s.header}>
         <h2 className={s.title}>{title}</h2>
+        {query && <span className={s.resultCount}>{t.search.notesCount(list.length)}</span>}
         {inTrash && list.length > 0 && (
           <Button className={s.emptyTrash} onClick={() => void confirmDeleteNotes(trashedNoteIds(), "empty-trash")}>
             {t.list.emptyTrash}
@@ -127,11 +148,21 @@ export function NoteList() {
         </button>
       </header>
       <div ref={scroller} className={s.scroller}>
-        {list.length === 0 ? (
+        {list.length === 0 && query ? (
+          <div className={s.noResults}>
+            <p className={s.empty}>{t.search.noResults(query.text)}</p>
+            <p className={s.noResultsHint}>{t.search.noResultsHint}</p>
+            {query.text && (
+              <Button icon={Plus} onClick={() => void createFromSearch(query.text)}>
+                {t.search.createNote(query.text)}
+              </Button>
+            )}
+          </div>
+        ) : list.length === 0 ? (
           <p className={s.empty}>{emptyText}</p>
         ) : (
           <div role="listbox" aria-label={title} className={s.cards} onKeyDown={onKeyDown}>
-            {list.map((note) => (
+            {list.slice(0, limit).map((note) => (
               <NoteCard
                 key={note.id}
                 ref={(el) => {
@@ -145,6 +176,7 @@ export function NoteList() {
                 todoLabel={note.syntax?.todos.total ? t.list.todos(note.syntax.todos.done, note.syntax.todos.total) : null}
                 selected={note.id === selectedId}
                 focusable={note.id === focusId}
+                query={query}
                 onSelect={() => selectNote(note.id)}
                 onContextMenu={(e) => {
                   e.preventDefault();
@@ -153,6 +185,7 @@ export function NoteList() {
                 }}
               />
             ))}
+            {list.length > limit && <div ref={sentinel} className={s.sentinel} />}
           </div>
         )}
       </div>

@@ -14,7 +14,8 @@ import { App } from "./App";
 
 async function start() {
   // Outside Tauri (plain browser during development), serve an in-memory vault.
-  if (import.meta.env.DEV && !("__TAURI_INTERNALS__" in window)) {
+  // VITE_URSA_MOCK=1 does the same in a production build, to measure performance.
+  if ((import.meta.env.DEV || import.meta.env.VITE_URSA_MOCK === "1") && !("__TAURI_INTERNALS__" in window)) {
     const { installDevMock } = await import("./services/devMock");
     installDevMock();
   }

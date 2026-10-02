@@ -4,6 +4,7 @@ import demoNote from "../../samples/Démo éditeur.md?raw";
 import longNote from "../../samples/Note longue (5000 lignes).md?raw";
 import mockupNote from "../../samples/Maquette éditeur.md?raw";
 import outlineNote from "../../samples/Maquette sommaire.md?raw";
+import { generateNotes } from "../dev/generateNotes";
 
 /**
  * Development only: lets the frontend run in a plain browser (no Tauri) with
@@ -67,6 +68,9 @@ export function installDevMock(): void {
   const now = Date.now();
   const files = new Map<string, { content: string; mtime: number; created: number }>();
   for (const [path, content, mtime] of seed(now)) files.set(path, { content, mtime, created: mtime });
+  // Performance tests: localStorage.setItem("ursa-dev-notes", "1000") adds generated notes.
+  const extra = Number(localStorage.getItem("ursa-dev-notes") ?? 0);
+  for (const n of generateNotes(extra, now)) files.set(n.path, { content: n.content, mtime: n.mtime, created: n.mtime });
 
   const toFile = (path: string): NoteFile => ({ path, ...files.get(path)! });
   // Same naming rules as the Rust backend: case-insensitive collisions, " 2" suffix.

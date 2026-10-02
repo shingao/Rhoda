@@ -23,6 +23,8 @@ describe("query syntax", () => {
       ["word", "kyoto", false],
     ]);
     expect(parseQuery("@inconnu").include[0]!.text).toBe("@inconnu");
+    // An operator being typed is not searched as a word.
+    expect(parseQuery("@to").include).toEqual([]);
     expect(parseQuery('"Été à Nîmes" -Œuvre').text).toBe("Été à Nîmes");
   });
 });

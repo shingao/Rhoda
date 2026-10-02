@@ -80,6 +80,8 @@ export function parseQuery(raw: string): SearchQuery {
   const q: SearchQuery = { include: [], exclude: [], tags: [], excludeTags: [], operators: [], excludeOperators: [], text: "" };
   const text: string[] = [];
   for (const t of tokenize(raw)) {
+    // "@to" while typing "@todo": not a word to look for.
+    if (t.kind === "word" && /^@\p{L}*$/u.test(t.value) && OPERATORS.some((op) => op.startsWith(t.value.slice(1).toLowerCase()))) continue;
     if (t.kind === "tag") (t.negated ? q.excludeTags : q.tags).push(t.value);
     else if (t.kind === "operator") (t.negated ? q.excludeOperators : q.operators).push(t.value as Operator);
     else {

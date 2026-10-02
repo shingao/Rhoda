@@ -17,6 +17,7 @@ import { isSectionIsolated, mountEditor, runSectionCommand, setEditorOption, sho
 import { typewriter, typewriterCompartment } from "../../editor/typewriter";
 import { noteMenuEntries } from "../notelist/noteActions";
 import { Breadcrumb } from "./Breadcrumb";
+import { FindPill } from "./FindPill";
 import { OutlinePanel } from "../outline/OutlinePanel";
 import s from "./EditorPane.module.css";
 
@@ -60,6 +61,7 @@ export function EditorPane() {
       <div className={s.bar}>
         <Breadcrumb />
         <div className={s.spacer} />
+        <FindPill />
         {edited && <span className={s.edited}>{t.editor.editedAt(edited.kind, edited.text)}</span>}
         {saveError && (
           <Tooltip label={t.saveStatus.tooltip(t.errors.reasons[saveError])}>

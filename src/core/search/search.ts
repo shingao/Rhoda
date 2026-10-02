@@ -75,6 +75,11 @@ function entry(note: Note): Entry {
   return e;
 }
 
+/** Indexes notes ahead of the first search (the app calls it in idle time, by small batches). */
+export function warmIndex(notes: Iterable<Note>): void {
+  for (const note of notes) entry(note);
+}
+
 function startOfDay(now: number): number {
   const d = new Date(now);
   d.setHours(0, 0, 0, 0);
@@ -113,19 +118,19 @@ function needleScore(e: Entry, n: Needle): number {
   return 0;
 }
 
+/** Folded tag keys of the query, computed once per search. */
+interface Prepared {
+  tags: string[];
+  excludeTags: string[];
+}
+
 /** Score of a note for the query, or -1 if it does not match. */
-function score(note: Note, q: SearchQuery, now: number): number {
+function score(note: Note, q: SearchQuery, p: Prepared, now: number): number {
   const e = entry(note);
   for (const op of q.operators) if (!hasOperator(note, e, op, now)) return -1;
   for (const op of q.excludeOperators) if (hasOperator(note, e, op, now)) return -1;
-  for (const tag of q.tags) {
-    const key = fold(tagKey(tag));
-    if (!e.tagKeys.some((k) => isTagWithin(k, key))) return -1;
-  }
-  for (const tag of q.excludeTags) {
-    const key = fold(tagKey(tag));
-    if (e.tagKeys.some((k) => isTagWithin(k, key))) return -1;
-  }
+  for (const key of p.tags) if (!e.tagKeys.some((k) => isTagWithin(k, key))) return -1;
+  for (const key of p.excludeTags) if (e.tagKeys.some((k) => isTagWithin(k, key))) return -1;
   for (const n of q.exclude) if (needleScore(e, n) > 0) return -1;
   let total = 0;
   for (const n of q.include) {
@@ -148,8 +153,9 @@ export interface SearchHit {
  */
 export function searchNotes(notes: Note[], q: SearchQuery, now: number, sortFallback: (notes: Note[]) => Note[]): Note[] {
   const hits: SearchHit[] = [];
+  const prepared: Prepared = { tags: q.tags.map((t) => fold(tagKey(t))), excludeTags: q.excludeTags.map((t) => fold(tagKey(t))) };
   for (const note of notes) {
-    const s = score(note, q, now);
+    const s = score(note, q, prepared, now);
     if (s >= 0) hits.push({ note, score: s });
   }
   if (q.include.length === 0) return sortFallback(hits.map((h) => h.note));

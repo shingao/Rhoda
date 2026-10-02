@@ -6,6 +6,8 @@ import { foldKeys, matchFoldKeys, type FoldKey } from "../core/folds";
 import { editorHooks, refreshPreview } from "./hooks";
 import { foldAll, foldField, foldedRanges, setFolds, toggleFold, unfoldAll, unfoldHeading } from "./sections/fold";
 import { isolatedSection, toggleIsolation } from "./sections/focus";
+import { findField, findInfo, goToMatch, replaceAll, replaceCurrent, setNeedles, stepMatch } from "./find/find";
+import type { Needle } from "../core/search/query";
 import { headingsIn } from "./sections/headings";
 
 /**
@@ -82,6 +84,7 @@ export function mountEditor(parent: HTMLElement, ext: Extension, onEdit: (id: st
       if (u.docChanged && currentId && !u.transactions.some((t) => t.annotation(fromDisk))) {
         onEdit(currentId, u.state.doc.toString());
       }
+      if (u.startState.field(findField) !== u.state.field(findField)) editorHooks().findChanged(findInfo(u.state));
       const folds = u.state.field(foldField);
       if (currentId && (folds !== u.startState.field(foldField) || (u.docChanged && folds.folds.length > 0))) {
         reportFolds(currentId, u.state);
@@ -118,6 +121,8 @@ export function showNote(id: string | null, body: string): void {
   const scroll = kept && id ? scrolls.get(id) : undefined;
   if (scroll) view.dispatch({ effects: scroll });
   applyDynamic();
+  view.dispatch({ effects: setNeedles.of(needles) });
+  editorHooks().findChanged(findInfo(view.state));
   if (!kept && id) restoreFolds(editorHooks().savedFolds(id));
   // A kept state may show stale links or backlinks.
   refreshEditor();
@@ -215,4 +220,30 @@ export function runSectionCommand(command: SectionCommand): void {
 
 export function isSectionIsolated(): boolean {
   return view ? isolatedSection(view.state) !== null : false;
+}
+
+/** Words of the global search or of Ctrl+F, highlighted in every note shown. */
+let needles: readonly Needle[] = [];
+
+export function setFindNeedles(next: readonly Needle[]): void {
+  needles = next;
+  view?.dispatch({ effects: setNeedles.of(next) });
+}
+
+/** Opening a search result: shows its first occurrence (unfolding if needed). */
+export function revealFirstMatch(select: boolean): void {
+  if (view && view.state.field(findField).matches.length) goToMatch(view, 0, select);
+}
+
+export function findStep(direction: 1 | -1): void {
+  if (view) stepMatch(view, direction);
+}
+
+export function replaceOne(replacement: string): void {
+  if (view) replaceCurrent(view, replacement);
+}
+
+/** Returns the number of replacements (one undo step). */
+export function replaceEvery(replacement: string): number {
+  return view ? replaceAll(view, replacement) : 0;
 }

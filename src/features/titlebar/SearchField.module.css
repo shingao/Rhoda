@@ -1,9 +1,14 @@
+.wrap {
+  position: relative;
+  width: var(--search-w);
+  max-width: 100%;
+}
+
 .field {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
-  width: var(--search-w);
-  max-width: 100%;
+  width: 100%;
   height: var(--search-h);
   padding: 0 var(--sp-3);
   border-radius: var(--r-md);
@@ -15,7 +20,8 @@
     box-shadow var(--dur-instant) linear;
 }
 
-.field:focus-within {
+.field:focus-within,
+.filled {
   background: var(--bg-2);
   color: var(--text);
   box-shadow: 0 0 0 var(--search-focus-ring) var(--accent);
@@ -28,6 +34,7 @@
   color: var(--chrome-text-3);
 }
 
+.filled .icon,
 .field:focus-within .icon {
   color: var(--text-3);
 }
@@ -80,4 +87,88 @@
 
 .clear:hover {
   background: var(--hover);
+}
+
+/* Chips [§2.3]: operators as mono tokens, tags as tag pills */
+.opChip,
+.tagChip {
+  flex: none;
+  max-width: var(--search-chip-max);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--accent-text);
+  background: var(--accent-soft);
+}
+
+.opChip {
+  padding: var(--search-chip-pad);
+  border-radius: var(--r-xs);
+  font-family: var(--font-mono);
+  font-size: var(--search-chip-fs);
+  font-weight: var(--fw-medium);
+}
+
+.tagChip {
+  padding: var(--tag-pad);
+  border-radius: var(--r-pill);
+  font-size: var(--search-chip-fs);
+  font-weight: var(--fw-semibold);
+}
+
+/* Backspace once: the last chip is selected, twice: removed */
+.armed {
+  box-shadow: 0 0 0 var(--search-focus-ring) var(--accent);
+}
+
+.count {
+  flex: none;
+  font-size: var(--search-count-fs);
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.suggestions {
+  position: absolute;
+  top: calc(100% + var(--sp-1));
+  left: 0;
+  z-index: 900;
+  width: 100%;
+  margin: 0;
+  padding: var(--menu-pad);
+  border-radius: var(--r-lg);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-pop);
+  list-style: none;
+  animation: suggest-in var(--dur-popover-in) var(--ease-out);
+}
+
+.suggestion {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  height: var(--menu-item-h);
+  padding: 0 var(--menu-item-px);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-size: var(--menu-fs);
+  cursor: pointer;
+}
+
+.activeSuggestion {
+  background: var(--active);
+}
+
+.hint {
+  overflow: hidden;
+  color: var(--text-3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes suggest-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--popover-shift));
+  }
 }

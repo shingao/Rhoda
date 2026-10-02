@@ -2,6 +2,8 @@ import type { OutlineData } from "../editor/sections/outline";
 import { create } from "zustand";
 import type { Note } from "../core/note/note";
 import { sortNotes, type SortKey } from "../core/note/sort";
+import { isEmptyQuery, parseQuery, type SearchQuery } from "../core/search/query";
+import { searchNotes } from "../core/search/search";
 import type { VaultErrorKind } from "../services/errors";
 import { matchesFilter, type ListFilter } from "./sections";
 import { DEFAULT_SETTINGS, type Settings } from "../services/settings";
@@ -28,6 +30,23 @@ interface AppState {
   toast: { id: number; text: string; action?: ToastAction } | null;
   /** Headings of the open note for the Contents panel, reported by the editor. */
   outline: OutlineData;
+  /** Global search: completed operators/tags shown as chips, then free text. */
+  search: SearchInput;
+  /** Find in the note (Ctrl+F / Ctrl+H) and the occurrences in the open note. */
+  find: FindState;
+}
+
+export interface SearchInput {
+  chips: string[];
+  text: string;
+}
+
+export interface FindState {
+  open: boolean;
+  replace: boolean;
+  query: string;
+  count: number;
+  current: number | null;
 }
 
 export interface TagSettings {
@@ -50,6 +69,8 @@ export const useApp = create<AppState>()(() => ({
   tagConfig: {},
   toast: null,
   outline: { items: [], current: null },
+  search: { chips: [], text: "" },
+  find: { open: false, replace: false, query: "", count: 0, current: null },
 }));
 
 export const getState = useApp.getState;
@@ -83,7 +104,51 @@ export function updateSettings(patch: (s: Settings) => Settings): void {
   setState((s) => ({ settings: patch(s.settings) }));
 }
 
-export function listedNotes(notes: Record<string, Note>, sort: SortKey, filter: ListFilter, now: number = Date.now()): Note[] {
+/** The raw query typed in the search field. */
+export function searchText(search: SearchInput): string {
+  return [...search.chips, search.text].join(" ").trim();
+}
+
+let parsedFor = "";
+let parsed: SearchQuery = parseQuery("");
+/** Parsed search query (memoized on the raw text); null when there is no search. */
+export function activeQuery(search: SearchInput): SearchQuery | null {
+  const raw = searchText(search);
+  if (raw !== parsedFor) {
+    parsedFor = raw;
+    parsed = parseQuery(raw);
+  }
+  return isEmptyQuery(parsed) ? null : parsed;
+}
+
+/**
+ * Notes of the list. With a search, the whole vault is searched (archived
+ * notes included, marked on their card) — except in the trash view, which
+ * searches the trash only.
+ */
+let listCache: { args: unknown[]; result: Note[] } | null = null;
+
+export function listedNotes(
+  notes: Record<string, Note>,
+  sort: SortKey,
+  filter: ListFilter,
+  now: number = Date.now(),
+  query: SearchQuery | null = null,
+): Note[] {
+  // The field (count) and the column ask for the same list: compute it once.
+  const args = [notes, sort, filter, Math.floor(now / 60_000), query];
+  if (listCache && listCache.args.every((a, i) => a === args[i])) return listCache.result;
+  const result = computeList(notes, sort, filter, now, query);
+  listCache = { args, result };
+  return result;
+}
+
+function computeList(notes: Record<string, Note>, sort: SortKey, filter: ListFilter, now: number, query: SearchQuery | null): Note[] {
+  if (query) {
+    const inTrash = filter.kind === "section" && filter.section === "trash";
+    const scope = Object.values(notes).filter((n) => n.trashed === inTrash);
+    return searchNotes(scope, query, now, (list) => sortNotes(list, sort));
+  }
   return sortNotes(
     Object.values(notes).filter((n) => matchesFilter(n, filter, now)),
     sort,
@@ -92,8 +157,8 @@ export function listedNotes(notes: Record<string, Note>, sort: SortKey, filter: 
 
 /** The note list as currently displayed. */
 export function currentList(): Note[] {
-  const { notes, settings, filter } = getState();
-  return listedNotes(notes, settings.sort, filter);
+  const { notes, settings, filter, search } = getState();
+  return listedNotes(notes, settings.sort, filter, Date.now(), activeQuery(search));
 }
 
 /** Button of a toast ("Annuler"). */
