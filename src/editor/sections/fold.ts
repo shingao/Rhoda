@@ -143,21 +143,11 @@ export function isFolded(state: EditorState, heading: number): boolean {
   return foldedRanges(state).some((f) => f.heading === heading);
 }
 
-/** Text hidden by folds (outermost ranges): for search (ph. 5) and stickers (ph. 8). */
-export function hiddenRanges(state: EditorState): Array<{ from: number; to: number }> {
+/** Text hidden by folds (outermost ranges); see visibility.ts for the full picture. */
+export function foldHiddenRanges(state: EditorState): Array<{ from: number; to: number }> {
   const out: Array<{ from: number; to: number }> = [];
   state.field(foldField, false)?.deco.between(0, state.doc.length, (from, to) => void out.push({ from, to }));
   return out;
-}
-
-export function isHidden(state: EditorState, pos: number): boolean {
-  return hiddenRanges(state).some((r) => pos > r.from && pos <= r.to);
-}
-
-/** Unfolds whatever hides `pos` (a search result, a sticker anchor…). */
-export function revealPosition(view: EditorView, pos: number): void {
-  const hiding = foldedRanges(view.state).filter((f) => pos > f.from && pos <= f.to);
-  if (hiding.length) view.dispatch({ effects: hiding.map((f) => unfoldHeading.of(f.heading)) });
 }
 
 /** The heading of the section the cursor is in (its own line, or the closest heading above with a section that contains it). */

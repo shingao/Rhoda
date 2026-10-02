@@ -9,6 +9,7 @@ import { markdownLanguage } from "./language";
 import { linkPreview } from "./linkPreview";
 import { foldChevrons } from "./sections/chevrons";
 import { outlineReporter } from "./sections/outline";
+import { isolationField, leaveIsolation, selectIsolated, toggleIsolation } from "./sections/focus";
 import { folding, foldAll, foldCurrent, unfoldAll, unfoldCurrent } from "./sections/fold";
 import { editorKey } from "../app/shortcuts";
 import { livePreview } from "./livePreview/plugin";
@@ -62,6 +63,7 @@ export function editorExtensions(): Extension {
     rawMarkdown ? [] : [linkPreview(), backlinks],
     completions(),
     folding,
+    isolationField,
     foldChevrons,
     outlineReporter,
     keymap.of([
@@ -69,6 +71,9 @@ export function editorExtensions(): Extension {
       { key: editorKey("unfold.section"), run: unfoldCurrent },
       { key: editorKey("fold.all"), run: foldAll },
       { key: editorKey("unfold.all"), run: unfoldAll },
+      { key: editorKey("section.isolate"), run: toggleIsolation },
+      { key: "Escape", run: leaveIsolation },
+      { key: "Mod-a", run: selectIsolated },
     ]),
     keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
     // Functions, so the texts follow the language setting.

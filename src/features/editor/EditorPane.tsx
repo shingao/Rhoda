@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { CircleAlert, Ellipsis, ListTree, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { ChevronsDownUp, ChevronsUpDown, CircleAlert, Ellipsis, Focus, ListTree, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useT } from "../../app/i18n";
 import { cssPx } from "../../app/cssTokens";
 import { toggleColumn, toggleOutline } from "../../app/layout";
@@ -13,7 +13,7 @@ import { IconButton } from "../../components/IconButton";
 import { Menu } from "../../components/Menu";
 import { Tooltip } from "../../components/Tooltip";
 import { editorExtensions } from "../../editor/setup";
-import { mountEditor, setEditorOption, showNote, unmountEditor } from "../../editor/session";
+import { isSectionIsolated, mountEditor, runSectionCommand, setEditorOption, showNote, unmountEditor } from "../../editor/session";
 import { typewriter, typewriterCompartment } from "../../editor/typewriter";
 import { noteMenuEntries } from "../notelist/noteActions";
 import { Breadcrumb } from "./Breadcrumb";
@@ -109,6 +109,33 @@ export function EditorPane() {
               shortcut: shortcutLabel("layout.toggleList", t),
               onSelect: () => toggleColumn("list"),
             },
+            ...(selectedId
+              ? [
+                  { kind: "separator" as const, id: "sep-sections" },
+                  {
+                    id: "foldAll",
+                    label: t.folding.foldAll,
+                    icon: ChevronsDownUp,
+                    shortcut: shortcutLabel("fold.all", t),
+                    onSelect: () => runSectionCommand("foldAll"),
+                  },
+                  {
+                    id: "unfoldAll",
+                    label: t.folding.unfoldAll,
+                    icon: ChevronsUpDown,
+                    shortcut: shortcutLabel("unfold.all", t),
+                    onSelect: () => runSectionCommand("unfoldAll"),
+                  },
+                  {
+                    id: "isolate",
+                    label: isSectionIsolated() ? t.focus.showAll : t.focus.isolate,
+                    icon: Focus,
+                    shortcut: shortcutLabel("section.isolate", t),
+                    onSelect: () => runSectionCommand("toggleIsolation"),
+                  },
+                  { kind: "separator" as const, id: "sep-view" },
+                ]
+              : []),
             {
               id: "typewriter",
               label: t.editor.typewriter,

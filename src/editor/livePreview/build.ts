@@ -98,6 +98,16 @@ export function buildDecorations(view: EditorView, revealed: ReadonlySet<number>
     return { first, last };
   };
 
+  /**
+   * CodeMirror estimates the height of lines it has not drawn from one short
+   * plain-text line it finds on screen. A code line (22.3 px) or a Setext title
+   * picked as that sample made the whole estimate swing by 20 % and the view
+   * re-measure in a loop on long notes. A mark makes such lines ineligible.
+   */
+  function notASample(from: number, to: number) {
+    if (to > from) addMark("cm-unsampled", from, to);
+  }
+
   function heading(node: SyntaxNode, level: number) {
     const line = lineOf(node.from);
     addLine(line.from, headingDecos[level]!);
@@ -117,7 +127,10 @@ export function buildDecorations(view: EditorView, revealed: ReadonlySet<number>
   function setextHeading(node: SyntaxNode, level: number) {
     const underline = node.getChild("HeaderMark");
     const last = underline ? lineOf(underline.from).number - 1 : lineOf(node.to).number;
-    for (let n = lineOf(node.from).number; n <= last; n++) addLine(doc.line(n).from, headingDecos[level]!);
+    for (let n = lineOf(node.from).number; n <= last; n++) {
+      addLine(doc.line(n).from, headingDecos[level]!);
+      notASample(doc.line(n).from, doc.line(n).to);
+    }
     if (underline) addMark("cm-syntax", underline.from, underline.to);
   }
 
@@ -246,6 +259,7 @@ export function buildDecorations(view: EditorView, revealed: ReadonlySet<number>
       } else {
         const tail = !close && n === endLine.number ? " cm-code-tail" : "";
         addLine(line.from, lineDeco(`cm-code cm-code-line${tail}${revealCls}`));
+        notASample(line.from, line.to);
       }
     }
   }
@@ -259,6 +273,7 @@ export function buildDecorations(view: EditorView, revealed: ReadonlySet<number>
       if (n === firstLine) cls += " cm-code-first";
       if (n === lastLine) cls += " cm-code-tail";
       addLine(doc.line(n).from, lineDeco(cls));
+      notASample(doc.line(n).from, doc.line(n).to);
     }
   }
 

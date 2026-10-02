@@ -1,10 +1,11 @@
 import type { Compartment} from "@codemirror/state";
-import { Annotation, EditorSelection, EditorState, type Extension } from "@codemirror/state";
+import { Annotation, EditorSelection, EditorState, type Extension, type StateEffect } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { cssPx } from "../app/cssTokens";
 import { foldKeys, matchFoldKeys, type FoldKey } from "../core/folds";
 import { editorHooks, refreshPreview } from "./hooks";
-import { foldField, foldedRanges, setFolds, toggleFold, unfoldHeading } from "./sections/fold";
+import { foldAll, foldField, foldedRanges, setFolds, toggleFold, unfoldAll, unfoldHeading } from "./sections/fold";
+import { isolatedSection, toggleIsolation } from "./sections/focus";
 import { headingsIn } from "./sections/headings";
 
 /**
@@ -19,6 +20,8 @@ let view: EditorView | null = null;
 let currentId: string | null = null;
 let extensions: Extension = [];
 const states = new Map<string, EditorState>();
+/** Scroll position of each note, as an anchor that survives height re-estimation. */
+const scrolls = new Map<string, StateEffect<unknown>>();
 /** Options that can change at runtime (typewriter mode…), re-applied to every note's state. */
 const dynamic = new Map<Compartment, Extension>();
 
@@ -101,11 +104,19 @@ export function unmountEditor(): void {
 /** Shows a note instantly (no animation, DESIGN §4). */
 export function showNote(id: string | null, body: string): void {
   if (!view || id === currentId) return;
-  if (currentId) states.set(currentId, view.state);
+  if (currentId) {
+    states.set(currentId, view.state);
+    scrolls.set(currentId, view.scrollSnapshot());
+  }
   if (foldReport && view) reportFolds(foldReport.id, view.state, true);
   currentId = id;
   const kept = states.get(id ?? "");
+  // Start the next note at its own position (top if new), not at the previous
+  // note's pixel offset: that made CodeMirror re-measure in a loop on long notes.
+  view.scrollDOM.scrollTop = 0;
   view.setState(kept ?? EditorState.create({ doc: id ? body : "", extensions: stateExtensions() }));
+  const scroll = kept && id ? scrolls.get(id) : undefined;
+  if (scroll) view.dispatch({ effects: scroll });
   applyDynamic();
   if (!kept && id) restoreFolds(editorHooks().savedFolds(id));
   // A kept state may show stale links or backlinks.
@@ -161,6 +172,7 @@ export function rewriteInEditor(id: string, changes: Array<{ from: number; to: n
 
 export function forgetNote(id: string): void {
   states.delete(id);
+  scrolls.delete(id);
 }
 
 export function focusEditor(atEnd = false): void {
@@ -190,4 +202,17 @@ export function scrollToHeading(heading: number): void {
 /** Contents panel chevron: same fold as the editor's chevron. */
 export function toggleFoldAt(heading: number): void {
   if (view) toggleFold(view, heading);
+}
+
+export type SectionCommand = "foldAll" | "unfoldAll" | "toggleIsolation";
+
+/** Section commands for the editor's "…" menu. */
+export function runSectionCommand(command: SectionCommand): void {
+  if (!view) return;
+  ({ foldAll, unfoldAll, toggleIsolation })[command](view);
+  view.focus();
+}
+
+export function isSectionIsolated(): boolean {
+  return view ? isolatedSection(view.state) !== null : false;
 }

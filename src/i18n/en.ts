@@ -186,6 +186,11 @@ export const en: Messages = {
     close: "Close contents",
     empty: "No headings in this note.",
   },
+  focus: {
+    isolate: "Focus on this section",
+    isolated: "Section in focus: the rest of the note is hidden.",
+    showAll: "Show the whole note",
+  },
   folding: {
     fold: "Fold section",
     unfold: "Unfold section",

@@ -269,6 +269,9 @@
   --outline-max-h-gap: 24px;               /* max height = editor − 24 */
   --outline-shift: 8px;                    /* [§4] translateX(8px → 0) */
 
+  /* Isolated section bar (decision) */
+  --isolation-btn-h: 28px;
+
   /* Folding chevron and badge [§2.13] */
   --fold-chevron: 18px;
   --fold-chevron-left: 22px;               /* left edge, from the text column */

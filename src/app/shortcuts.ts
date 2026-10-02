@@ -22,6 +22,7 @@ export const SHORTCUTS = {
   "unfold.section": { keys: "Ctrl+Shift+ArrowDown", scope: "editor" },
   "fold.all": { keys: "Ctrl+Shift+PageUp", scope: "editor" },
   "unfold.all": { keys: "Ctrl+Shift+PageDown", scope: "editor" },
+  "section.isolate": { keys: "Ctrl+Shift+Enter", scope: "editor" },
 } as const satisfies Record<string, { keys: string; scope: ShortcutScope }>;
 
 /** "editor" shortcuts run inside CodeMirror (see `editorKey`). */

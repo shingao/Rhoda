@@ -195,6 +195,11 @@ export const fr = {
     close: "Fermer le sommaire",
     empty: "Aucun titre dans cette note.",
   },
+  focus: {
+    isolate: "Isoler cette section",
+    isolated: "Section isolée : le reste de la note est masqué.",
+    showAll: "Afficher toute la note",
+  },
   folding: {
     fold: "Replier la section",
     unfold: "Déplier la section",

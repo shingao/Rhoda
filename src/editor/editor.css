@@ -598,3 +598,33 @@
 .cm-fold-badge:hover .cm-fold-pill {
   color: var(--text-2);
 }
+
+/* Isolated section (decision P4-6): a bar above the heading, two rhythm units tall */
+.cm-isolation-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  height: calc(var(--rhythm) * 2);
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+  font-style: normal;
+  color: var(--text-3);
+}
+
+.cm-isolation-exit {
+  height: var(--isolation-btn-h);
+  padding: 0 var(--sp-3);
+  border: 0;
+  border-radius: var(--r-md);
+  background: var(--bg-sunken);
+  color: var(--text-2);
+  font: inherit;
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+}
+
+.cm-isolation-exit:hover {
+  background: var(--active);
+  color: var(--text);
+}

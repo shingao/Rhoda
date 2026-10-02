@@ -3,7 +3,9 @@ import { ensureSyntaxTree } from "@codemirror/language";
 import { EditorSelection, EditorState, type TransactionSpec } from "@codemirror/state";
 import { describe, expect, it } from "vitest";
 import { ursaMarkdownExtensions } from "../../core/markdown/syntax";
-import { foldField, foldSpec, foldedRanges, hiddenRanges, isHidden, keepFolds, sectionHeadingAt, setFolds, unfoldHeading } from "./fold";
+import { foldField, foldSpec, foldedRanges, keepFolds, sectionHeadingAt, setFolds, unfoldHeading } from "./fold";
+import { isolateSection, isolatedSection, isolationField } from "./focus";
+import { hiddenRanges, isHidden } from "./visibility";
 import { headingsIn, sectionBody } from "./headings";
 
 const DOC = [
@@ -31,7 +33,7 @@ const DOC = [
 ].join("\n");
 
 function create(doc = DOC): EditorState {
-  const state = EditorState.create({ doc, extensions: [markdown({ extensions: ursaMarkdownExtensions }), foldField] });
+  const state = EditorState.create({ doc, extensions: [markdown({ extensions: ursaMarkdownExtensions }), foldField, isolationField] });
   ensureSyntaxTree(state, state.doc.length, 5000);
   return state;
 }
@@ -155,5 +157,42 @@ describe("folding", () => {
     const state = create("## A\n\n## B\nx");
     expect(foldedRanges(fold(state, "## A"))).toEqual([]);
     expect(foldedRanges(fold(state, "## B"))).toHaveLength(1);
+  });
+});
+
+describe("isolating a section", () => {
+  const isolate = (state: EditorState, title: string) => apply(state, { effects: isolateSection.of(lineStart(state, title)) });
+  const visible = (state: EditorState) => {
+    const s = isolatedSection(state)!;
+    return state.sliceDoc(s.from, s.to);
+  };
+
+  it("hides everything else, folds included in the API", () => {
+    let state = isolate(create(), "## Itinéraire");
+    expect(visible(state)).toBe("## Itinéraire\n### Jour 1\nTexte 1\n\n### Jour 2\nTexte 2");
+    expect(isHidden(state, DOC.indexOf("Intro"))).toBe(true);
+    expect(isHidden(state, DOC.indexOf("Texte 1"))).toBe(false);
+    state = fold(state, "### Jour 2");
+    expect(hiddenRanges(state)).toHaveLength(3);
+  });
+
+  it("follows edits inside the section and the renaming of its heading", () => {
+    let state = isolate(create(), "## Itinéraire");
+    const h = lineStart(state, "## Itinéraire");
+    state = apply(state, { changes: { from: h + "## Itinéraire".length, insert: " au Japon" }, selection: EditorSelection.cursor(h + 5) });
+    state = apply(state, { changes: { from: state.doc.toString().indexOf("Texte 2"), insert: "Encore. " } });
+    expect(visible(state)).toContain("## Itinéraire au Japon");
+    expect(visible(state)).toContain("Encore. Texte 2");
+  });
+
+  it("ends when the cursor leaves it, when its heading goes, or when hidden text is changed", () => {
+    let state = isolate(create(), "## Itinéraire");
+    expect(isolatedSection(apply(state, { selection: EditorSelection.cursor(0) }))).toBeNull();
+    const h = lineStart(state, "## Itinéraire");
+    state = apply(state, { selection: EditorSelection.cursor(h + 3) });
+    expect(isolatedSection(apply(state, { changes: { from: h, to: h + 3 } }))).toBeNull();
+    expect(isolatedSection(apply(state, { changes: { from: 0, insert: "x" } }))).toBeNull();
+    // Ursa's own rewrites elsewhere keep it.
+    expect(isolatedSection(apply(state, { changes: { from: 0, insert: "x" }, annotations: keepFolds.of(true) }))).not.toBeNull();
   });
 });
