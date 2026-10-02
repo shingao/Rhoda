@@ -1,0 +1,351 @@
+/* Live Markdown rendering [DESIGN §3].
+   Line-level rules use `.cm-editor .cm-line.<class>` so they win over
+   CodeMirror's own line padding (injected at runtime). */
+
+/* Syntax shown on the active line(s) */
+.cm-syntax {
+  opacity: var(--syntax-opacity);
+}
+
+/* Headings [§3] + margin marker [§2.14] */
+.cm-editor .cm-line.cm-h {
+  position: relative;
+  font-weight: var(--fw-bold);
+  color: var(--text);
+}
+
+.cm-editor .cm-line.cm-h1 {
+  top: var(--h1-shift);
+  font-size: var(--h1-fs);
+  line-height: var(--h1-lh);
+  letter-spacing: var(--h1-tracking);
+}
+
+.cm-editor .cm-line.cm-h2 {
+  font-size: var(--h2-fs);
+  line-height: var(--h2-lh);
+}
+
+.cm-editor .cm-line.cm-h3 {
+  font-size: var(--h3-fs);
+  line-height: var(--h3-lh);
+}
+
+.cm-editor .cm-line.cm-h4 {
+  font-size: var(--h4-fs);
+  line-height: var(--h4-lh);
+}
+
+.cm-editor .cm-line.cm-h5 {
+  color: var(--text-2);
+}
+
+.cm-editor .cm-line.cm-h6 {
+  font-weight: var(--fw-semibold);
+  font-variant: small-caps;
+  color: var(--text-3);
+}
+
+.cm-editor .cm-line.cm-h::before {
+  content: attr(data-heading) / "";
+  position: absolute;
+  top: var(--hmarker-nudge);
+  left: calc(-1 * var(--hmarker-left));
+  width: var(--hmarker-w);
+  font-family: var(--font-ui);
+  font-size: var(--hmarker-fs);
+  font-style: normal;
+  font-variant: normal;
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0;
+  text-align: right;
+  color: var(--accent);
+  opacity: var(--hmarker-opacity);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Inline styles */
+.cm-strong {
+  font-weight: var(--fw-bold);
+}
+
+.cm-em {
+  font-style: italic;
+}
+
+.cm-strike {
+  text-decoration: line-through;
+  color: var(--text-3);
+}
+
+.cm-highlight {
+  padding: var(--highlight-pad);
+  border-radius: var(--r-xs);
+  background: var(--highlight);
+}
+
+.cm-inline-code {
+  padding: var(--inline-code-pad);
+  border-radius: var(--r-xs);
+  background: var(--bg-code);
+  color: var(--accent-text);
+  font-family: var(--font-mono);
+  font-size: var(--syntax-mono-fs);
+}
+
+.cm-link {
+  color: var(--accent-text);
+  text-decoration: underline var(--link-underline) var(--accent-soft);
+  text-underline-offset: var(--link-underline-offset);
+  transition: text-decoration-color var(--dur-fast) var(--ease-out);
+}
+
+.cm-link:hover {
+  text-decoration-color: var(--accent);
+}
+
+.cm-wikilink {
+  font-weight: var(--fw-semibold);
+  color: var(--accent-text);
+  box-shadow: inset 0 calc(-1 * var(--wikilink-underline)) 0 var(--accent-soft);
+}
+
+/* Tag pill [§2.5]: identical on the active line, the # stays visible */
+.cm-tag {
+  display: inline-block;
+  padding: var(--tag-pad);
+  border-radius: var(--r-pill);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-family: var(--font-ui);
+  font-size: var(--tag-fs);
+  font-style: normal;
+  font-weight: var(--fw-semibold);
+  line-height: var(--tag-lh);
+  letter-spacing: 0;
+  text-indent: 0;
+  vertical-align: var(--tag-lift);
+}
+
+/* Lists [§3]: hanging indent of --list-indent per level */
+.cm-editor .cm-line.cm-list-line {
+  padding-left: calc(var(--list-indent) * var(--list-level));
+  text-indent: calc(-1 * var(--list-indent));
+}
+
+.cm-editor .cm-line.cm-task-line {
+  padding-left: calc(var(--list-indent) * (var(--list-level) - 1) + var(--task-indent));
+  text-indent: calc(-1 * var(--task-indent));
+}
+
+.cm-editor .cm-line.cm-list-cont {
+  padding-left: calc(var(--list-indent) * var(--list-level));
+}
+
+.cm-editor .cm-line.cm-task-cont {
+  padding-left: calc(var(--list-indent) * (var(--list-level) - 1) + var(--task-indent));
+}
+
+.cm-list-marker,
+.cm-list-raw {
+  display: inline-block;
+  min-width: var(--list-indent);
+  text-indent: 0;
+}
+
+.cm-list-marker {
+  width: var(--list-indent);
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.cm-list-bullet::before {
+  content: "";
+  display: inline-block;
+  width: var(--bullet-size);
+  height: var(--bullet-size);
+  margin-left: calc((var(--list-indent) - var(--bullet-size)) / 2);
+  border-radius: 50%;
+  background: var(--text-3);
+  vertical-align: middle;
+}
+
+.cm-task-raw {
+  min-width: var(--task-indent);
+  font-family: var(--font-mono);
+  font-size: var(--syntax-mono-fs);
+}
+
+/* Todo checkbox [§2.7] */
+.cm-list-marker.cm-task-marker {
+  position: relative;
+  width: var(--task-indent);
+  height: var(--editor-lh);
+  vertical-align: top;
+}
+
+.cm-checkbox {
+  position: absolute;
+  top: calc((var(--editor-lh) - var(--checkbox-size)) / 2);
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--checkbox-size);
+  height: var(--checkbox-size);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 var(--checkbox-ring) var(--text-faint);
+  color: var(--bg-2);
+  cursor: pointer;
+  transition:
+    box-shadow var(--dur-fast) var(--ease-out),
+    background-color var(--dur-check) var(--ease-out);
+}
+
+.cm-checkbox:hover {
+  box-shadow: inset 0 0 0 var(--checkbox-ring) var(--text-2);
+}
+
+.cm-checkbox[aria-checked="true"] {
+  background: var(--text-3);
+  box-shadow: none;
+}
+
+.cm-checkbox svg {
+  width: var(--checkbox-check);
+  height: var(--checkbox-check);
+  animation: check-in var(--dur-check) var(--ease-out);
+}
+
+.cm-task-done {
+  color: var(--text-3);
+}
+
+@keyframes check-in {
+  from {
+    transform: scale(var(--checkbox-from-scale));
+  }
+}
+
+/* Quote [§2.9]: no side bar; padding keeps the block on the rhythm (14 + 14 = 28) */
+.cm-editor .cm-line.cm-quote {
+  padding: 0 var(--quote-pad-x);
+  background: var(--bg-1);
+  color: var(--text-2);
+  font-style: italic;
+}
+
+.cm-editor .cm-line.cm-quote-nested {
+  background: var(--bg-sunken);
+}
+
+.cm-editor .cm-line.cm-quote-first {
+  padding-top: var(--quote-pad-y);
+  border-top-left-radius: var(--r-md);
+  border-top-right-radius: var(--r-md);
+}
+
+.cm-editor .cm-line.cm-quote-last {
+  padding-bottom: var(--quote-pad-y);
+  border-bottom-left-radius: var(--r-md);
+  border-bottom-right-radius: var(--r-md);
+}
+
+/* Code block [§2.8] */
+.cm-editor .cm-line.cm-code {
+  padding: 0 var(--code-pad-x);
+  background: var(--bg-code);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--code-fs);
+  line-height: var(--code-lh);
+  overflow-wrap: anywhere;
+}
+
+.cm-editor .cm-line.cm-code-head {
+  position: relative;
+  line-height: var(--code-header-h);
+  border-top-left-radius: var(--r-lg);
+  border-top-right-radius: var(--r-lg);
+}
+
+.cm-editor .cm-line.cm-code-first {
+  border-top-left-radius: var(--r-lg);
+  border-top-right-radius: var(--r-lg);
+}
+
+.cm-editor .cm-line.cm-code-close,
+.cm-editor .cm-line.cm-code-tail {
+  border-bottom-left-radius: var(--r-lg);
+  border-bottom-right-radius: var(--r-lg);
+}
+
+.cm-code-lang {
+  font-family: var(--font-ui);
+  font-size: var(--code-lang-fs);
+  font-weight: var(--fw-medium);
+  color: var(--text-3);
+}
+
+.cm-code-copy {
+  position: absolute;
+  top: calc((var(--code-header-h) - var(--code-copy-btn)) / 2);
+  right: calc(var(--code-pad-x) / 2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--code-copy-btn);
+  height: var(--code-copy-btn);
+  border-radius: var(--r-sm);
+  color: var(--text-3);
+  opacity: 0;
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+
+.cm-code-copy svg {
+  width: var(--code-copy-icon);
+  height: var(--code-copy-icon);
+}
+
+.cm-code-copy:hover {
+  background: var(--hover);
+  color: var(--text-2);
+}
+
+.cm-code-copy.is-copied,
+.cm-code-revealed .cm-code-copy,
+.cm-code-head.is-hovered .cm-code-copy {
+  opacity: 1;
+}
+
+.cm-tok-keyword {
+  color: var(--accent-text);
+}
+
+/* Lezer styles task markers as `atom`, a kind of keyword: not code, so no code colour. */
+.cm-task-raw .cm-tok-keyword {
+  color: inherit;
+}
+
+.cm-tok-literal {
+  color: var(--text-2);
+}
+
+.cm-tok-comment {
+  color: var(--text-3);
+  font-style: italic;
+}
+
+/* Horizontal rule [§3]: a 1 px line in the middle of its rhythm line */
+.cm-editor .cm-line.cm-hr:not(.cm-hr-revealed) {
+  background: linear-gradient(var(--separator), var(--separator)) center / 100% var(--hr-thickness) no-repeat;
+}
+
+/* Typewriter mode */
+.cm-editor.cm-typewriter .cm-content {
+  padding-top: var(--typewriter-pad);
+  padding-bottom: var(--typewriter-pad);
+}

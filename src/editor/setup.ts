@@ -1,14 +1,13 @@
 import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
-import { markdown } from "@codemirror/lang-markdown";
 import type { Extension } from "@codemirror/state";
 import { drawSelection, EditorView, keymap, placeholder } from "@codemirror/view";
 import { cssMs } from "../app/cssTokens";
 import { currentMessages } from "../app/i18n";
+import { markdownLanguage } from "./language";
+import { livePreview } from "./livePreview/plugin";
+import "./editor.css";
 
-/**
- * Editor look, driven by design tokens only. Phase 1 renders raw Markdown;
- * the live preview arrives in phase 2.
- */
+/** Editor frame, driven by design tokens only. Markdown rendering lives in livePreview/ and editor.css. */
 const ursaTheme = EditorView.theme({
   "&": {
     height: "100%",
@@ -39,14 +38,20 @@ const ursaTheme = EditorView.theme({
   },
   ".cm-content ::selection": { backgroundColor: "var(--selection)" },
   ".cm-placeholder": { color: "var(--text-3)" },
+  // Above the text, so selections stay visible on lines with a background (code, quotes, pills).
+  ".cm-selectionLayer": { zIndex: "1" },
 });
+
+/** Development only: localStorage "ursa-dev-raw" shows plain Markdown, for before/after comparisons. */
+const rawMarkdown = import.meta.env.DEV && localStorage.getItem("ursa-dev-raw") !== null;
 
 export function editorExtensions(): Extension {
   return [
     history(),
     drawSelection({ cursorBlinkRate: cssMs("--caret-blink") }),
     EditorView.lineWrapping,
-    markdown(),
+    markdownLanguage(),
+    rawMarkdown ? [] : livePreview,
     keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
     // Functions, so the texts follow the language setting.
     placeholder(() => {

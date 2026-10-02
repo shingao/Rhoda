@@ -9,6 +9,9 @@ export interface Settings {
   language: Language;
   theme: "coral";
   sort: SortKey;
+  editor: {
+    typewriter: boolean;
+  };
   layout: {
     /** Widths in px; null = default from DESIGN tokens. */
     sidebarWidth: number | null;
@@ -23,6 +26,7 @@ export const DEFAULT_SETTINGS: Settings = {
   language: DEFAULT_LANGUAGE,
   theme: "coral",
   sort: "modified",
+  editor: { typewriter: false },
   layout: { sidebarWidth: null, listWidth: null, sidebarCollapsed: false, listCollapsed: false },
 };
 

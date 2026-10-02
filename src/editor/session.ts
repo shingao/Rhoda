@@ -1,3 +1,4 @@
+import type { Compartment} from "@codemirror/state";
 import { Annotation, EditorSelection, EditorState, type Extension } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 
@@ -13,6 +14,24 @@ let view: EditorView | null = null;
 let currentId: string | null = null;
 let extensions: Extension = [];
 const states = new Map<string, EditorState>();
+/** Options that can change at runtime (typewriter mode…), re-applied to every note's state. */
+const dynamic = new Map<Compartment, Extension>();
+
+function applyDynamic(): void {
+  if (!view || dynamic.size === 0) return;
+  view.dispatch({ effects: [...dynamic].map(([c, ext]) => c.reconfigure(ext)) });
+}
+
+/** Sets a runtime option, for the open note and every note shown afterwards. */
+export function setEditorOption(compartment: Compartment, ext: Extension): void {
+  dynamic.set(compartment, ext);
+  applyDynamic();
+}
+
+/** Extensions for new states, with the current value of each runtime option. */
+function stateExtensions(): Extension {
+  return [extensions, [...dynamic].map(([c, ext]) => c.of(ext))];
+}
 
 export function mountEditor(parent: HTMLElement, ext: Extension, onEdit: (id: string, body: string) => void): EditorView {
   extensions = [
@@ -23,7 +42,9 @@ export function mountEditor(parent: HTMLElement, ext: Extension, onEdit: (id: st
       }
     }),
   ];
-  view = new EditorView({ parent, state: EditorState.create({ extensions }) });
+  view = new EditorView({ parent, state: EditorState.create({ extensions: stateExtensions() }) });
+  // Development only: lets browser tests reach the view.
+  if (import.meta.env.DEV) (window as { __ursaView?: EditorView }).__ursaView = view;
   return view;
 }
 
@@ -39,7 +60,8 @@ export function showNote(id: string | null, body: string): void {
   if (!view || id === currentId) return;
   if (currentId) states.set(currentId, view.state);
   currentId = id;
-  view.setState(states.get(id ?? "") ?? EditorState.create({ doc: id ? body : "", extensions }));
+  view.setState(states.get(id ?? "") ?? EditorState.create({ doc: id ? body : "", extensions: stateExtensions() }));
+  applyDynamic();
 }
 
 /** Applies a change made outside Ursa, keeping the cursor where it can. */

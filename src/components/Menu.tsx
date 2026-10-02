@@ -11,8 +11,9 @@ export type MenuEntry =
       icon?: LucideIcon;
       shortcut?: string;
       danger?: boolean;
-      /** Shows a check mark; turns the item into a radio item. */
+      /** Shows a check mark; turns the item into a radio item (or a checkbox item with `toggle`). */
       checked?: boolean;
+      toggle?: boolean;
       onSelect: () => void;
     }
   | { kind: "separator"; id: string };
@@ -125,7 +126,7 @@ export function Menu({ at, entries, label, align = "start", onClose }: MenuProps
         return (
           <div
             key={entry.id}
-            role={radio ? "menuitemradio" : "menuitem"}
+            role={radio ? (entry.toggle ? "menuitemcheckbox" : "menuitemradio") : "menuitem"}
             aria-checked={radio ? entry.checked : undefined}
             className={[s.item, entry.danger && s.danger, index === active && s.current].filter(Boolean).join(" ")}
             onPointerMove={() => setActive(index)}

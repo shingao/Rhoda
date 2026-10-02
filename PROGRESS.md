@@ -1,13 +1,13 @@
 # Ursa — PROGRESS
 
-État : **Phase 1 terminée, corrections du retour appliquées** — en attente du « go » pour la phase 2 (maquettes à déposer dans `design/` d'ici là).
+État : **Phase 2 terminée** (à valider sur Windows) — en attente de ton retour, puis du « go » pour la phase 3. ⚠️ Les maquettes ne sont toujours pas sur le dépôt distant.
 
 | Phase | Sujet | État |
 |---|---|---|
 | 0 | Cadrage | ✅ fait |
-| 1 | Squelette et fichiers | ✅ fait (à valider sur Windows) |
-| 2 | Éditeur Markdown live | ⏳ en attente du go |
-| 3 | Tags, liens, todos, sections | — |
+| 1 | Squelette et fichiers | ✅ validée |
+| 2 | Éditeur Markdown live | ✅ fait (à valider sur Windows) |
+| 3 | Tags, liens, todos, sections | ⏳ en attente du go |
 | 4 | Sommaire, folding, focus de section | — |
 | 5 | Recherche | — |
 | 6 | Thèmes, fonds de page, rythme, réglages | — |
@@ -124,6 +124,65 @@
 - Scrollbar : le pouce s'élargit à 8 px au survol du pouce lui-même, pas de toute la zone de 10 px (limite de `::-webkit-scrollbar`).
 - Snap Layouts de Windows 11 absents au survol de « Agrandir » (limite Tauri, cf. risque 6).
 - Markdown brut dans l'éditeur (attendu : live preview en phase 2).
+
+---
+
+## Phase 2 — Éditeur Markdown live
+
+Découpée et livrée en sous-étapes : 2a grammaire, 2b rendu inline, 2c blocs, 2d machine à écrire, performances, démo, captures.
+
+### Fait
+- **Grammaire partagée** (`src/core/markdown/syntax.ts`, 9 tests) : CommonMark + GFM + `==surlignage==`, `[[cible]]` / `[[cible|alias]]`, tags `#tag`, `#tag/sous-tag`, `#tag multi mots#` (pas de faux positif sur `C#`, `#123`, `…/#ancre`, ni dans le code). Elle servira aussi à l'indexation (ph. 3).
+- **Rendu live** (`src/editor/livePreview/`) : un `ViewPlugin` parcourt l'arbre syntaxique **uniquement sur la zone visible** et reconstruit les décorations seulement si le texte, la zone visible, l'arbre ou l'ensemble des lignes révélées change.
+  - Syntaxe (`**`, `_`, `*`, `~~`, `==`, `` ` ``, `#`, `>`, `[ ]( )`, `[[ ]]`, `\`) **cachée** hors des lignes qui portent le curseur ou une sélection, **estompée** (`--syntax-opacity`) sur ces lignes ; rien n'est révélé quand l'éditeur n'a pas le focus.
+  - Titres H1–H6 aux tailles du design (H1 sur 2 unités, décalé de 10 px), marqueur « H1…H6 » dans la marge (accent, opacité .55, `aria-hidden`), qui ne bouge jamais.
+  - Gras, italique, gras-italique, barré (`--text-3`), surlignage, code inline (mono .86em, `--accent-text`), liens (Ctrl+clic ouvre http/https/mailto/www), URL nues, `[[wiki-links]]` (alias affiché seul), tags en pastille (identiques sur la ligne active).
+  - Listes : puces 5 px, numéros tabulaires, retrait suspendu de 24 px par niveau, lignes de continuation alignées ; Entrée continue la liste, Retour arrière retire le marqueur (keymap Markdown de CodeMirror).
+  - Tâches : cercle 18 px cliquable (seule la case bascule, Ctrl+Z l'annule), cochée = fond `--text-3` + coche, texte `--text-3`, sous-tâches imbriquées.
+  - Citations : bloc `--bg-1` arrondi, italique `--text-2`, sans barre ; imbriquées en `--bg-sunken`.
+  - Blocs de code : en-tête 32 px (langue + bouton Copier, visible au survol ou curseur dans le bloc, coche pendant 1,2 s), code mono 13.5/1.65, coloration (mots-clés accent, littéraux `--text-2`, commentaires `--text-3` italique), clôtures estompées quand le curseur est dans le bloc. Langages chargés à la demande.
+  - Séparateur `---` : trait 1 px `--separator` au milieu de sa ligne.
+- **Curseur** : rien n'est atomique ni sauté. La ligne active étant entièrement révélée, les flèches traversent chaque caractère de syntaxe ; ↑/↓ gardent la colonne visée ; la sélection au clavier et à la souris fonctionne sur les lignes rendues ; **copier/couper copient le Markdown brut** (vérifié : texte copié identique au source).
+- **Mode machine à écrire** (menu `…` de l'éditeur, mémorisé) : la ligne courante reste centrée.
+- **Note de démo** : `samples/Démo éditeur.md` (chaque élément + cas limites : gras dans un titre, lien dans une liste, code inline contenant des `**`, tâche imbriquée, titre très long, emoji composés, faux tags) ; `samples/Note longue (5000 lignes).md` générée par `npm run sample:long`.
+- **Performances** (note de 5 000 lignes, curseur ligne 2500, Chromium) : transaction + décorations + DOM par frappe **3,0 ms** médiane / 4,6 ms p95 ; **frappe → image affichée 11,2 ms** médiane / 18,5 ms p95 à vitesse de frappe humaine ; **aucune tâche longue** (> 50 ms) ; défilement de toute la note à 60 i/s.
+- **Captures avant/après** : `docs/captures/phase-2/planche-1.png` et `planche-2.png` (16 éléments × brut / rendu / curseur sur la ligne).
+- **Vérifié dans la vraie app** (binaire Tauri sous Linux) : rendu de la démo, indicateur « Non sauvegardé » et dialogue de fermeture en conditions réelles (Réessayer → sauvegarde puis fermeture).
+- Tests : 55 Vitest (dont grammaire, rythme des blocs de code, lignes révélées), 9 Rust.
+
+### Décisions (phase 2)
+| # | Sujet | Décision |
+|---|---|---|
+| P2-1 | Portée de la révélation | Par ligne : toute ligne touchée par le curseur ou la sélection, et seulement si l'éditeur a le focus. Un bloc de code est révélé en entier dès que le curseur y entre. |
+| P2-2 | Marqueurs de liste sur la ligne active | Bruts et estompés, dans une boîte de 24 px pour que le texte ne bouge pas (puces, numéros). Les tâches sont en mono .86em comme le veut DESIGN §3 : leur texte se décale vers la droite quand le curseur arrive. |
+| P2-3 | Blocs de code | Décorations de ligne, pas de widget bloc : le curseur entre et sort du bloc sans saut et la hauteur du bloc est identique révélé ou non. Contrepartie : les lignes longues **reviennent à la ligne** au lieu de défiler horizontalement (voir écarts). |
+| P2-4 | Rythme vertical des blocs de code | La ligne de clôture prend la hauteur qui arrondit le bloc au multiple de 28 (en-tête 32 + n × 22,275 + ≥ 16). La « marge basse 24 » de §2.8 est remplacée par la ligne vide Markdown (28). |
+| P2-5 | Tags et wiki-links | Rendu visuel dès la phase 2 (la grammaire en a besoin) ; clic pour filtrer, autocomplétion, navigation, liens cassés et aperçu au survol en phase 3. |
+| P2-6 | Ctrl+clic | Ouvre les liens web (http, https, mailto, www.) dans le navigateur ; les autres schémas sont ignorés. |
+| P2-7 | Éléments non rendus | Images (phase 7), tableaux et HTML restent en texte brut. |
+| P2-8 | Sélection | Calque de sélection au-dessus du texte (couleur translucide `--selection`) pour rester visible sur les fonds de code, citation et pastilles. |
+| P2-9 | Citations imbriquées | Bloc `--bg-sunken` accolé sous la citation parente, sans retrait supplémentaire (DESIGN muet). |
+| P2-10 | Titres Setext (`===`/`---` sous le texte) | Rendus comme H1/H2, soulignement toujours estompé. |
+| P2-11 | Outils de dev | `localStorage` `ursa-dev-raw` (Markdown brut), `ursa-dev-fail-writes` (échecs simulés) et `window.__ursaView`, uniquement en `npm run dev` ; absents du build. |
+
+### Écarts avec le design (phase 2)
+- **Maquettes absentes du dépôt** : comparaison faite avec DESIGN.md uniquement. À refaire dès qu'elles seront poussées dans `design/`.
+- §2.8 : pas de défilement horizontal dans les blocs de code (retour à la ligne), cf. P2-3.
+- §2.7 : la case à cocher n'est pas atteignable au clavier (élément dans la zone éditable) ; bascule au clavier prévue avec Ctrl+Shift+T (ph. 10). Idem pour le bouton Copier des blocs de code.
+- §2.14 : le marqueur de marge n'est pas encore masquable (réglage en ph. 6).
+- Quand `#` apparaît sur un titre actif, le texte du titre se décale vers la droite (accepté par §3 : « décalage horizontal acceptable »).
+
+### Checklist de test manuel (phase 2)
+1. Copie `samples/Démo éditeur.md` dans `Documents\Ursa`, ouvre-la : titres avec marqueurs H1–H6 dans la marge, gras/italique/barré/surlignage/code rendus, aucune syntaxe visible.
+2. Clique sur une ligne : sa syntaxe apparaît estompée, sans que la ligne bouge verticalement ; clique ailleurs (ou dans la liste) : elle disparaît.
+3. Flèches ←/→ sur une ligne avec `**gras**` et `[lien](url)` : le curseur avance caractère par caractère ; ↑/↓ sur plusieurs paragraphes : pas de saut de colonne bizarre.
+4. Sélectionne plusieurs lignes rendues (souris et Maj+flèches), Ctrl+C, colle dans le Bloc-notes : c'est le Markdown brut.
+5. Clique sur un cercle de tâche : il se coche (texte grisé), Ctrl+Z annule. Dans une liste de tâches, Entrée crée une nouvelle tâche au même niveau ; Entrée sur une tâche vide la remonte d'un niveau ; Retour arrière en début de tâche retire la case et le tiret (1er appui) puis le retrait (2e appui).
+6. Bloc de code : survol → bouton Copier ; clique dedans : les ``` apparaissent estompées, la hauteur du bloc ne change pas ; Copier colle bien le code.
+7. Ctrl+clic sur le lien Markdown et sur l'URL nue : le navigateur s'ouvre.
+8. Ouvre `samples/Note longue (5000 lignes).md` (copie-la aussi), tape au milieu : la frappe reste fluide, le défilement aussi.
+9. Menu `…` › Mode machine à écrire : la ligne courante reste centrée en tapant ; l'option est conservée au redémarrage.
+10. Les emoji (🐻, 👩🏽‍💻, 🇫🇷) se sélectionnent et s'effacent d'un bloc, sans décalage du curseur.
 
 ---
 

@@ -56,6 +56,59 @@
   --caret-w: 2px;                          /* [§3] */
   --caret-blink: 1000ms;                   /* [§3] */
 
+  /* Live Markdown [§3] */
+  --syntax-mono-fs: .86em;                 /* inline code + task syntax */
+  --hmarker-left: var(--editor-pad-x);     /* [§2.14] 48 px left of the column */
+  --hmarker-w: 22px;
+  --hmarker-fs: var(--fs-2xs);
+  --hmarker-opacity: .55;
+  --hmarker-nudge: 1px;                    /* (decision) optical alignment on the x-height */
+  --h1-shift: 10px;                        /* [§3] baseline on the 2nd rule */
+  --h1-tracking: -0.015em;
+  --inline-code-pad: 1px 5px;
+  --highlight-pad: 0 2px;
+  --link-underline: 1.5px;
+  --link-underline-offset: 3px;
+  --wikilink-underline: 1.5px;
+
+  /* Tag pill [§2.5, §6]: 22 px tall, centred in the 28 px line */
+  --tag-fs: var(--fs-sm);
+  --tag-lh: 20px;
+  --tag-pad: 1px 9px;
+  --tag-lift: 1px;                         /* (decision) optical centring */
+
+  /* Lists and todos [§3, §2.7] */
+  --list-indent: 24px;
+  --bullet-size: 5px;
+  --checkbox-size: 18px;
+  --checkbox-gap: 12px;
+  --task-indent: calc(var(--checkbox-size) + var(--checkbox-gap));
+  --checkbox-ring: 1.5px;
+  --checkbox-check: 12px;
+  --checkbox-from-scale: .6;
+  --dur-check: 140ms;                      /* [§4] */
+
+  /* Quote [§2.9] */
+  --quote-pad-y: 14px;
+  --quote-pad-x: 18px;
+
+  /* Code block [§2.8] */
+  --code-fs: 13.5px;
+  --code-lh: 1.65;
+  --code-header-h: 32px;
+  --code-pad-x: 16px;
+  --code-pad-bottom: 16px;
+  --code-lang-fs: 11.5px;
+  --code-copy-btn: 24px;                   /* (decision) */
+  --code-copy-icon: 14px;
+  --code-copied-ms: 1200;                  /* [§2.8] unitless, read by TS */
+
+  /* Horizontal rule [§3] */
+  --hr-thickness: 1px;
+
+  /* Typewriter mode (decision): room so the first and last lines can reach the centre */
+  --typewriter-pad: 50vh;
+
   /* Buttons [§2.18] */
   --btn-h: 34px;
   --btn-h-titlebar: 30px;
@@ -131,5 +184,6 @@
     --dur-popover-out: 80ms;
     --popover-shift: 0px;
     --caret-blink: 0ms;
+    --dur-check: 0ms;
   }
 }

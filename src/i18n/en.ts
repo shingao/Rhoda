@@ -59,6 +59,9 @@ export const en: Messages = {
     more: "More",
     noSelection: "No note selected",
     noSelectionHint: (shortcut) => `Press ${shortcut} to create a note.`,
+    copyCode: "Copy code",
+    copied: "Copied",
+    typewriter: "Typewriter mode",
   },
   layout: {
     resizeSidebar: "Resize sidebar",

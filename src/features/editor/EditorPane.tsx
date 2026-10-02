@@ -4,13 +4,14 @@ import { useT } from "../../app/i18n";
 import { toggleColumn } from "../../app/layout";
 import { editNote, trashNote } from "../../app/notes";
 import { shortcutLabel } from "../../app/shortcuts";
-import { useApp } from "../../app/store";
+import { updateSettings, useApp } from "../../app/store";
 import { attachAutoHideScrollbar } from "../../components/useAutoHideScrollbar";
 import { IconButton } from "../../components/IconButton";
 import { Menu } from "../../components/Menu";
 import { Tooltip } from "../../components/Tooltip";
 import { editorExtensions } from "../../editor/setup";
-import { mountEditor, showNote, unmountEditor } from "../../editor/session";
+import { mountEditor, setEditorOption, showNote, unmountEditor } from "../../editor/session";
+import { typewriter, typewriterCompartment } from "../../editor/typewriter";
 import s from "./EditorPane.module.css";
 
 /** Right column: editor toolbar + CodeMirror. */
@@ -19,6 +20,7 @@ export function EditorPane() {
   const selectedId = useApp((st) => st.selectedId);
   const listCollapsed = useApp((st) => st.settings.layout.listCollapsed);
   const saveError = useApp((st) => (st.selectedId ? st.saveErrors[st.selectedId] : undefined));
+  const typewriterOn = useApp((st) => st.settings.editor.typewriter);
   const t = useT();
   const [menuAt, setMenuAt] = useState<{ x: number; y: number } | null>(null);
 
@@ -33,6 +35,8 @@ export function EditorPane() {
       unmountEditor();
     };
   }, []);
+
+  useEffect(() => setEditorOption(typewriterCompartment, typewriter(typewriterOn)), [typewriterOn]);
 
   return (
     <section className={s.pane} aria-label={t.editor.label}>
@@ -74,7 +78,17 @@ export function EditorPane() {
           at={menuAt}
           align="end"
           label={t.list.noteActions}
-          entries={[{ id: "trash", label: t.list.moveToTrash, icon: Trash2, danger: true, onSelect: () => void trashNote(selectedId) }]}
+          entries={[
+            {
+              id: "typewriter",
+              label: t.editor.typewriter,
+              checked: typewriterOn,
+              toggle: true,
+              onSelect: () => updateSettings((st) => ({ ...st, editor: { ...st.editor, typewriter: !st.editor.typewriter } })),
+            },
+            { kind: "separator", id: "sep" },
+            { id: "trash", label: t.list.moveToTrash, icon: Trash2, danger: true, onSelect: () => void trashNote(selectedId) },
+          ]}
           onClose={() => setMenuAt(null)}
         />
       )}

@@ -59,6 +59,9 @@ export const fr = {
     more: "Plus d'actions",
     noSelection: "Aucune note sélectionnée",
     noSelectionHint: (shortcut: string) => `Appuyez sur ${shortcut} pour créer une note.`,
+    copyCode: "Copier le code",
+    copied: "Copié",
+    typewriter: "Mode machine à écrire",
   },
   layout: {
     resizeSidebar: "Redimensionner la barre latérale",
