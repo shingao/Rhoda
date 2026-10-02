@@ -3,7 +3,7 @@ import type { Note } from "../core/note/note";
 import { tagRemoveChanges, tagRenameChanges } from "../core/rewrite";
 import { cleanTagName, isTagWithin } from "../core/tags";
 import { vaultApi } from "../services/vault";
-import { rewriteNotes, setFilter } from "./notes";
+import { rewriteNotes, setFilter, type BulkResult } from "./notes";
 import { getState, setState, useApp, type TagSettings } from "./store";
 
 const TAGS_FILE = "tags.json";
@@ -31,25 +31,39 @@ function moveConfig(oldKey: string, newKey: string | null): void {
   });
 }
 
-/** Renames `#old` (and `#old/…`) to `newName` in every note. Returns the number of notes changed. */
-export async function renameTag(oldKey: string, newName: string): Promise<number> {
+/**
+ * Renames `#old` (and `#old/…`) to `newName` in every note, after a safety copy
+ * (rejects with BackupFailedError if it fails). Undo also moves the settings back.
+ */
+export async function renameTag(oldKey: string, newName: string): Promise<BulkResult> {
   const name = cleanTagName(newName);
-  if (!name) return 0;
-  const count = await rewriteNotes(hasTag(oldKey), (text) => tagRenameChanges(text, oldKey, name));
+  if (!name) return { count: 0, backup: null };
   const newKey = tagKey(name);
+  const result = await rewriteNotes(
+    "rename-tag",
+    hasTag(oldKey),
+    (text) => tagRenameChanges(text, oldKey, name),
+    () => moveConfig(newKey, oldKey),
+  );
   moveConfig(oldKey, newKey);
   const { filter } = getState();
   if (filter.kind === "tag" && isTagWithin(filter.key, oldKey)) setFilter({ kind: "tag", key: newKey + filter.key.slice(oldKey.length) });
-  return count;
+  return result;
 }
 
-/** Removes `#tag` (and `#tag/…`) from every note; the text around it stays. */
-export async function deleteTag(key: string): Promise<number> {
-  const count = await rewriteNotes(hasTag(key), (text) => tagRemoveChanges(text, key));
+/** Removes `#tag` (and `#tag/…`) from every note; the text around it stays. Undo restores its settings. */
+export async function deleteTag(key: string): Promise<BulkResult> {
+  const saved = Object.fromEntries(Object.entries(getState().tagConfig).filter(([k]) => isTagWithin(k, key)));
+  const result = await rewriteNotes(
+    "delete-tag",
+    hasTag(key),
+    (text) => tagRemoveChanges(text, key),
+    () => setState((s) => ({ tagConfig: { ...s.tagConfig, ...saved } })),
+  );
   moveConfig(key, null);
   const { filter } = getState();
   if (filter.kind === "tag" && isTagWithin(filter.key, key)) setFilter({ kind: "section", section: "notes" });
-  return count;
+  return result;
 }
 
 export function updateTagSettings(key: string, patch: Partial<TagSettings>): void {

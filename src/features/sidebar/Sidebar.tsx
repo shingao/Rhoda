@@ -3,7 +3,7 @@ import { Archive, CalendarDays, Inbox, NotebookText, Pencil, Pin, PinOff, Shapes
 import { confirmAction } from "../../app/confirm";
 import { useT } from "../../app/i18n";
 import { noteIndex } from "../../app/noteIndex";
-import { setFilter } from "../../app/notes";
+import { BackupFailedError, setFilter, undoAction, type BulkResult } from "../../app/notes";
 import { SECTIONS, UNCOUNTED, sectionCounts, type SectionId } from "../../app/sections";
 import { showToast, useApp } from "../../app/store";
 import { deleteTag, notesWithTag, renameTag, updateTagSettings } from "../../app/tagOps";
@@ -61,7 +61,18 @@ export function Sidebar() {
       body: `${t.tags.renameBody(notesWithTag(node.key))} ${t.tags.renameTo(formatTag(name))}`,
       confirmLabel: t.tags.renameConfirm,
     });
-    if (ok) showToast(t.tags.renamed(await renameTag(node.key, name)));
+    if (ok) await reportBulk(renameTag(node.key, name));
+  };
+
+  /** Toast with "Annuler" after a bulk change, or why nothing was done. */
+  const reportBulk = async (operation: Promise<BulkResult>) => {
+    try {
+      const { count, backup } = await operation;
+      showToast(t.tags.renamed(count), backup ? undoAction(backup) : undefined);
+    } catch (e) {
+      if (!(e instanceof BackupFailedError)) throw e;
+      showToast(t.undo.backupFailed);
+    }
   };
 
   const removeTag = async (node: TagNode) => {
@@ -71,7 +82,7 @@ export function Sidebar() {
       confirmLabel: t.tags.removeConfirm,
       danger: true,
     });
-    if (ok) showToast(t.tags.renamed(await deleteTag(node.key)));
+    if (ok) await reportBulk(deleteTag(node.key));
   };
 
   const menuEntries = (node: TagNode): MenuEntry[] => {

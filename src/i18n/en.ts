@@ -124,6 +124,7 @@ export const en: Messages = {
     deleteTitle: (n) => (n === 1 ? "Delete this note permanently?" : `Delete ${n} notes permanently?`),
     deleteBody: (n) => `${n === 1 ? "The file goes" : "The files go"} to the Windows Recycle Bin: gone from Ursa, still recoverable from Windows.`,
     deleteConfirm: "Delete permanently",
+    deleted: (n: number) => `${n} note${n > 1 ? "s" : ""} deleted`,
   },
   editor: {
     label: "Editor",
@@ -162,6 +163,17 @@ export const en: Messages = {
   },
   modal: {
     close: "Close",
+  },
+  undo: {
+    action: "Undo",
+    results: {
+      undone: "Undone",
+      changed: "Can't undo: one of the notes was edited since.",
+      failed: "Can't undo: the backup could not be restored.",
+      expired: "This operation can no longer be undone.",
+    },
+    backupFailed: "Cancelled: the safety backup failed.",
+    linksNotUpdated: "Links not updated: the safety backup failed. Will retry at the next edit.",
   },
   links: {
     updated: (links, notes) => `${links} link${links > 1 ? "s" : ""} updated in ${notes} note${notes > 1 ? "s" : ""}`,

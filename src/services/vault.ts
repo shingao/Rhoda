@@ -2,6 +2,15 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import type { NoteFile } from "../core/note/note";
 
+export interface RestoreItem {
+  /** Path of the copy inside the backup. */
+  from: string;
+  /** Where to write it back. */
+  to: string;
+  /** Deleted note: recreated without replacing another file. */
+  create: boolean;
+}
+
 /** The only module that talks to the Rust vault commands. */
 export const vaultApi = {
   defaultPath: () => invoke<string>("default_vault_path"),
@@ -15,6 +24,11 @@ export const vaultApi = {
   /** Files of the vault's `.ursa/` folder (tags.json…). */
   readInternal: (name: string) => invoke<string | null>("read_internal", { name }),
   writeInternal: (name: string, content: string) => invoke<void>("write_internal", { name, content }),
+  /** Copies notes into `.ursa/backups/<name>/` before a bulk operation; returns the final folder name. */
+  backup: (name: string, paths: string[]) => invoke<string>("backup_notes", { name, paths }),
+  restore: (name: string, items: RestoreItem[]) => invoke<NoteFile[]>("restore_backup", { name, items }),
+  /** Removes backups whose name sorts before `before` (a file stamp). */
+  purgeBackups: (before: string) => invoke<number>("purge_backups", { before }),
   onChanged: (handler: (paths: string[]) => void): Promise<UnlistenFn> =>
     listen<string[]>("vault://changed", (e) => handler(e.payload)),
 };

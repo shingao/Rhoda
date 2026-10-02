@@ -1,14 +1,14 @@
 # Ursa — PROGRESS
 
-État : **Phase 3 terminée** (à valider sur Windows) — en attente du « go » pour la phase 4.
+État : **Phase 4 en cours** (sauvegardes de sécurité faites).
 
 | Phase | Sujet | État |
 |---|---|---|
 | 0 | Cadrage | ✅ fait |
 | 1 | Squelette et fichiers | ✅ validée |
 | 2 | Éditeur Markdown live | ✅ validée |
-| 3 | Tags, liens, todos, sections | ✅ fait (à valider sur Windows) |
-| 4 | Sommaire, folding, focus de section | ⏳ en attente du go |
+| 3 | Tags, liens, todos, sections | ✅ validée |
+| 4 | Sommaire, folding, focus de section | 🚧 en cours |
 | 5 | Recherche | — |
 | 6 | Thèmes, fonds de page, rythme, réglages | — |
 | 7 | Images, aperçus de liens, PDF | — |
@@ -284,6 +284,13 @@ Maquettes utilisées : `sélecteur icone de tag.png` (06) pour la sidebar et le 
 
 ### Problème connu
 - CodeMirror émet parfois l'avertissement « Measure loop restarted more than 5 times » dans la console en passant d'une note défilée à la note de 5 000 lignes. Présent dès la phase 2 (vérifié sur le code de la phase 2), sans effet visible ; à examiner avec le sommaire et le folding (ph. 4), qui touchent aux mêmes mesures.
+
+### Ajout après validation : sauvegarde avant opération en masse
+- Avant un **renommage ou une suppression de tag**, une **mise à jour des wiki-links** (changement de titre) ou une **suppression définitive** (une note ou toute la corbeille), les fichiers qui vont changer sont copiés dans `.ursa/backups/<date-heure>-<opération>/` (ex. `2026-10-02_15-04-05-rename-tag/`, chemins relatifs conservés). Le texte non encore écrit de ces notes est sauvegardé d'abord, pour que la copie soit bien l'état précédent.
+- **Si la copie échoue, l'opération n'a pas lieu** (toast « Opération abandonnée… ») ; pour les liens, l'ancien titre est gardé et la mise à jour sera retentée au prochain point de contrôle.
+- Le toast de fin d'opération propose **« Annuler »** (8 s, minuterie suspendue au survol ou au focus) : les fichiers sont restaurés (une note supprimée est recréée, sans jamais écraser un autre fichier), l'index et l'éditeur sont mis à jour, et les réglages du tag (icône, couleur, épingle) reviennent. Refusé si l'une des notes a été modifiée depuis (« Impossible d'annuler… »).
+- Purge automatique au démarrage des sauvegardes de plus de 30 jours (nom horodaté, comparé au texte : pas d'horloge côté Rust).
+- Rust : `src-tauri/src/snapshots.rs` (`backup_notes`, `restore_backup`, `purge_backups`, 4 tests) ; TS : `notes.ts` (`backupBefore`, `undoBulk`, `undoAction`, `purgeOldBackups`), 8 tests dans `notes.test.ts`.
 
 ### Checklist de test manuel (phase 3)
 Copie `samples/*.md` dans `Documents\Ursa` et ajoute quelques notes avec tags (`#voyages/japon-2026`, `#maison`…).

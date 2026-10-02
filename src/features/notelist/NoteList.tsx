@@ -108,7 +108,7 @@ export function NoteList() {
       <header className={s.header}>
         <h2 className={s.title}>{title}</h2>
         {inTrash && list.length > 0 && (
-          <Button className={s.emptyTrash} onClick={() => void confirmDeleteNotes(trashedNoteIds())}>
+          <Button className={s.emptyTrash} onClick={() => void confirmDeleteNotes(trashedNoteIds(), "empty-trash")}>
             {t.list.emptyTrash}
           </Button>
         )}

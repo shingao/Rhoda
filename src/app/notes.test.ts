@@ -9,7 +9,9 @@ import type { NoteFile } from "../core/note/note";
 const fake = vi.hoisted(() => {
   type Entry = { content: string; mtime: number; created: number };
   const files = new Map<string, Entry>();
-  const state = { clock: 1000, touched: [] as string[], lockWrites: false, lockRenames: false };
+  const state = { clock: 1000, touched: [] as string[], lockWrites: false, lockRenames: false, failBackups: false };
+  /** `.ursa/backups/<name>/`: path → content at backup time. */
+  const backups = new Map<string, Map<string, string>>();
   const file = (path: string) => ({ path, ...files.get(path)! });
   const taken = (name: string, except?: string) =>
     [...files.keys()].some((p) => p.toLowerCase() === name.toLowerCase() && p.toLowerCase() !== except?.toLowerCase());
@@ -39,6 +41,26 @@ const fake = vi.hoisted(() => {
       files.delete(path);
       state.touched.push(path);
     },
+    backup: async (name: string, paths: string[]) => {
+      if (state.failBackups) throw { kind: "diskFull", message: "no space left" };
+      let final = name;
+      for (let n = 2; backups.has(final); n++) final = `${name}-${n}`;
+      backups.set(final, new Map(paths.map((p) => [p, files.get(p)!.content])));
+      return final;
+    },
+    restore: async (name: string, items: Array<{ from: string; to: string; create: boolean }>) =>
+      items.map(({ from, to, create }) => {
+        const target = create && files.has(to) ? unique(to.replace(/\.md$/, "")) : to;
+        const mtime = ++state.clock;
+        files.set(target, { content: backups.get(name)!.get(from)!, mtime, created: files.get(target)?.created ?? mtime });
+        state.touched.push(target);
+        return file(target);
+      }),
+    purgeBackups: async (before: string) => {
+      const old = [...backups.keys()].filter((k) => k < before);
+      old.forEach((k) => backups.delete(k));
+      return old.length;
+    },
     readInternal: async () => null,
     writeInternal: async () => undefined,
     rename: async (from: string, stem: string) => {
@@ -52,7 +74,7 @@ const fake = vi.hoisted(() => {
       return to;
     },
   };
-  return { files, state, vaultApi };
+  return { files, backups, state, vaultApi };
 });
 
 vi.mock("../services/vault", () => ({ vaultApi: fake.vaultApi }));
@@ -72,8 +94,22 @@ vi.mock("../editor/session", () => ({
   },
 }));
 
-const { createNote, deleteNotes, editNote, flushAll, handleDiskChanges, loadNotes, prepareClose, restoreNote, setFilter, trashNote, unsavedNotes } =
-  await import("./notes");
+const {
+  BackupFailedError,
+  createNote,
+  deleteNotes,
+  editNote,
+  flushAll,
+  handleDiskChanges,
+  loadNotes,
+  prepareClose,
+  purgeOldBackups,
+  restoreNote,
+  setFilter,
+  trashNote,
+  undoBulk,
+  unsavedNotes,
+} = await import("./notes");
 const { deleteTag, notesWithTag, renameTag } = await import("./tagOps");
 const { getState, setState, useApp } = await import("./store");
 const session = await import("../editor/session");
@@ -103,6 +139,8 @@ beforeEach(async () => {
   fake.state.touched = [];
   fake.state.lockWrites = false;
   fake.state.lockRenames = false;
+  fake.state.failBackups = false;
+  fake.backups.clear();
   setState({ notes: {}, selectedId: null, saveErrors: {}, filter: { kind: "section", section: "notes" }, tagConfig: {} });
   editor.openId = null;
   editor.text = "";
@@ -345,14 +383,14 @@ describe("tag operations", () => {
   });
 
   it("renames a tag and its children everywhere", async () => {
-    expect(await renameTag("voyages", "trips")).toBe(2);
+    expect((await renameTag("voyages", "trips")).count).toBe(2);
     expect(fake.files.get("1.md")!.content).toContain("#trips/Japon et #idée");
     expect(fake.files.get("2.md")!.content).toContain("Plan #trips");
     expect(fake.files.get("3.md")!.content).toContain("`#voyages`");
   });
 
   it("removes a tag everywhere", async () => {
-    expect(await deleteTag("voyages")).toBe(2);
+    expect((await deleteTag("voyages")).count).toBe(2);
     expect(fake.files.get("1.md")!.content).toContain("# Un\net #idée");
     expect(fake.files.get("2.md")!.content).toContain("Plan\n");
   });
@@ -383,5 +421,99 @@ describe("trash", () => {
     await loadNotes([]);
     await createNote("Idées de voyage");
     expect(fake.files.get("Idées de voyage.md")!.content).toContain("# Idées de voyage\n");
+  });
+});
+
+describe("safety backups before bulk operations", () => {
+  const content = (path: string) => fake.files.get(path)!.content;
+
+  beforeEach(async () => {
+    seed("1.md", "---\nid: n1\n---\n# Un\n#voyages/japon et #idée\n");
+    seed("2.md", "---\nid: n2\n---\n# Deux\nPlan #voyages\n");
+    seed("3.md", "---\nid: n3\n---\n# Trois\nSans tag\n");
+    await loadNotes(diskFiles());
+  });
+
+  it("copies only the files about to change, as they were, in <date-time>-<operation>", async () => {
+    const before1 = content("1.md");
+    const { backup } = await renameTag("voyages", "trips");
+    expect(backup).toMatch(/^\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}-rename-tag$/);
+    const copy = fake.backups.get(backup!)!;
+    expect([...copy.keys()].sort()).toEqual(["1.md", "2.md"]);
+    expect(copy.get("1.md")).toBe(before1);
+  });
+
+  it("writes unsaved text before copying, so the copy is the real previous state", async () => {
+    editNote("n2", "# Deux\nPlan #voyages modifié\n");
+    const { backup } = await renameTag("voyages", "trips");
+    expect(fake.backups.get(backup!)!.get("2.md")).toContain("Plan #voyages modifié");
+    expect(content("2.md")).toContain("Plan #trips modifié");
+  });
+
+  it("does nothing if the copy fails", async () => {
+    fake.state.failBackups = true;
+    const before = [content("1.md"), content("2.md")];
+    await expect(renameTag("voyages", "trips")).rejects.toBeInstanceOf(BackupFailedError);
+    expect([content("1.md"), content("2.md")]).toEqual(before);
+    await expect(deleteNotes(["n3"])).rejects.toBeInstanceOf(BackupFailedError);
+    expect(fake.files.has("3.md")).toBe(true);
+  });
+
+  it("undo restores the files, the index and the tag settings", async () => {
+    setState({ tagConfig: { voyages: { icon: "plane" } } });
+    const before = [content("1.md"), content("2.md")];
+    const { backup } = await renameTag("voyages", "trips");
+    expect(getState().tagConfig.trips?.icon).toBe("plane");
+    expect(await undoBulk(backup!)).toBe("undone");
+    expect([content("1.md"), content("2.md")]).toEqual(before);
+    expect(getState().notes.n2!.syntax!.tags.map((t) => t.name)).toEqual(["voyages"]);
+    expect(getState().tagConfig.voyages?.icon).toBe("plane");
+    expect(getState().tagConfig.trips).toBeUndefined();
+    // The restored files echo through the watcher without changing anything.
+    expect(await echoWatcher()).toBe(0);
+    // Only once.
+    expect(await undoBulk(backup!)).toBe("expired");
+  });
+
+  it("undo is refused once one of the notes was edited", async () => {
+    const { backup } = await deleteTag("voyages");
+    editNote("n2", "# Deux\nPlan revu\n");
+    expect(await undoBulk(backup!)).toBe("changed");
+    await flushAll();
+    expect(content(getState().notes.n2!.path)).toContain("Plan revu");
+    expect(content("1.md")).not.toContain("#voyages");
+  });
+
+  it("undo of a link update restores the open note through the editor", async () => {
+    seed("V.md", "---\nid: v\n---\n# Voyage\n");
+    seed("L.md", "---\nid: l\n---\n# L\nVoir [[Voyage]]\n");
+    await loadNotes(diskFiles());
+    editor.openId = "l";
+    editor.text = getState().notes.l!.body;
+    editNote("v", "# Voyage au Japon\n");
+    await vi.advanceTimersByTimeAsync(2100);
+    expect(editor.text).toContain("[[Voyage au Japon]]");
+    const toast = getState().toast!;
+    expect(toast.action?.label).toBe("Annuler");
+    const backup = [...fake.backups.keys()].find((k) => k.endsWith("-update-links"))!;
+    expect(await undoBulk(backup)).toBe("undone");
+    expect(session.replaceFromDisk).toHaveBeenCalledWith("l", "# L\nVoir [[Voyage]]\n");
+  });
+
+  it("emptying the trash can be undone: the notes come back, in the trash", async () => {
+    await trashNote("n3");
+    const { backup, count } = await deleteNotes(["n3"], "empty-trash");
+    expect(count).toBe(1);
+    expect(backup).toMatch(/-empty-trash$/);
+    expect(fake.files.has("3.md")).toBe(false);
+    expect(await undoBulk(backup!)).toBe("undone");
+    expect(fake.files.has("3.md")).toBe(true);
+    expect(getState().notes.n3!.trashed).toBe(true);
+  });
+
+  it("purges backups older than 30 days", async () => {
+    for (const name of ["2026-08-01_10-00-00-delete-tag", "2026-09-20_10-00-00-rename-tag"]) fake.backups.set(name, new Map());
+    await purgeOldBackups(new Date(2026, 9, 2, 12).getTime());
+    expect([...fake.backups.keys()]).toEqual(["2026-09-20_10-00-00-rename-tag"]);
   });
 });

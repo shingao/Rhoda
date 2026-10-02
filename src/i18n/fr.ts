@@ -130,6 +130,7 @@ export const fr = {
     deleteBody: (n: number) =>
       `${n === 1 ? "Le fichier sera envoyé" : "Les fichiers seront envoyés"} dans la corbeille de Windows : ${n === 1 ? "il disparaît" : "ils disparaissent"} d'Ursa mais reste${n === 1 ? "" : "nt"} récupérable${n === 1 ? "" : "s"} depuis Windows.`,
     deleteConfirm: "Supprimer définitivement",
+    deleted: (n: number) => `${n} note${n > 1 ? "s supprimées" : " supprimée"}`,
   },
   editor: {
     label: "Éditeur",
@@ -171,6 +172,17 @@ export const fr = {
   },
   modal: {
     close: "Fermer",
+  },
+  undo: {
+    action: "Annuler",
+    results: {
+      undone: "Opération annulée",
+      changed: "Impossible d'annuler : une des notes a été modifiée depuis.",
+      failed: "Impossible d'annuler : la sauvegarde n'a pas pu être restaurée.",
+      expired: "Cette opération ne peut plus être annulée.",
+    },
+    backupFailed: "Opération abandonnée : la sauvegarde de sécurité a échoué.",
+    linksNotUpdated: "Liens non mis à jour : la sauvegarde de sécurité a échoué. Nouvel essai à la prochaine modification.",
   },
   links: {
     updated: (links: number, notes: number) =>

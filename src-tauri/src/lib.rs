@@ -1,6 +1,7 @@
 mod backup;
 mod error;
 mod settings;
+mod snapshots;
 mod vault;
 mod watcher;
 
@@ -24,6 +25,9 @@ pub fn run() {
             settings::load_settings,
             settings::save_settings,
             backup::save_copies,
+            snapshots::backup_notes,
+            snapshots::restore_backup,
+            snapshots::purge_backups,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Ursa");

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { en } from "../i18n/en";
 import { fr } from "../i18n/fr";
-import { formatRelative, isoLocal } from "./dates";
+import { fileStamp, formatRelative, isoLocal } from "./dates";
 
 const now = new Date(2026, 9, 2, 15, 0).getTime();
 const cases = (labels: typeof fr.dates) => [
@@ -25,5 +25,12 @@ describe("formatRelative", () => {
 
   it("formats local ISO dates", () => {
     expect(isoLocal(now)).toMatch(/^2026-10-02T15:00:00[+-]\d\d:\d\d$/);
+  });
+});
+
+describe("fileStamp", () => {
+  it("is local, zero-padded and sorts chronologically as text", () => {
+    expect(fileStamp(new Date(2026, 0, 5, 9, 3, 7).getTime())).toBe("2026-01-05_09-03-07");
+    expect(fileStamp(new Date(2026, 8, 30).getTime()) < fileStamp(new Date(2026, 9, 1).getTime())).toBe(true);
   });
 });

@@ -24,7 +24,7 @@ interface AppState {
   /** Per-tag settings from `.ursa/tags.json` (icon, colour, pinned, collapsed), keyed by tag key. */
   tagConfig: Record<string, TagSettings>;
   /** Short, non-blocking message ("3 liens mis à jour"). */
-  toast: { id: number; text: string } | null;
+  toast: { id: number; text: string; action?: ToastAction } | null;
 }
 
 export interface TagSettings {
@@ -92,8 +92,14 @@ export function currentList(): Note[] {
   return listedNotes(notes, settings.sort, filter);
 }
 
+/** Button of a toast ("Annuler"). */
+export interface ToastAction {
+  label: string;
+  run: () => void;
+}
+
 let toastId = 0;
-/** Shows a toast; the Toast component hides it after --toast-duration. */
-export function showToast(text: string): void {
-  setState({ toast: { id: ++toastId, text } });
+/** Shows a toast; the Toast component hides it after --toast-duration (longer with an action). */
+export function showToast(text: string, action?: ToastAction): void {
+  setState({ toast: { id: ++toastId, text, action } });
 }

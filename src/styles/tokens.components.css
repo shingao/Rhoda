@@ -230,6 +230,8 @@
   --toast-offset: var(--sp-6);
   --toast-pad: var(--sp-2) var(--sp-4);
   --toast-duration: 3500ms;
+  --toast-action-duration: 8000ms;         /* with "Annuler": time to react */
+  --toast-action-h: 28px;
 
   /* Backlinks block at the end of a note (decision) */
   --backlinks-gap: var(--rhythm);

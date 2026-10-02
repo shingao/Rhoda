@@ -18,11 +18,11 @@ use tauri::{AppHandle, Manager, State};
 use crate::error::{io_kind, CmdError, CmdResult, ErrorKind};
 use crate::watcher::{self, VaultWatcher};
 
-const INTERNAL_DIR: &str = ".ursa";
+pub(crate) const INTERNAL_DIR: &str = ".ursa";
 const ASSETS_DIR: &str = "assets";
 const SCHEMA_VERSION: &str = "1";
 const TMP_SUFFIX: &str = ".ursa-tmp";
-const NOTE_EXT: &str = ".md";
+pub(crate) const NOTE_EXT: &str = ".md";
 /// Windows MAX_PATH (260) minus the terminating NUL, in UTF-16 code units.
 const MAX_PATH_UNITS: usize = 259;
 /// Room kept for a collision suffix such as " 999".
@@ -51,7 +51,7 @@ fn to_ms(t: io::Result<SystemTime>) -> f64 {
         .unwrap_or(0.0)
 }
 
-fn current_root(state: &State<'_, VaultState>) -> CmdResult<PathBuf> {
+pub(crate) fn current_root(state: &State<'_, VaultState>) -> CmdResult<PathBuf> {
     state
         .root
         .lock()?
@@ -61,7 +61,7 @@ fn current_root(state: &State<'_, VaultState>) -> CmdResult<PathBuf> {
 
 /// Joins a frontend-provided relative path to the root, refusing anything that
 /// is absolute or contains `..`.
-fn resolve(root: &Path, rel: &str) -> CmdResult<PathBuf> {
+pub(crate) fn resolve(root: &Path, rel: &str) -> CmdResult<PathBuf> {
     let rel = Path::new(rel);
     if rel.components().all(|c| matches!(c, Component::Normal(_))) && rel.components().next().is_some() {
         Ok(root.join(rel))
@@ -92,7 +92,7 @@ pub fn note_rel(root: &Path, abs: &Path) -> Option<String> {
     is_md.then(|| parts.join("/"))
 }
 
-fn read_note_file(root: &Path, abs: &Path) -> io::Result<NoteFile> {
+pub(crate) fn read_note_file(root: &Path, abs: &Path) -> io::Result<NoteFile> {
     let bytes = fs::read(abs)?;
     let mut content = String::from_utf8(bytes).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     if content.starts_with('\u{feff}') {

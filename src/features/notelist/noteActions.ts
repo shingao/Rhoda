@@ -1,14 +1,15 @@
 import { Archive, ArchiveRestore, Pin, PinOff, RotateCcw, Trash2 } from "lucide-react";
 import { confirmAction } from "../../app/confirm";
 import { currentMessages } from "../../app/i18n";
-import { deleteNotes, restoreNote, setArchived, setPinned } from "../../app/notes";
+import { BackupFailedError, deleteNotes, restoreNote, setArchived, setPinned, undoAction, type BulkOperation } from "../../app/notes";
+import { showToast } from "../../app/store";
 import { shortcutLabel } from "../../app/shortcuts";
 import type { Note } from "../../core/note/note";
 import type { MenuEntry } from "../../components/Menu";
 import type { Messages } from "../../i18n";
 
 /** Permanent deletion, after a confirmation that states how many notes go. */
-export async function confirmDeleteNotes(ids: string[]): Promise<void> {
+export async function confirmDeleteNotes(ids: string[], op: BulkOperation = "delete-notes"): Promise<void> {
   if (ids.length === 0) return;
   const t = currentMessages();
   const ok = await confirmAction({
@@ -17,7 +18,14 @@ export async function confirmDeleteNotes(ids: string[]): Promise<void> {
     confirmLabel: t.list.deleteConfirm,
     danger: true,
   });
-  if (ok) await deleteNotes(ids);
+  if (!ok) return;
+  try {
+    const { count, backup } = await deleteNotes(ids, op);
+    if (backup) showToast(t.list.deleted(count), undoAction(backup));
+  } catch (e) {
+    if (!(e instanceof BackupFailedError)) throw e;
+    showToast(t.undo.backupFailed);
+  }
 }
 
 /** Actions on a note depending on where it is; shared by the list's context menu and the editor's "…" menu. */

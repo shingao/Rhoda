@@ -8,7 +8,11 @@
 }
 
 .toast {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
   padding: var(--toast-pad);
+  pointer-events: auto;
   border-radius: var(--r-md);
   background: var(--text);
   color: var(--bg-2);
@@ -17,6 +21,26 @@
   box-shadow: var(--shadow-pop);
   white-space: nowrap;
   animation: toast-in var(--dur-base) var(--ease-out);
+}
+
+/* Action on the dark toast: text button, inverted colours (decision P4-0) */
+.action {
+  --ring-bg: var(--text);
+
+  height: var(--toast-action-h);
+  margin: calc(-1 * var(--sp-1)) calc(-1 * var(--sp-2)) calc(-1 * var(--sp-1)) 0;
+  padding: 0 var(--sp-2);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--accent-soft);
+  font: inherit;
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+}
+
+.action:hover {
+  background: color-mix(in oklab, var(--bg-2) 14%, transparent);
 }
 
 @keyframes toast-in {

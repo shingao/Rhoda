@@ -1,4 +1,4 @@
-import { isoLocal } from "../core/dates";
+import { fileStamp, isoLocal } from "../core/dates";
 import { titleKey } from "../core/markdown/extract";
 import { sanitizeStem, stemOf } from "../core/note/filename";
 import {
@@ -19,7 +19,7 @@ import { errorKind } from "../services/errors";
 import { vaultApi } from "../services/vault";
 import { currentMessages } from "./i18n";
 import type { ListFilter } from "./sections";
-import { currentList, getState, putNote, removeNotes, setSaveError, setState, showToast } from "./store";
+import { currentList, getState, putNote, removeNotes, setSaveError, setState, showToast, type ToastAction } from "./store";
 
 /**
  * Note lifecycle: autosave, rename-from-title, create, trash and reconciliation
@@ -120,25 +120,155 @@ function save(id: string): Promise<void> {
   });
 }
 
+/**
+ * Safety copies before bulk operations (tag rename/removal, link rewrites,
+ * permanent deletion): the files about to change are copied to
+ * `.ursa/backups/<date-time>-<operation>/` first, and the toast offers "Undo",
+ * which restores them as long as none of the notes was edited since.
+ */
+export type BulkOperation = "rename-tag" | "delete-tag" | "update-links" | "delete-notes" | "empty-trash";
+/** Backups older than this are purged at startup. */
+const BACKUP_MAX_AGE = 30 * 24 * 3_600_000;
+/** Undo records kept in memory (one per recent toast). */
+const UNDO_LIMIT = 10;
+
+interface UndoItem {
+  id: string;
+  /** Path of the copy inside the backup = the note's path before the operation. */
+  from: string;
+  /** Text right after the operation; `null` for a deleted note. */
+  expected: string | null;
+}
+interface UndoRecord {
+  items: UndoItem[];
+  onUndone?: () => void;
+}
+const undoRecords = new Map<string, UndoRecord>();
+
+/** Raised when the safety copy cannot be made: the operation is not run. */
+export class BackupFailedError extends Error {}
+
+/**
+ * Writes pending text of the notes (so their files are current), then copies
+ * them. Runs inside the queue; throws BackupFailedError on any failure.
+ */
+async function backupBefore(op: BulkOperation, ids: string[]): Promise<string> {
+  try {
+    for (const id of ids) {
+      const body = pendingBodies.get(id);
+      const note = noteById(id);
+      if (body === undefined || !note) continue;
+      cancel(saveTimers, id);
+      pendingBodies.delete(id);
+      try {
+        await persist(withBody(note, body));
+      } catch (e) {
+        pendingBodies.set(id, body);
+        throw e;
+      }
+    }
+    const paths = ids.flatMap((id) => noteById(id)?.path ?? []);
+    return await vaultApi.backup(`${fileStamp()}-${op}`, paths);
+  } catch (e) {
+    console.warn("[ursa] backup failed, operation cancelled", op, e);
+    throw new BackupFailedError(String(e));
+  }
+}
+
+function remember(name: string, record: UndoRecord): void {
+  undoRecords.set(name, record);
+  for (const key of undoRecords.keys()) {
+    if (undoRecords.size <= UNDO_LIMIT) break;
+    undoRecords.delete(key);
+  }
+}
+
+export type UndoResult = "undone" | "changed" | "failed" | "expired";
+
+/** Restores the files of a bulk operation, unless one of its notes was edited since. */
+export function undoBulk(name: string): Promise<UndoResult> {
+  return enqueue(async () => {
+    const record = undoRecords.get(name);
+    if (!record) return "expired";
+    for (const item of record.items) {
+      const ok = item.expected === null ? !noteById(item.id) : noteById(item.id) !== undefined && currentText(item.id) === item.expected;
+      if (!ok) return "changed";
+    }
+    const items = record.items.map((item) => ({
+      from: item.from,
+      to: item.expected === null ? item.from : noteById(item.id)!.path,
+      create: item.expected === null,
+    }));
+    let files: NoteFile[];
+    try {
+      files = await vaultApi.restore(name, items);
+    } catch (e) {
+      console.warn("[ursa] undo failed", name, e);
+      return "failed";
+    }
+    files.forEach((file, i) => {
+      const { id, expected } = record.items[i]!;
+      if (expected !== null) {
+        cancel(saveTimers, id);
+        pendingBodies.delete(id);
+      }
+      const note = noteFromFile(file, id);
+      putNote(note);
+      lastTitles.set(note.id, note.title);
+      if (expected !== null) replaceFromDisk(id, note.body);
+    });
+    undoRecords.delete(name);
+    record.onUndone?.();
+    return "undone";
+  });
+}
+
+/** Toast action that undoes a bulk operation and reports the outcome. */
+export function undoAction(name: string): ToastAction {
+  const t = currentMessages();
+  return {
+    label: t.undo.action,
+    run: () => void undoBulk(name).then((result) => showToast(t.undo.results[result])),
+  };
+}
+
+/** Startup: removes safety copies older than 30 days. */
+export function purgeOldBackups(now = Date.now()): Promise<void> {
+  return vaultApi
+    .purgeBackups(fileStamp(now - BACKUP_MAX_AGE))
+    .then(() => undefined)
+    .catch((e: unknown) => console.warn("[ursa] backup purge failed", e));
+}
+
 /** Latest text of a note: the editor's if it is open or cached, else pending, else saved. */
 function currentText(id: string): string {
   return editorText(id) ?? pendingBodies.get(id) ?? noteById(id)?.body ?? "";
 }
 
+export interface BulkResult {
+  /** Notes changed. */
+  count: number;
+  /** Backup to pass to `undoAction`, or null if nothing changed. */
+  backup: string | null;
+}
+
 /**
- * Applies text edits to several notes (wiki links, tags). The open note is
- * changed through an editor transaction, so Ctrl+Z undoes it; other notes are
- * written directly. Runs inside the queue. Returns the number of notes changed.
+ * Applies text edits to several notes (wiki links, tags), after a safety copy.
+ * The open note is changed through an editor transaction, so Ctrl+Z undoes it;
+ * other notes are written directly. Runs inside the queue.
  */
-async function applyRewrites(changesById: Map<string, TextChange[]>): Promise<number> {
-  let changed = 0;
-  for (const [id, changes] of changesById) {
-    const note = noteById(id);
-    if (!note || changes.length === 0) continue;
-    changed++;
+async function applyRewrites(op: BulkOperation, changesById: Map<string, TextChange[]>, onUndone?: () => void): Promise<BulkResult> {
+  const ids = [...changesById].filter(([id, c]) => c.length > 0 && noteById(id)).map(([id]) => id);
+  if (ids.length === 0) return { count: 0, backup: null };
+  const backup = await backupBefore(op, ids);
+  const items: UndoItem[] = [];
+  for (const id of ids) {
+    const changes = changesById.get(id)!;
+    const note = noteById(id)!;
     const before = currentText(id);
-    if (rewriteInEditor(id, changes) === "view") continue; // saved by the editor's own autosave
     const body = applyChanges(before, changes);
+    items.push({ id, from: note.path, expected: body });
+    if (rewriteInEditor(id, changes) === "view") continue; // saved by the editor's own autosave
     pendingBodies.delete(id);
     cancel(saveTimers, id);
     try {
@@ -149,7 +279,8 @@ async function applyRewrites(changesById: Map<string, TextChange[]>): Promise<nu
       console.warn("[ursa] rewrite saved later", note.path, e);
     }
   }
-  return changed;
+  remember(backup, { items, onUndone });
+  return { count: ids.length, backup };
 }
 
 /** Notes worth re-parsing for a rewrite: the index says so, or their text is newer than the index. */
@@ -159,15 +290,20 @@ function rewriteCandidates(indexed: (note: Note) => boolean): Note[] {
   );
 }
 
-/** Public entry point for tag renames/removals: same queue, same rules. */
-export function rewriteNotes(indexed: (note: Note) => boolean, compute: (text: string) => TextChange[]): Promise<number> {
+/** Public entry point for tag renames/removals: same queue, same rules. Rejects with BackupFailedError. */
+export function rewriteNotes(
+  op: BulkOperation,
+  indexed: (note: Note) => boolean,
+  compute: (text: string) => TextChange[],
+  onUndone?: () => void,
+): Promise<BulkResult> {
   return enqueue(async () => {
     const changes = new Map<string, TextChange[]>();
     for (const note of rewriteCandidates(indexed)) {
       const c = compute(currentText(note.id));
       if (c.length) changes.set(note.id, c);
     }
-    return applyRewrites(changes);
+    return applyRewrites(op, changes, onUndone);
   });
 }
 
@@ -180,8 +316,10 @@ async function updateLinksToRetitledNote(id: string): Promise<void> {
   const note = noteById(id);
   if (!note) return;
   const previous = lastTitles.get(id);
-  lastTitles.set(id, note.title);
-  if (!previous || !note.title || titleKey(previous) === titleKey(note.title)) return;
+  if (!previous || !note.title || titleKey(previous) === titleKey(note.title)) {
+    lastTitles.set(id, note.title);
+    return;
+  }
   const others = Object.values(getState().notes).filter((n) => n.id !== id && !n.trashed);
   if (others.some((n) => n.title && titleKey(n.title) === titleKey(previous))) return;
   const changes = new Map<string, TextChange[]>();
@@ -194,8 +332,15 @@ async function updateLinksToRetitledNote(id: string): Promise<void> {
       links += c.length;
     }
   }
-  const notes = await applyRewrites(changes);
-  if (links > 0) showToast(currentMessages().links.updated(links, notes));
+  try {
+    const { count, backup } = await applyRewrites("update-links", changes);
+    lastTitles.set(id, note.title);
+    if (backup) showToast(currentMessages().links.updated(links, count), undoAction(backup));
+  } catch (e) {
+    // Links keep the old title; retried at the next rename checkpoint.
+    if (!(e instanceof BackupFailedError)) throw e;
+    showToast(currentMessages().undo.linksNotUpdated);
+  }
 }
 
 function renameFromTitle(id: string): Promise<void> {
@@ -299,20 +444,30 @@ export const restoreNote = (id: string) => patchFlags(id, { trashed: undefined }
 export const setPinned = (id: string, pinned: boolean) => patchFlags(id, { pinned: pinned || undefined });
 export const setArchived = (id: string, archived: boolean) => patchFlags(id, { archived: archived || undefined });
 
-/** "Delete permanently" from the trash: the file goes to the system recycle bin. */
-export async function deleteNotes(ids: string[]): Promise<void> {
+/**
+ * "Delete permanently" from the trash: after a safety copy, the files go to
+ * the system recycle bin. Rejects with BackupFailedError (nothing deleted).
+ */
+export async function deleteNotes(ids: string[], op: BulkOperation = "delete-notes"): Promise<BulkResult> {
   const before = currentList();
-  await enqueue(async () => {
-    for (const id of ids) {
-      const note = noteById(id);
-      if (!note) continue;
+  const result = await enqueue(async (): Promise<BulkResult> => {
+    const present = ids.filter((id) => noteById(id));
+    if (present.length === 0) return { count: 0, backup: null };
+    const backup = await backupBefore(op, present);
+    const items: UndoItem[] = [];
+    for (const id of present) {
+      const note = noteById(id)!;
       await vaultApi.remove(note.path);
+      items.push({ id, from: note.path, expected: null });
       forget(id);
       removeNotes([id]);
     }
+    remember(backup, { items });
+    return { count: items.length, backup };
   });
   for (const id of ids) reselectAfter(id, before);
   if (getState().selectedId === null) selectNote(currentList()[0]?.id ?? null);
+  return result;
 }
 
 export function trashedNoteIds(): string[] {

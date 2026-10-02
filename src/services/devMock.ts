@@ -77,6 +77,8 @@ export function installDevMock(): void {
     }
   };
 
+  const backups = new Map<string, Map<string, string>>();
+
   mockWindows("main");
   mockIPC((cmd, payload) => {
     const args = (payload ?? {}) as Record<string, string>;
@@ -111,6 +113,23 @@ export function installDevMock(): void {
       case "delete_note":
         files.delete(args.path!);
         return null;
+      case "backup_notes": {
+        const { name, paths } = payload as { name: string; paths: string[] };
+        let final = name;
+        for (let n = 2; backups.has(final); n++) final = `${name}-${n}`;
+        backups.set(final, new Map(paths.map((p) => [p, files.get(p)!.content])));
+        return final;
+      }
+      case "restore_backup": {
+        const { name, items } = payload as { name: string; items: Array<{ from: string; to: string; create: boolean }> };
+        return items.map(({ from, to, create }) => {
+          const target = create && files.has(to) ? unique(to.replace(/\.md$/, "")) : to;
+          files.set(target, { content: backups.get(name)!.get(from)!, mtime: Date.now(), created: files.get(target)?.created ?? Date.now() });
+          return toFile(target);
+        });
+      }
+      case "purge_backups":
+        return 0;
       case "read_internal":
         return localStorage.getItem(`ursa-dev-internal:${args.name}`) ?? (args.name === "tags.json" ? DEMO_TAGS : null);
       case "write_internal":
