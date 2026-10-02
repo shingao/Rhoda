@@ -7,7 +7,7 @@ import { rememberFolds, savedFolds } from "./folds";
 import { currentMessages } from "./i18n";
 import { noteIndex, resolveTitle } from "./noteIndex";
 import { createNote, revealNote, setFilter } from "./notes";
-import { getState, useApp } from "./store";
+import { getState, setState, useApp } from "./store";
 
 function resolve(target: string): string | null {
   const { notes } = getState();
@@ -69,6 +69,7 @@ export function connectEditor(): void {
     },
     backlinks: () => backlinksOf(getState().selectedId),
     savedFolds,
+    outlineChanged: (outline) => setState({ outline }),
     foldsChanged: rememberFolds,
     linkPreview: (target) => {
       const id = resolve(target);

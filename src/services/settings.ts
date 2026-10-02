@@ -18,6 +18,8 @@ export interface Settings {
     listWidth: number | null;
     sidebarCollapsed: boolean;
     listCollapsed: boolean;
+    /** Contents panel open (remembered globally) [DESIGN §2.15]. */
+    outlineOpen: boolean;
   };
 }
 
@@ -27,7 +29,7 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: "coral",
   sort: "modified",
   editor: { typewriter: false },
-  layout: { sidebarWidth: null, listWidth: null, sidebarCollapsed: false, listCollapsed: false },
+  layout: { sidebarWidth: null, listWidth: null, sidebarCollapsed: false, listCollapsed: false, outlineOpen: false },
 };
 
 function isObject(v: unknown): v is Record<string, unknown> {

@@ -1,0 +1,132 @@
+/* Contents panel [DESIGN §2.15]: floating card over the editor, right 16, 8 px below the bar */
+.panel {
+  --ring-bg: var(--bg-raised);
+
+  position: absolute;
+  top: var(--outline-top);
+  right: var(--outline-right);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  width: var(--outline-w);
+  max-height: calc(100% - var(--outline-max-h-gap));
+  padding: var(--outline-pad);
+  border-radius: var(--r-xl);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-pop);
+  animation: outline-in var(--dur-base) var(--ease-out);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--outline-head-h);
+  flex: none;
+  padding-left: var(--outline-item-pl);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--outline-head-fs);
+  font-weight: var(--fw-semibold);
+  color: var(--text-3);
+}
+
+.close {
+  margin-right: calc(-1 * var(--sp-1));
+}
+
+.list {
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.row {
+  position: relative;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--outline-item-h);
+  padding: var(--sp-1) var(--sp-2) var(--sp-1) calc(var(--outline-item-pl) + var(--outline-depth) * var(--outline-indent));
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--text-2);
+  font: inherit;
+  font-size: var(--outline-item-fs);
+  font-weight: var(--fw-medium);
+  line-height: var(--outline-item-lh);
+  text-align: left;
+  cursor: pointer;
+}
+
+.item:hover {
+  background: var(--hover);
+}
+
+.top {
+  font-weight: var(--fw-semibold);
+  color: var(--text);
+}
+
+/* Scroll-spy: section at the top of the viewport */
+.current,
+.current:hover {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-weight: var(--fw-semibold);
+}
+
+/* Chevron in front of the heading: folded = always visible, else on hover */
+.chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  left: calc(var(--outline-item-pl) + var(--outline-depth) * var(--outline-indent) - var(--outline-chevron) - var(--sp-1) / 2);
+  z-index: 1;
+  width: var(--outline-chevron);
+  height: var(--outline-item-h);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-faint);
+  opacity: 0;
+  cursor: pointer;
+}
+
+.chevron svg {
+  width: var(--outline-chevron);
+  height: var(--outline-chevron);
+}
+
+.chevron:hover {
+  color: var(--text-2);
+}
+
+.row:hover .chevron,
+.folded {
+  opacity: 1;
+}
+
+.empty {
+  margin: 0;
+  padding: var(--sp-2) var(--outline-item-pl);
+  font-size: var(--outline-item-fs);
+  color: var(--text-3);
+}
+
+@keyframes outline-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--outline-shift));
+  }
+}

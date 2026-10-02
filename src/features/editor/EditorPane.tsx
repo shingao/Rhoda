@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
-import { CircleAlert, Ellipsis, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { useEffect, useRef, useState, type RefObject } from "react";
+import { CircleAlert, Ellipsis, ListTree, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useT } from "../../app/i18n";
-import { toggleColumn } from "../../app/layout";
+import { cssPx } from "../../app/cssTokens";
+import { toggleColumn, toggleOutline } from "../../app/layout";
 import { editNote, trashNote } from "../../app/notes";
 import { shortcutLabel } from "../../app/shortcuts";
 import { updateSettings, useApp } from "../../app/store";
@@ -16,6 +17,7 @@ import { mountEditor, setEditorOption, showNote, unmountEditor } from "../../edi
 import { typewriter, typewriterCompartment } from "../../editor/typewriter";
 import { noteMenuEntries } from "../notelist/noteActions";
 import { Breadcrumb } from "./Breadcrumb";
+import { OutlinePanel } from "../outline/OutlinePanel";
 import s from "./EditorPane.module.css";
 
 /**
@@ -30,6 +32,9 @@ export function EditorPane() {
   const listCollapsed = useApp((st) => st.settings.layout.listCollapsed);
   const saveError = useApp((st) => (st.selectedId ? st.saveErrors[st.selectedId] : undefined));
   const typewriterOn = useApp((st) => st.settings.editor.typewriter);
+  const outlineOpen = useApp((st) => st.settings.layout.outlineOpen);
+  const body = useRef<HTMLDivElement>(null);
+  const docked = useDocking(body);
   const t = useT();
   const now = useNow();
   const [menuAt, setMenuAt] = useState<{ x: number; y: number } | null>(null);
@@ -64,6 +69,14 @@ export function EditorPane() {
           </Tooltip>
         )}
         <IconButton
+          icon={ListTree}
+          label={outlineOpen ? t.outline.hide : t.outline.show}
+          shortcut={shortcutLabel("outline.toggle", t)}
+          active={outlineOpen}
+          aria-pressed={outlineOpen}
+          onClick={toggleOutline}
+        />
+        <IconButton
           icon={Ellipsis}
           label={t.editor.more}
           aria-haspopup="menu"
@@ -73,13 +86,16 @@ export function EditorPane() {
           }}
         />
       </div>
-      <div ref={host} className={s.host} hidden={!selectedId} />
-      {!selectedId && (
-        <div className={s.empty}>
-          <p className={s.emptyTitle}>{t.editor.noSelection}</p>
-          <p className={s.emptyHint}>{t.editor.noSelectionHint(shortcutLabel("note.new", t))}</p>
-        </div>
-      )}
+      <div ref={body} className={[s.body, outlineOpen && docked && s.docked].filter(Boolean).join(" ")}>
+        <div ref={host} className={s.host} hidden={!selectedId} />
+        {outlineOpen && selectedId && <OutlinePanel docked={docked} />}
+        {!selectedId && (
+          <div className={s.empty}>
+            <p className={s.emptyTitle}>{t.editor.noSelection}</p>
+            <p className={s.emptyHint}>{t.editor.noSelectionHint(shortcutLabel("note.new", t))}</p>
+          </div>
+        )}
+      </div>
       {menuAt && (
         <Menu
           at={menuAt}
@@ -107,4 +123,24 @@ export function EditorPane() {
       )}
     </section>
   );
+}
+
+/**
+ * Wide enough for the column and the Contents panel side by side? Then the
+ * column moves left to make room (the panel never covers text); otherwise the
+ * panel floats over the text.
+ */
+function useDocking(ref: RefObject<HTMLDivElement | null>): boolean {
+  const [docked, setDocked] = useState(true);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) => {
+      const column = cssPx("--editor-max") + 2 * cssPx("--editor-pad-x");
+      setDocked((entry?.contentRect.width ?? 0) >= column + cssPx("--outline-reserve"));
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [ref]);
+  return docked;
 }

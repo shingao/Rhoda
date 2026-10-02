@@ -51,3 +51,7 @@ export function toggleColumn(column: Column): void {
     },
   }));
 }
+
+export function toggleOutline(): void {
+  updateSettings((s) => ({ ...s, layout: { ...s.layout, outlineOpen: !s.layout.outlineOpen } }));
+}

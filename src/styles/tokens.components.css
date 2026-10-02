@@ -252,6 +252,23 @@
   --completion-max-h: 260px;
   --completion-w: 240px;
 
+  /* Contents panel [§2.15] */
+  --outline-top: 8px;                      /* below the editor bar */
+  --outline-right: 16px;
+  --outline-gap: 16px;                     /* (decision) between the column and the docked panel */
+  --outline-reserve: calc(var(--outline-w) + var(--outline-right) + var(--outline-gap));
+  --outline-pad: 4px 8px 10px;
+  --outline-head-h: 32px;
+  --outline-head-fs: 12px;
+  --outline-item-h: 28px;
+  --outline-item-fs: 13px;
+  --outline-item-lh: 1.35;
+  --outline-item-pl: 8px;
+  --outline-indent: 14px;
+  --outline-chevron: 12px;
+  --outline-max-h-gap: 24px;               /* max height = editor − 24 */
+  --outline-shift: 8px;                    /* [§4] translateX(8px → 0) */
+
   /* Folding chevron and badge [§2.13] */
   --fold-chevron: 18px;
   --fold-chevron-left: 22px;               /* left edge, from the text column */

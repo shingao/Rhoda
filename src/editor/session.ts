@@ -1,9 +1,10 @@
 import type { Compartment} from "@codemirror/state";
 import { Annotation, EditorSelection, EditorState, type Extension } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
+import { cssPx } from "../app/cssTokens";
 import { foldKeys, matchFoldKeys, type FoldKey } from "../core/folds";
 import { editorHooks, refreshPreview } from "./hooks";
-import { foldField, foldedRanges, setFolds } from "./sections/fold";
+import { foldField, foldedRanges, setFolds, toggleFold, unfoldHeading } from "./sections/fold";
 import { headingsIn } from "./sections/headings";
 
 /**
@@ -166,4 +167,27 @@ export function focusEditor(atEnd = false): void {
   if (!view) return;
   if (atEnd) view.dispatch({ selection: { anchor: view.state.doc.length } });
   view.focus();
+}
+
+/**
+ * Contents panel: shows a heading. A folded heading, or one inside a folded
+ * section, is unfolded first; then the view scrolls smoothly to it.
+ */
+export function scrollToHeading(heading: number): void {
+  if (!view) return;
+  const v = view;
+  const unfold = foldedRanges(v.state).filter((f) => f.heading === heading || (heading > f.from && heading <= f.to));
+  if (unfold.length) v.dispatch({ effects: unfold.map((f) => unfoldHeading.of(f.heading)) });
+  v.requestMeasure({
+    read: () => v.scrollDOM.scrollTop + v.documentTop + v.lineBlockAt(heading).top - v.scrollDOM.getBoundingClientRect().top,
+    write: (top) => {
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      v.scrollDOM.scrollTo({ top: Math.max(0, top - cssPx("--rhythm")), behavior: reduced ? "auto" : "smooth" });
+    },
+  });
+}
+
+/** Contents panel chevron: same fold as the editor's chevron. */
+export function toggleFoldAt(heading: number): void {
+  if (view) toggleFold(view, heading);
 }

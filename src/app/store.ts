@@ -1,3 +1,4 @@
+import type { OutlineData } from "../editor/sections/outline";
 import { create } from "zustand";
 import type { Note } from "../core/note/note";
 import { sortNotes, type SortKey } from "../core/note/sort";
@@ -25,6 +26,8 @@ interface AppState {
   tagConfig: Record<string, TagSettings>;
   /** Short, non-blocking message ("3 liens mis à jour"). */
   toast: { id: number; text: string; action?: ToastAction } | null;
+  /** Headings of the open note for the Contents panel, reported by the editor. */
+  outline: OutlineData;
 }
 
 export interface TagSettings {
@@ -46,6 +49,7 @@ export const useApp = create<AppState>()(() => ({
   filter: { kind: "section", section: "notes" },
   tagConfig: {},
   toast: null,
+  outline: { items: [], current: null },
 }));
 
 export const getState = useApp.getState;

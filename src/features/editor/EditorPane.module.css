@@ -95,6 +95,23 @@
   height: var(--unsaved-icon);
 }
 
+.body {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Docked Contents panel: the column is centred in the room left of it */
+.body :global(.cm-scroller) {
+  transition: padding-right var(--dur-slow) var(--ease-in-out);
+}
+
+.docked :global(.cm-scroller) {
+  padding-right: var(--outline-reserve);
+}
+
 .host {
   flex: 1;
   min-height: 0;

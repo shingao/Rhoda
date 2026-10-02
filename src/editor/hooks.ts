@@ -1,5 +1,6 @@
 import { StateEffect } from "@codemirror/state";
 import type { FoldKey } from "../core/folds";
+import type { OutlineData } from "./sections/outline";
 
 /**
  * What the editor needs from the rest of the app, injected at startup so the
@@ -24,6 +25,8 @@ export interface EditorHooks {
   savedFolds(noteId: string): FoldKey[];
   /** The folds of a note changed (or its folded headings were renamed). */
   foldsChanged(noteId: string, keys: FoldKey[]): void;
+  /** Headings and current section of the open note (Contents panel). */
+  outlineChanged(data: OutlineData): void;
 }
 
 export interface Backlink {
@@ -43,6 +46,7 @@ let hooks: EditorHooks = {
   linkPreview: () => null,
   savedFolds: () => [],
   foldsChanged: () => undefined,
+  outlineChanged: () => undefined,
 };
 
 export function setEditorHooks(next: Partial<EditorHooks>): void {

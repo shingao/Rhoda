@@ -8,6 +8,7 @@ import { completions } from "./completion";
 import { markdownLanguage } from "./language";
 import { linkPreview } from "./linkPreview";
 import { foldChevrons } from "./sections/chevrons";
+import { outlineReporter } from "./sections/outline";
 import { folding, foldAll, foldCurrent, unfoldAll, unfoldCurrent } from "./sections/fold";
 import { editorKey } from "../app/shortcuts";
 import { livePreview } from "./livePreview/plugin";
@@ -62,6 +63,7 @@ export function editorExtensions(): Extension {
     completions(),
     folding,
     foldChevrons,
+    outlineReporter,
     keymap.of([
       { key: editorKey("fold.section"), run: foldCurrent },
       { key: editorKey("unfold.section"), run: unfoldCurrent },

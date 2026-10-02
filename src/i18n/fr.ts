@@ -188,6 +188,13 @@ export const fr = {
     backupFailed: "Opération abandonnée : la sauvegarde de sécurité a échoué.",
     linksNotUpdated: "Liens non mis à jour : la sauvegarde de sécurité a échoué. Nouvel essai à la prochaine modification.",
   },
+  outline: {
+    title: "Sommaire",
+    show: "Afficher le sommaire",
+    hide: "Masquer le sommaire",
+    close: "Fermer le sommaire",
+    empty: "Aucun titre dans cette note.",
+  },
   folding: {
     fold: "Replier la section",
     unfold: "Déplier la section",

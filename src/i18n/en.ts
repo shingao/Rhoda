@@ -179,6 +179,13 @@ export const en: Messages = {
     backupFailed: "Cancelled: the safety backup failed.",
     linksNotUpdated: "Links not updated: the safety backup failed. Will retry at the next edit.",
   },
+  outline: {
+    title: "Contents",
+    show: "Show contents",
+    hide: "Hide contents",
+    close: "Close contents",
+    empty: "No headings in this note.",
+  },
   folding: {
     fold: "Fold section",
     unfold: "Unfold section",
