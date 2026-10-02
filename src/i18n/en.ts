@@ -225,6 +225,13 @@ export const en: Messages = {
     isolated: "Section in focus: the rest of the note is hidden.",
     showAll: "Show the whole note",
   },
+  paper: {
+    title: "Page background",
+    menu: "Page background…",
+    names: { plain: "Plain", lined: "Ruled", grid: "Grid", dots: "Dots" },
+    margin: "Red margin",
+    saved: "Saved in the note's front matter:",
+  },
   folding: {
     fold: "Fold section",
     unfold: "Unfold section",

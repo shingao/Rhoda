@@ -195,3 +195,19 @@ describe("snippetAround", () => {
     expect(snippet.length).toBeLessThan(35);
   });
 });
+
+describe("page background", () => {
+  const read = (fm: string) => noteFromFile({ path: "a.md", content: `---\n${fm}\n---\n# A\n`, mtime: 1, created: 1 });
+  it("reads paper and margin, and DESIGN's page key", () => {
+    expect([read("paper: grid").paper, read("paper: grid").margin]).toEqual(["grid", null]);
+    expect([read("paper: lined\nmargin: true").paper, read("paper: lined\nmargin: true").margin]).toEqual(["lined", true]);
+    expect([read("page: ruled-margin").paper, read("page: ruled-margin").margin]).toEqual(["lined", true]);
+    expect(read("paper: carton").paper).toBeNull();
+  });
+
+  it("is written to the frontmatter, other keys kept", () => {
+    const note = withFrontmatter(read("id: x\nauteur: moi"), { paper: "dots", margin: false });
+    expect(note.frontmatter).toBe("id: x\nauteur: moi\npaper: dots\nmargin: false\n");
+    expect(note.paper).toBe("dots");
+  });
+});

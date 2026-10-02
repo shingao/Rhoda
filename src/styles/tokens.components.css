@@ -125,7 +125,7 @@
   --hr-thickness: 1px;
 
   /* Typewriter mode (decision): room so the first and last lines can reach the centre */
-  --typewriter-pad: 50vh;
+  --typewriter-pad: round(down, 50vh, var(--rhythm)); /* a whole number of units: paper stays aligned [§7] */
 
   /* Buttons [§2.18] */
   --btn-h: 34px;
@@ -174,6 +174,14 @@
   --resizer-line: 2px;
 
   /* Modal [§2.17] */
+  /* Toggle [§2.19]: track 34×20, handle 16 white (exception allowed by DESIGN) */
+  --toggle-w: 34px;
+  --toggle-h: 20px;
+  --toggle-handle: 16px;
+  --toggle-gap: 2px;
+  --toggle-handle-color: #FFFFFF;
+  --toggle-handle-shadow: 0 1px 2px rgba(0, 0, 0, .2);
+
   --modal-pad: var(--sp-6);
   --modal-w: 560px;
   --modal-close: 28px;
@@ -287,6 +295,23 @@
 
   /* Isolated section bar (decision) */
   --isolation-btn-h: 28px;
+
+  /* Page backgrounds [§7]: patterns painted on the editor's scroller, rule at
+     --paper-rule-y in each 28 px unit; grid at half a unit, offset 10 px so its
+     lines meet the rules; dots at 14/24 in each unit. */
+  --paper-lined-image: linear-gradient(to bottom, transparent var(--paper-rule-y), var(--paper-line) var(--paper-rule-y) calc(var(--paper-rule-y) + 1px), transparent calc(var(--paper-rule-y) + 1px));
+  --paper-lined-size: 100% var(--paper-pitch);
+  --paper-grid-image: linear-gradient(to bottom, var(--paper-grid-line) 1px, transparent 1px), linear-gradient(to right, var(--paper-grid-line) 1px, transparent 1px);
+  --paper-grid-size: var(--paper-grid) var(--paper-grid);
+  --paper-grid-offset: calc(var(--paper-rule-y) - var(--paper-grid));
+  --paper-dots-image: radial-gradient(circle at calc(var(--paper-pitch) / 2) var(--paper-rule-y), var(--paper-dot) 1.1px, transparent 1.7px);
+  --paper-dots-size: var(--paper-pitch) var(--paper-pitch);
+  --paper-margin-w: 1.5px;
+  --paper-popover-w: 288px;                /* [§7] popover */
+  --paper-thumb-h: 52px;                   /* [§7] vignettes */
+  --paper-thumb-margin-x: 10px;            /* (decision) margin inside a thumbnail */
+  --paper-thumb-scale: .4;                 /* (decision) patterns drawn at 40 % in thumbnails */
+  --hmarker-left-margin: calc(var(--hmarker-w) + var(--sp-2)); /* (decision P6) H markers between the red margin and the text */
 
   /* Folding chevron and badge [§2.13] */
   --fold-chevron: 18px;

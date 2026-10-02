@@ -1,0 +1,85 @@
+/* Page background of the open note [DESIGN §7]: painted on the scroller,
+   scrolls with the text, starts at the top of the content (a whole number of
+   units), never under the editor bar (which is outside the scroller). */
+.plain,
+.lined,
+.grid,
+.dots {
+  --paper-image: none;
+  --paper-size: auto;
+  --paper-position: 0 0;
+}
+
+.lined {
+  --paper-image: var(--paper-lined-image);
+  --paper-size: var(--paper-lined-size);
+}
+
+.grid {
+  --paper-image: var(--paper-grid-image);
+  --paper-size: var(--paper-grid-size);
+  --paper-position: 0 var(--paper-grid-offset);
+}
+
+.dots {
+  --paper-image: var(--paper-dots-image);
+  --paper-size: var(--paper-dots-size);
+}
+
+.surface :global(.cm-scroller) {
+  background-image: var(--paper-image);
+  background-position: var(--paper-position);
+  background-size: var(--paper-size);
+  background-attachment: local;
+}
+
+/* Red margin: 36 px left of the text column, follows the column (width, docked outline) */
+.surface :global(.cm-content) {
+  position: relative;
+}
+
+.margin :global(.cm-content)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--editor-pad-x) - var(--paper-margin-x));
+  width: var(--paper-margin-w);
+  background: var(--paper-margin);
+  pointer-events: none;
+}
+
+/* The H markers move between the red line and the text instead of crossing it */
+.margin {
+  --hmarker-left: var(--hmarker-left-margin);
+}
+
+/* Thumbnails of the picker: same patterns, drawn smaller (inner layer scaled) */
+.thumb {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--bg-2);
+}
+
+.thumb::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: calc(100% / var(--paper-thumb-scale));
+  height: calc(100% / var(--paper-thumb-scale));
+  background-image: var(--paper-image);
+  background-position: var(--paper-position);
+  background-size: var(--paper-size);
+  transform: scale(var(--paper-thumb-scale));
+  transform-origin: 0 0;
+}
+
+.thumb.margin::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--paper-thumb-margin-x);
+  width: var(--paper-margin-w);
+  background: var(--paper-margin);
+}

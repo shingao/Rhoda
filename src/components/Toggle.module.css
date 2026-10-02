@@ -1,0 +1,80 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  cursor: pointer;
+}
+
+.text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.label {
+  font-size: var(--fs-md);
+  color: var(--text);
+}
+
+.hint {
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+}
+
+/* Visually hidden, still focusable and announced as a switch */
+.input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.track {
+  position: relative;
+  width: var(--toggle-w);
+  height: var(--toggle-h);
+  flex: none;
+  border-radius: var(--r-pill);
+  background: var(--bg-sunken);
+  box-shadow: inset 0 0 0 1px var(--separator);
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-instant) linear;
+}
+
+.handle {
+  position: absolute;
+  top: var(--toggle-gap);
+  left: var(--toggle-gap);
+  width: var(--toggle-handle);
+  height: var(--toggle-handle);
+  border-radius: 50%;
+  background: var(--toggle-handle-color);
+  box-shadow: var(--toggle-handle-shadow);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+/* [§2.19] Survol : piste + --hover */
+.row:hover .track {
+  background: linear-gradient(var(--hover), var(--hover)), var(--bg-sunken);
+}
+
+.input:checked + .track {
+  background: var(--accent);
+  box-shadow: none;
+}
+
+.input:focus-visible + .track {
+  box-shadow:
+    0 0 0 var(--focus-gap) var(--ring-bg),
+    0 0 0 var(--focus-outer) var(--focus-ring);
+}
+
+.row:hover .input:checked + .track {
+  background: var(--accent-hover);
+}
+
+.input:checked + .track .handle {
+  transform: translateX(calc(var(--toggle-w) - var(--toggle-handle) - 2 * var(--toggle-gap)));
+}

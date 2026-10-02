@@ -12,6 +12,7 @@ import {
   withSyntax,
   type Note,
   type NoteFile,
+  type Paper,
 } from "../core/note/note";
 import { applyChanges, wikiLinkRenameChanges, type TextChange } from "../core/rewrite";
 import { editorText, focusEditor, forgetNote, replaceFromDisk, rewriteInEditor, showNote } from "../editor/session";
@@ -443,6 +444,8 @@ export const trashNote = (id: string) => patchFlags(id, { trashed: isoLocal() })
 export const restoreNote = (id: string) => patchFlags(id, { trashed: undefined });
 export const setPinned = (id: string, pinned: boolean) => patchFlags(id, { pinned: pinned || undefined });
 export const setArchived = (id: string, archived: boolean) => patchFlags(id, { archived: archived || undefined });
+/** Page background of a note, written to its frontmatter [DESIGN §7]. */
+export const setPaper = (id: string, paper: Paper, margin: boolean) => patchFlags(id, { paper, margin });
 
 /**
  * "Delete permanently" from the trash: after a safety copy, the files go to

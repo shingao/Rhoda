@@ -52,12 +52,15 @@ try {
           v.contentDOM.blur();
           await new Promise((r) => setTimeout(r, 50));
           await frame();
+          // Origin = where the page background starts (top of the scroller's content,
+          // background-attachment: local): lines must sit on its rules.
+          const paperTop = v.scrollDOM.getBoundingClientRect().top + v.scrollDOM.clientTop - v.scrollDOM.scrollTop;
           for (const el of v.contentDOM.querySelectorAll(".cm-line, .cm-backlinks, .cm-isolation-bar")) {
             const r = el.getBoundingClientRect();
             // Relative offsets are optical (H1 baseline on its rule), not layout.
             const cs = getComputedStyle(el);
             const shift = cs.position === "relative" ? parseFloat(cs.top) || 0 : 0;
-            const y = r.top - v.documentTop - shift;
+            const y = r.top - paperTop - shift;
             const line = el.classList.contains("cm-line") ? v.state.doc.lineAt(v.posAtDOM(el)) : null;
             const label = line ? `l.${line.number} « ${line.text.slice(0, 30)} »` : el.className;
             // Code lines follow the mono rhythm; the block as a whole is checked below.

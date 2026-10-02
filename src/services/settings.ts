@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { PAPERS, type Paper } from "../core/note/note";
 import type { SortKey } from "../core/note/sort";
 import { DEFAULT_LANGUAGE, isLanguage, type Language } from "../i18n";
 
@@ -27,8 +28,7 @@ export type LightPalette = (typeof LIGHT_PALETTES)[number];
 export type DarkPalette = (typeof DARK_PALETTES)[number];
 export type Palette = LightPalette | DarkPalette;
 export type ThemeMode = "light" | "dark" | "system";
-export const PAPERS = ["plain", "lined", "grid", "dots"] as const;
-export type Paper = (typeof PAPERS)[number];
+export { PAPERS, type Paper };
 
 export interface Appearance {
   mode: ThemeMode;

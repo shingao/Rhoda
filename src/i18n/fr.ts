@@ -234,6 +234,13 @@ export const fr = {
     isolated: "Section isolée : le reste de la note est masqué.",
     showAll: "Afficher toute la note",
   },
+  paper: {
+    title: "Fond de page",
+    menu: "Fond de page…",
+    names: { plain: "Uni", lined: "Lignes", grid: "Quadrillage", dots: "Pointillés" },
+    margin: "Marge rouge",
+    saved: "Enregistré dans le frontmatter de la note :",
+  },
   folding: {
     fold: "Replier la section",
     unfold: "Déplier la section",

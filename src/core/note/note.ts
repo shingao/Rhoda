@@ -36,6 +36,9 @@ export interface Note {
   pinned: boolean;
   archived: boolean;
   trashed: boolean;
+  /** Page background and red margin from the frontmatter; null = default setting. */
+  paper: Paper | null;
+  margin: boolean | null;
   /** Tags, wiki links and todos; null until indexed (done in the background at startup). */
   syntax: NoteSyntax | null;
 }
@@ -54,9 +57,28 @@ function readStoredId(data: FrontmatterData): string | null {
   return null;
 }
 
+/** Page background of a note [DESIGN §7]. */
+export const PAPERS = ["plain", "lined", "grid", "dots"] as const;
+export type Paper = (typeof PAPERS)[number];
+
+/**
+ * `paper` + `margin` (decision D1); DESIGN's `page: ruled | ruled-margin | …`
+ * is read too. Null = the default from the settings.
+ */
+function readPaper(data: FrontmatterData): { paper: Paper | null; margin: boolean | null } {
+  const margin = typeof data.margin === "boolean" ? data.margin : null;
+  if (typeof data.paper === "string" && (PAPERS as readonly string[]).includes(data.paper)) return { paper: data.paper as Paper, margin };
+  if (typeof data.page === "string") {
+    const page = { plain: "plain", ruled: "lined", "ruled-margin": "lined", grid: "grid", dots: "dots" }[data.page] as Paper | undefined;
+    if (page) return { paper: page, margin: margin ?? (data.page === "ruled-margin" ? true : null) };
+  }
+  return { paper: null, margin };
+}
+
 function deriveFromFrontmatter(frontmatter: string | null, file: { created: number; mtime: number }) {
   const data = parseFrontmatter(frontmatter);
   return {
+    ...readPaper(data),
     storedId: readStoredId(data),
     created: parseDate(data.created) ?? (file.created || file.mtime),
     pinned: data.pinned === true,

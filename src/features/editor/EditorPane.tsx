@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { ChevronsDownUp, ChevronsUpDown, CircleAlert, Ellipsis, Focus, ListTree, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { ChevronsDownUp, ChevronsUpDown, CircleAlert, Ellipsis, Focus, ListTree, Notebook, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useT } from "../../app/i18n";
 import { cssPx } from "../../app/cssTokens";
 import { toggleColumn, toggleOutline } from "../../app/layout";
@@ -18,6 +18,8 @@ import { typewriter, typewriterCompartment } from "../../editor/typewriter";
 import { noteMenuEntries } from "../notelist/noteActions";
 import { Breadcrumb } from "./Breadcrumb";
 import { FindPanel } from "./FindPanel";
+import { PaperPicker } from "./PaperPicker";
+import paperStyles from "./paper.module.css";
 import { FindPill } from "./FindPill";
 import { OutlinePanel } from "../outline/OutlinePanel";
 import s from "./EditorPane.module.css";
@@ -41,6 +43,10 @@ export function EditorPane() {
   const t = useT();
   const now = useNow();
   const [menuAt, setMenuAt] = useState<{ x: number; y: number } | null>(null);
+  const [paperAt, setPaperAt] = useState<{ x: number; y: number } | null>(null);
+  const defaults = useApp((st) => st.settings.editor);
+  const paper = note?.paper ?? defaults.paper;
+  const margin = note?.margin ?? defaults.margin;
 
   useEffect(() => {
     if (!host.current) return;
@@ -90,7 +96,12 @@ export function EditorPane() {
           }}
         />
       </div>
-      <div ref={body} className={[s.body, outlineOpen && docked && s.docked].filter(Boolean).join(" ")}>
+      <div
+        ref={body}
+        className={[s.body, outlineOpen && docked && s.docked, paperStyles.surface, paperStyles[paper], margin && paperStyles.margin]
+          .filter(Boolean)
+          .join(" ")}
+      >
         <div ref={host} className={s.host} hidden={!selectedId} />
         {outlineOpen && selectedId && !(findOpen && !docked) && <OutlinePanel docked={docked} />}
         {findOpen && selectedId && <FindPanel />}
@@ -101,6 +112,7 @@ export function EditorPane() {
           </div>
         )}
       </div>
+      {paperAt && note && <PaperPicker note={note} current={paper} margin={margin} at={paperAt} onClose={() => setPaperAt(null)} />}
       {menuAt && (
         <Menu
           at={menuAt}
@@ -137,6 +149,12 @@ export function EditorPane() {
                     icon: Focus,
                     shortcut: shortcutLabel("section.isolate", t),
                     onSelect: () => runSectionCommand("toggleIsolation"),
+                  },
+                  {
+                    id: "paper",
+                    label: t.paper.menu,
+                    icon: Notebook,
+                    onSelect: () => setPaperAt(menuAt),
                   },
                   { kind: "separator" as const, id: "sep-view" },
                 ]
