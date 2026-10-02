@@ -6,7 +6,7 @@ import { tagKey } from "../../core/markdown/extract";
 import { isInHeading } from "../../core/markdown/syntax";
 import { openExternal } from "../../services/opener";
 import { editorHooks, refreshPreview } from "../hooks";
-import { buildDecorations, revealedLines, type CodeMetrics } from "./build";
+import { buildDecorations, revealedLines, type CodeLayout, type CodeMetrics } from "./build";
 
 function readMetrics(): CodeMetrics {
   return {
@@ -80,11 +80,46 @@ export const livePreview = ViewPlugin.fromClass(
     private key: string;
     private readonly metrics = readMetrics();
     hoveredHead: HTMLElement | null = null;
+    private readonly code: CodeLayout = { measured: new Map(), blocks: [] };
 
     constructor(view: EditorView) {
       const lines = revealedLines(view.state, view.hasFocus);
       this.key = revealKey(lines);
-      this.decorations = buildDecorations(view, lines, this.metrics);
+      this.decorations = buildDecorations(view, lines, this.metrics, this.code);
+      this.measureCode(view);
+    }
+
+    /**
+     * Code lines can wrap, so a block's real height is only known on screen.
+     * Measured heights of the blocks fully drawn are fed back into the next
+     * build, which rounds the block to the rhythm [DESIGN §6]; it converges in
+     * one extra frame and does nothing while nothing changes.
+     */
+    measureCode(view: EditorView) {
+      if (!this.code.blocks.length) return;
+      view.requestMeasure({
+        key: this,
+        read: (v) => {
+          const { from, to } = v.viewport;
+          return this.code.blocks
+            .filter((b) => b.from >= from && v.state.doc.line(b.lastLine).to <= to)
+            .map((b) => ({
+              from: b.from,
+              body: v.lineBlockAt(v.state.doc.line(b.lastLine).from).bottom - b.padding - v.lineBlockAt(v.state.doc.line(b.firstLine).from).top,
+            }));
+        },
+        write: (results, v) => {
+          let changed = false;
+          for (const { from, body } of results) {
+            if (Math.abs((this.code.measured.get(from) ?? -1) - body) > 0.25) {
+              this.code.measured.set(from, body);
+              changed = true;
+            }
+          }
+          // Dispatching is not allowed during the measure phase.
+          if (changed) setTimeout(() => v.dispatch({ effects: refreshPreview.of(null) }));
+        },
+      });
     }
 
     update(u: ViewUpdate) {
@@ -92,10 +127,16 @@ export const livePreview = ViewPlugin.fromClass(
       const key = revealKey(lines);
       // Rebuild only when something that affects the rendering changed.
       const refreshed = u.transactions.some((tr) => tr.effects.some((e) => e.is(refreshPreview)));
+      if (u.docChanged) {
+        const moved = new Map<number, number>();
+        for (const [from, body] of this.code.measured) moved.set(u.changes.mapPos(from), body);
+        this.code.measured = moved;
+      }
       if (refreshed || u.docChanged || u.viewportChanged || key !== this.key || syntaxTree(u.state) !== syntaxTree(u.startState)) {
         this.key = key;
-        this.decorations = buildDecorations(u.view, lines, this.metrics);
-      }
+        this.decorations = buildDecorations(u.view, lines, this.metrics, this.code);
+        this.measureCode(u.view);
+      } else if (u.geometryChanged) this.measureCode(u.view);
     }
   },
   {

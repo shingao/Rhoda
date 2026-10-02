@@ -20,11 +20,28 @@ export interface CodeMetrics {
   rhythm: number;
 }
 
-/** Height of a code block's closing line so the whole block is a multiple of the rhythm [DESIGN §6]. */
-export function codeClosingHeight(m: CodeMetrics, codeLines: number): number {
-  const body = m.header + codeLines * m.line + m.padBottom;
-  const total = Math.ceil(body / m.rhythm - 1e-6) * m.rhythm;
-  return total - m.header - codeLines * m.line;
+/**
+ * Height of a code block's closing line so the whole block is a multiple of
+ * the rhythm [DESIGN §6]. `body` = height of the code lines, measured on screen
+ * (a long line wraps) or estimated from their count before the first measure.
+ */
+export function codeClosingHeight(m: CodeMetrics, body: number): number {
+  const total = Math.ceil((m.header + body + m.padBottom) / m.rhythm - 1e-6) * m.rhythm;
+  return total - m.header - body;
+}
+
+/** Bottom padding of an indented code block's last line, for the same rounding. */
+export function indentedTailPadding(m: CodeMetrics, body: number): number {
+  return Math.ceil((body + m.padBottom) / m.rhythm - 1e-6) * m.rhythm - body;
+}
+
+/**
+ * Code blocks drawn in the last build, and the height of their code lines as
+ * measured on screen (keyed by the block's start), fed back into the next build.
+ */
+export interface CodeLayout {
+  measured: Map<number, number>;
+  blocks: Array<{ from: number; firstLine: number; lastLine: number; padding: number }>;
 }
 
 const hidden = Decoration.replace({});
@@ -57,7 +74,8 @@ function ancestors(node: SyntaxNode, names: Set<string> | string): number {
   return count;
 }
 
-export function buildDecorations(view: EditorView, revealed: ReadonlySet<number>, metrics: CodeMetrics): DecorationSet {
+export function buildDecorations(view: EditorView, revealed: ReadonlySet<number>, metrics: CodeMetrics, code?: CodeLayout): DecorationSet {
+  if (code) code.blocks = [];
   const { state } = view;
   const doc = state.doc;
   const out: Range<Decoration>[] = [];
@@ -253,7 +271,7 @@ export function buildDecorations(view: EditorView, revealed: ReadonlySet<number>
         const body = codeLines > 0 ? doc.sliceString(doc.line(startLine.number + 1).from, doc.line(lastCodeLine).to) : "";
         out.push(Decoration.widget({ widget: new CopyCodeWidget(body), side: 1 }).range(line.to));
       } else if (close && n === endLine.number) {
-        const h = codeClosingHeight(metrics, codeLines);
+        const h = codeClosingHeight(metrics, code?.measured.get(node.from) ?? codeLines * metrics.line);
         addLine(line.from, lineDeco(`cm-code cm-code-close${revealCls}`, `height:${h}px;line-height:${h}px`));
         syntax(close.from, close.to, reveal);
       } else {
@@ -261,6 +279,9 @@ export function buildDecorations(view: EditorView, revealed: ReadonlySet<number>
         addLine(line.from, lineDeco(`cm-code cm-code-line${tail}${revealCls}`));
         notASample(line.from, line.to);
       }
+    }
+    if (code && codeLines > 0) {
+      code.blocks.push({ from: node.from, firstLine: startLine.number + 1, lastLine: lastCodeLine, padding: 0 });
     }
   }
 
@@ -272,7 +293,9 @@ export function buildDecorations(view: EditorView, revealed: ReadonlySet<number>
       let cls = "cm-code cm-code-line cm-code-indented";
       if (n === firstLine) cls += " cm-code-first";
       if (n === lastLine) cls += " cm-code-tail";
-      addLine(doc.line(n).from, lineDeco(cls));
+      const padding = n === lastLine ? indentedTailPadding(metrics, code?.measured.get(node.from) ?? (lastLine - firstLine + 1) * metrics.line) : 0;
+      addLine(doc.line(n).from, lineDeco(cls, padding ? `padding-bottom:${padding}px` : undefined));
+      if (n === lastLine && code) code.blocks.push({ from: node.from, firstLine, lastLine, padding });
       notASample(doc.line(n).from, doc.line(n).to);
     }
   }

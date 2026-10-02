@@ -93,8 +93,8 @@
   /* Tag pill [§2.5, §6]: 22 px tall, centred in the 28 px line */
   --tag-fs: var(--fs-sm);
   --tag-lh: 20px;
-  --tag-pad: 1px 9px;
-  --tag-lift: 1px;                         /* (decision) optical centring */
+  --tag-pad-y: 1px;
+  --tag-pad: var(--tag-pad-y) 9px;
 
   /* Lists and todos [§3, §2.7] */
   --list-indent: 24px;
@@ -108,7 +108,6 @@
   --dur-check: 140ms;                      /* [§4] */
 
   /* Quote [§2.9] */
-  --quote-pad-y: 14px;
   --quote-pad-x: 18px;
 
   /* Code block [§2.8] */

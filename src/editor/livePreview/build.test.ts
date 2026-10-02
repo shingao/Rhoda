@@ -7,7 +7,7 @@ describe("code block rhythm", () => {
 
   it("rounds every block up to a multiple of the 28 px rhythm", () => {
     for (let lines = 0; lines <= 40; lines++) {
-      const closing = codeClosingHeight(m, lines);
+      const closing = codeClosingHeight(m, lines * m.line);
       const total = m.header + lines * m.line + closing;
       expect(total / m.rhythm).toBeCloseTo(Math.round(total / m.rhythm), 6);
       expect(closing).toBeGreaterThanOrEqual(m.padBottom - 1e-6);

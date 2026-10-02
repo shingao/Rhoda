@@ -4,6 +4,7 @@ import demoNote from "../../samples/Démo éditeur.md?raw";
 import longNote from "../../samples/Note longue (5000 lignes).md?raw";
 import mockupNote from "../../samples/Maquette éditeur.md?raw";
 import outlineNote from "../../samples/Maquette sommaire.md?raw";
+import rhythmNote from "../../samples/Rythme vertical.md?raw";
 import { generateNotes } from "../dev/generateNotes";
 
 /**
@@ -54,6 +55,8 @@ function seed(now: number): Array<[string, string, number]> {
     ["Démo éditeur.md", demoNote, now - 60_000],
     ["Maquette éditeur.md", mockupNote, now - 90_000],
     ["Maquette sommaire.md", outlineNote, now - 30_000],
+    ["Rythme vertical.md", rhythmNote, now - 20_000],
+    ["Lien vers le rythme.md", "# Lien vers le rythme\n\nVoir [[Rythme vertical]] pour le panneau des rétroliens.\n", now - 25_000],
     ["Note longue (5000 lignes).md", longNote, now - 30 * DAY],
   ];
 }

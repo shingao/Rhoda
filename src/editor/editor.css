@@ -8,6 +8,13 @@
   vertical-align: top;
 }
 
+/* Rhythm [§6]: inline spans in another font or size (code, marks) must never
+   make a line taller than its 28 px; their own line box is kept small. Elements
+   that need the line height (fold anchor, badge, pills) set it themselves. */
+.cm-line :where(span) {
+  line-height: 1;
+}
+
 /* Syntax shown on the active line(s) */
 .cm-syntax {
   opacity: var(--syntax-opacity);
@@ -168,7 +175,10 @@
   line-height: var(--tag-lh);
   letter-spacing: 0;
   text-indent: 0;
-  vertical-align: var(--tag-lift);
+
+  /* 22 px pill centred in the 28 px line [§6], whatever the editor font. */
+  margin: calc((var(--editor-lh) - var(--tag-lh) - 2 * var(--tag-pad-y)) / 2) 0;
+  vertical-align: top;
 }
 
 /* Clickable pill (filters the list) */
@@ -276,7 +286,9 @@
   }
 }
 
-/* Quote [§2.9]: no side bar; padding keeps the block on the rhythm (14 + 14 = 28) */
+/* Quote [§2.9]: no side bar. The frame is exactly its text lines, so the text
+   and the frame's edges both sit on the rhythm (decision P6-4: no vertical
+   padding, the 28 px lines leave the air). */
 .cm-editor .cm-line.cm-quote {
   padding: 0 var(--quote-pad-x);
   background: var(--bg-1);
@@ -289,13 +301,11 @@
 }
 
 .cm-editor .cm-line.cm-quote-first {
-  padding-top: var(--quote-pad-y);
   border-top-left-radius: var(--r-md);
   border-top-right-radius: var(--r-md);
 }
 
 .cm-editor .cm-line.cm-quote-last {
-  padding-bottom: var(--quote-pad-y);
   border-bottom-left-radius: var(--r-md);
   border-bottom-right-radius: var(--r-md);
 }
@@ -398,27 +408,28 @@
   padding-bottom: var(--typewriter-pad);
 }
 
-/* Backlinks at the end of the note (decision P3) */
+/* Backlinks at the end of the note (decision P3): one unit of space, a title
+   line, then two lines per note — all on the rhythm [§6]. */
 .cm-backlinks {
   margin-top: var(--backlinks-gap);
-  padding-top: var(--rhythm);
   font-family: var(--font-ui);
+  line-height: var(--rhythm);
   white-space: normal;
 }
 
 .cm-backlinks-title {
-  margin: 0 0 var(--sp-2);
+  margin: 0;
   color: var(--text-3);
   font-size: var(--backlinks-title-fs);
   font-weight: var(--fw-medium);
+  line-height: var(--rhythm);
 }
 
 .cm-backlink {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-1);
   width: 100%;
-  padding: var(--sp-2) var(--sp-3);
+  padding: 0 var(--sp-3);
   margin-left: calc(-1 * var(--sp-3));
   border: 0;
   border-radius: var(--r-md);
@@ -431,6 +442,11 @@
 
 .cm-backlink:hover {
   background: var(--hover);
+}
+
+.cm-backlink-title,
+.cm-backlink-snippet {
+  line-height: var(--rhythm);
 }
 
 .cm-backlink-title {
@@ -526,6 +542,7 @@
 /* Folding [§2.13]: chevron 22 px left of the column, on hover; always shown when folded */
 .cm-fold-anchor {
   display: inline-block;
+  line-height: inherit;
   position: relative;
   width: 0;
   height: 1lh;
@@ -575,6 +592,7 @@
    on the heading and the line keeps its rhythm height. */
 .cm-fold-badge {
   display: inline-flex;
+  line-height: inherit;
   align-items: center;
   height: 1lh;
   margin-left: var(--fold-badge-gap);
