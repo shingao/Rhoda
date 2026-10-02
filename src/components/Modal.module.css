@@ -12,6 +12,11 @@
   animation: scrim-in var(--dur-base) var(--ease-out);
 }
 
+.centered {
+  align-items: center;
+  padding: var(--sp-6);
+}
+
 .modal {
   width: var(--modal-w);
   max-width: calc(100vw - 2 * var(--sp-6));

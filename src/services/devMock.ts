@@ -67,10 +67,29 @@ const DEMO_TAGS = JSON.stringify({
   tags: { voyages: { icon: "plane", pinned: true }, "projets": { icon: "folder" }, maison: { icon: "house", color: 4 }, travail: { icon: "briefcase" } },
 });
 
+const DEFAULT_VAULT = "C:\\Users\\dev\\Documents\\Ursa";
+type Entry = { content: string; mtime: number; created: number };
+
 export function installDevMock(): void {
   const now = Date.now();
-  const files = new Map<string, { content: string; mtime: number; created: number }>();
+  // Several vaults (Settings › Notes folder); the picker returns localStorage "ursa-dev-pick" or a second demo vault.
+  const vaults = new Map<string, { files: Map<string, Entry>; backups: Map<string, Map<string, string>> }>();
+  const vaultOf = (path: string) => {
+    if (!vaults.has(path)) vaults.set(path, { files: new Map(), backups: new Map() });
+    return vaults.get(path)!;
+  };
+  let vaultPath = DEFAULT_VAULT;
+  let files = vaultOf(DEFAULT_VAULT).files;
+  let backups = vaultOf(DEFAULT_VAULT).backups;
   for (const [path, content, mtime] of seed(now)) files.set(path, { content, mtime, created: mtime });
+  vaultOf("C:\\Users\\dev\\Documents\\Notes perso").files.set("Bienvenue.md", {
+    content: "# Bienvenue\n\nUn second dossier de notes. #perso\n",
+    mtime: now - HOUR,
+    created: now - HOUR,
+  });
+  /** Internal files of the default vault keep their historical keys. */
+  const internalKey = (name: string) => (vaultPath === DEFAULT_VAULT ? `ursa-dev-internal:${name}` : `ursa-dev-internal:${vaultPath}|${name}`);
+  const manifests = new Map<string, string>();
   // Performance tests: localStorage.setItem("ursa-dev-notes", "1000") adds generated notes.
   const extra = Number(localStorage.getItem("ursa-dev-notes") ?? 0);
   for (const n of generateNotes(extra, now)) files.set(n.path, { content: n.content, mtime: n.mtime, created: n.mtime });
@@ -86,16 +105,31 @@ export function installDevMock(): void {
     }
   };
 
-  const backups = new Map<string, Map<string, string>>();
-
   mockWindows("main");
   mockIPC((cmd, payload) => {
     const args = (payload ?? {}) as Record<string, string>;
     switch (cmd) {
       case "default_vault_path":
-        return "C:\\Users\\dev\\Documents\\Ursa";
+        return DEFAULT_VAULT;
       case "open_vault":
+        vaultPath = args.path!;
+        ({ files, backups } = vaultOf(vaultPath));
         return [...files.keys()].map(toFile);
+      case "pick_vault_folder":
+        return localStorage.getItem("ursa-dev-pick") ?? "C:\\Users\\dev\\Documents\\Notes perso";
+      case "list_backups":
+        return [...backups].map(([name, copies]) => ({ name, notes: copies.size })).sort((a, b) => b.name.localeCompare(a.name));
+      case "read_backup": {
+        const copies = backups.get(args.name!);
+        if (!copies) throw { kind: "notFound", message: `No backup named ${args.name}` };
+        return {
+          manifest: manifests.get(`${vaultPath}|${args.name}`) ?? null,
+          files: [...copies].map(([path, content]) => ({ path, content, mtime: 0, created: 0 })),
+        };
+      }
+      case "write_backup_manifest":
+        manifests.set(`${vaultPath}|${args.name}`, args.content!);
+        return null;
       case "read_note":
         return files.has(args.path!) ? toFile(args.path!) : null;
       case "write_note": {
@@ -140,9 +174,9 @@ export function installDevMock(): void {
       case "purge_backups":
         return 0;
       case "read_internal":
-        return localStorage.getItem(`ursa-dev-internal:${args.name}`) ?? (args.name === "tags.json" ? DEMO_TAGS : null);
+        return localStorage.getItem(internalKey(args.name!)) ?? (args.name === "tags.json" && vaultPath === DEFAULT_VAULT ? DEMO_TAGS : null);
       case "write_internal":
-        localStorage.setItem(`ursa-dev-internal:${args.name}`, args.content!);
+        localStorage.setItem(internalKey(args.name!), args.content!);
         return null;
       case "load_settings":
         return JSON.parse(localStorage.getItem("ursa-dev-settings") ?? "null") as unknown;

@@ -1,4 +1,5 @@
 import { fileStamp, isoLocal } from "../core/dates";
+import { textHash } from "../core/hash";
 import { titleKey } from "../core/markdown/extract";
 import { sanitizeStem, stemOf } from "../core/note/filename";
 import {
@@ -123,26 +124,38 @@ function save(id: string): Promise<void> {
 
 /**
  * Safety copies before bulk operations (tag rename/removal, link rewrites,
- * permanent deletion): the files about to change are copied to
- * `.ursa/backups/<date-time>-<operation>/` first, and the toast offers "Undo",
- * which restores them as long as none of the notes was edited since.
+ * permanent deletion, restoring a backup): the files about to change are
+ * copied to `.ursa/backups/<date-time>-<operation>/` first. The toast offers
+ * "Undo", and Settings › Backups lists them; both restore the copies only if
+ * none of the notes was edited since (Settings asks before overriding that).
  */
-export type BulkOperation = "rename-tag" | "delete-tag" | "update-links" | "delete-notes" | "empty-trash";
+export type BulkOperation = "rename-tag" | "delete-tag" | "update-links" | "delete-notes" | "empty-trash" | "restore";
+export const BULK_OPERATIONS: readonly BulkOperation[] = ["rename-tag", "delete-tag", "update-links", "delete-notes", "empty-trash", "restore"];
 /** Backups older than this are purged at startup. */
 const BACKUP_MAX_AGE = 30 * 24 * 3_600_000;
 /** Undo records kept in memory (one per recent toast). */
 const UNDO_LIMIT = 10;
 
+/** One copied note; the list is also saved as the backup's `manifest.json`. */
 interface UndoItem {
   id: string;
   /** Path of the copy inside the backup = the note's path before the operation. */
   from: string;
-  /** Text right after the operation; `null` for a deleted note. */
-  expected: string | null;
+  /** Title before the operation (shown when the note no longer exists). */
+  title?: string;
+  /**
+   * Fingerprint (`textHash`) of the text right after the operation; `null` for
+   * a note the operation deleted; `undefined` when unknown (backup without manifest).
+   */
+  expected?: string | null;
 }
 interface UndoRecord {
   items: UndoItem[];
   onUndone?: () => void;
+}
+interface Manifest {
+  version: 1;
+  items: UndoItem[];
 }
 const undoRecords = new Map<string, UndoRecord>();
 
@@ -176,48 +189,93 @@ async function backupBefore(op: BulkOperation, ids: string[]): Promise<string> {
   }
 }
 
+/** Keeps the undo record in memory and writes it next to the copies (for Settings › Backups, after a restart). */
 function remember(name: string, record: UndoRecord): void {
   undoRecords.set(name, record);
   for (const key of undoRecords.keys()) {
     if (undoRecords.size <= UNDO_LIMIT) break;
     undoRecords.delete(key);
   }
+  const manifest: Manifest = { version: 1, items: record.items };
+  void vaultApi.writeBackupManifest(name, JSON.stringify(manifest)).catch((e: unknown) => console.warn("[ursa] backup manifest not written", name, e));
+}
+
+/** Expected state of a note after the operation, for `UndoItem.expected`. */
+const afterOperation = (text: string | null) => (text === null ? null : textHash(text));
+
+/** Whether a note is still exactly as the operation left it. */
+function untouchedSince(item: UndoItem): boolean {
+  if (item.expected === undefined) return false;
+  if (item.expected === null) return !noteById(item.id);
+  return noteById(item.id) !== undefined && textHash(currentText(item.id)) === item.expected;
+}
+
+function parseManifest(text: string | null): UndoItem[] | null {
+  try {
+    const parsed = text ? (JSON.parse(text) as Partial<Manifest>) : null;
+    if (!parsed || !Array.isArray(parsed.items)) return null;
+    return parsed.items.filter(
+      (i): i is UndoItem =>
+        typeof i?.id === "string" &&
+        typeof i.from === "string" &&
+        (i.title === undefined || typeof i.title === "string") &&
+        (i.expected === null || i.expected === undefined || typeof i.expected === "string"),
+    );
+  } catch {
+    return null;
+  }
+}
+
+/** The notes of a backup: from memory, its manifest, or (older backups) the ids inside the copies. */
+async function backupItems(name: string): Promise<UndoItem[]> {
+  const kept = undoRecords.get(name);
+  if (kept) return kept.items;
+  const { manifest, files } = await vaultApi.readBackup(name);
+  return (
+    parseManifest(manifest) ??
+    files.map((file) => {
+      const note = noteFromFile(file);
+      return { id: note.id, from: file.path, title: note.title };
+    })
+  );
+}
+
+/** Writes the copies back and updates the index and the editor. Runs inside the queue. */
+async function restoreItems(name: string, items: UndoItem[]): Promise<Note[]> {
+  const targets = items.map((item) => {
+    const note = noteById(item.id);
+    return { from: item.from, to: note?.path ?? item.from, create: !note };
+  });
+  const files = await vaultApi.restore(name, targets);
+  return files.map((file, i) => {
+    const { id } = items[i]!;
+    const existed = !targets[i]!.create;
+    if (existed) {
+      cancel(saveTimers, id);
+      pendingBodies.delete(id);
+    }
+    const note = noteFromFile(file, id);
+    putNote(note);
+    lastTitles.set(note.id, note.title);
+    if (existed) replaceFromDisk(id, note.body);
+    return note;
+  });
 }
 
 export type UndoResult = "undone" | "changed" | "failed" | "expired";
 
-/** Restores the files of a bulk operation, unless one of its notes was edited since. */
+/** Toast "Undo": restores the files of a bulk operation, unless one of its notes was edited since. */
 export function undoBulk(name: string): Promise<UndoResult> {
   return enqueue(async () => {
     const record = undoRecords.get(name);
     if (!record) return "expired";
-    for (const item of record.items) {
-      const ok = item.expected === null ? !noteById(item.id) : noteById(item.id) !== undefined && currentText(item.id) === item.expected;
-      if (!ok) return "changed";
-    }
-    const items = record.items.map((item) => ({
-      from: item.from,
-      to: item.expected === null ? item.from : noteById(item.id)!.path,
-      create: item.expected === null,
-    }));
-    let files: NoteFile[];
+    if (!record.items.every(untouchedSince)) return "changed";
     try {
-      files = await vaultApi.restore(name, items);
+      await restoreItems(name, record.items);
     } catch (e) {
       console.warn("[ursa] undo failed", name, e);
       return "failed";
     }
-    files.forEach((file, i) => {
-      const { id, expected } = record.items[i]!;
-      if (expected !== null) {
-        cancel(saveTimers, id);
-        pendingBodies.delete(id);
-      }
-      const note = noteFromFile(file, id);
-      putNote(note);
-      lastTitles.set(note.id, note.title);
-      if (expected !== null) replaceFromDisk(id, note.body);
-    });
     undoRecords.delete(name);
     record.onUndone?.();
     return "undone";
@@ -231,6 +289,71 @@ export function undoAction(name: string): ToastAction {
     label: t.undo.action,
     run: () => void undoBulk(name).then((result) => showToast(t.undo.results[result])),
   };
+}
+
+export interface BackupSummary {
+  name: string;
+  /** Local time of the operation (from the name). */
+  time: number | null;
+  operation: BulkOperation | null;
+  notes: number;
+}
+
+/** Settings › Backups, newest first. */
+export async function listBackups(): Promise<BackupSummary[]> {
+  const list = await vaultApi.listBackups();
+  return list.map(({ name, notes }) => ({ name, notes, ...parseBackupName(name) }));
+}
+
+/** `2026-10-02_15-04-05-rename-tag(-2)` → time and operation. */
+export function parseBackupName(name: string): { time: number | null; operation: BulkOperation | null } {
+  const m = /^(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})-(.+?)(?:-\d+)?$/.exec(name);
+  if (!m) return { time: null, operation: null };
+  const [y, mo, d, h, mi, s] = m.slice(1, 7).map(Number) as [number, number, number, number, number, number];
+  const op = m[7] as BulkOperation;
+  return { time: new Date(y, mo - 1, d, h, mi, s).getTime(), operation: BULK_OPERATIONS.includes(op) ? op : null };
+}
+
+export type RestoreResult =
+  | { kind: "restored"; count: number; backup: string | null }
+  /** Some notes were edited since (or cannot be checked): nothing done, ask first. */
+  | { kind: "changed"; titles: string[] }
+  | { kind: "failed" };
+
+/**
+ * Settings › Backups › "Restore": same check as Undo; with `force`, restores
+ * anyway after copying the current versions (so the restore itself can be undone).
+ */
+export function restoreBackup(name: string, force: boolean): Promise<RestoreResult> {
+  return enqueue(async (): Promise<RestoreResult> => {
+    let items: UndoItem[];
+    try {
+      items = await backupItems(name);
+    } catch (e) {
+      console.warn("[ursa] backup unreadable", name, e);
+      return { kind: "failed" };
+    }
+    const changed = items.filter((item) => !untouchedSince(item));
+    if (changed.length && !force) {
+      return { kind: "changed", titles: changed.map((item) => noteById(item.id)?.title ?? item.title ?? stemOf(item.from)) };
+    }
+    const existing = items.filter((item) => noteById(item.id)).map((item) => item.id);
+    const safety = existing.length ? await backupBefore("restore", existing) : null;
+    const before = new Map(existing.map((id) => [id, noteById(id)!.path]));
+    let restored: Note[];
+    try {
+      restored = await restoreItems(name, items);
+    } catch (e) {
+      console.warn("[ursa] restore failed", name, e);
+      return { kind: "failed" };
+    }
+    if (safety) {
+      const undo = restored.filter((n) => before.has(n.id)).map((n) => ({ id: n.id, from: before.get(n.id)!, title: n.title, expected: afterOperation(n.body) }));
+      remember(safety, { items: undo });
+    }
+    undoRecords.delete(name);
+    return { kind: "restored", count: restored.length, backup: safety };
+  });
 }
 
 /** Startup: removes safety copies older than 30 days. */
@@ -268,7 +391,7 @@ async function applyRewrites(op: BulkOperation, changesById: Map<string, TextCha
     const note = noteById(id)!;
     const before = currentText(id);
     const body = applyChanges(before, changes);
-    items.push({ id, from: note.path, expected: body });
+    items.push({ id, from: note.path, title: note.title, expected: afterOperation(body) });
     if (rewriteInEditor(id, changes) === "view") continue; // saved by the editor's own autosave
     pendingBodies.delete(id);
     cancel(saveTimers, id);
@@ -398,6 +521,30 @@ export async function prepareClose(): Promise<boolean> {
   return pendingBodies.size === 0;
 }
 
+/**
+ * Before opening another vault: saves everything and waits for the queue.
+ * False (and nothing forgotten) if some text could not be written; otherwise
+ * every note of this vault is forgotten.
+ */
+export async function closeVault(): Promise<boolean> {
+  const selected = getState().selectedId;
+  selectNote(null);
+  await flushAll();
+  await enqueue(async () => undefined);
+  if (pendingBodies.size > 0) {
+    selectNote(selected);
+    return false;
+  }
+  for (const timer of [...saveTimers.values(), ...renameTimers.values()]) clearTimeout(timer);
+  saveTimers.clear();
+  renameTimers.clear();
+  failures.clear();
+  lastTitles.clear();
+  undoRecords.clear();
+  setState({ notes: {}, saveErrors: {} });
+  return true;
+}
+
 export function selectNote(id: string | null): void {
   const previous = getState().selectedId;
   if (previous === id) return;
@@ -461,7 +608,7 @@ export async function deleteNotes(ids: string[], op: BulkOperation = "delete-not
     for (const id of present) {
       const note = noteById(id)!;
       await vaultApi.remove(note.path);
-      items.push({ id, from: note.path, expected: null });
+      items.push({ id, from: note.path, title: note.title, expected: afterOperation(null) });
       forget(id);
       removeNotes([id]);
     }

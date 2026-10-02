@@ -11,6 +11,18 @@ export interface RestoreItem {
   create: boolean;
 }
 
+export interface BackupInfo {
+  name: string;
+  /** Notes copied. */
+  notes: number;
+}
+
+export interface BackupContent {
+  /** `manifest.json`; null for backups made before it existed. */
+  manifest: string | null;
+  files: NoteFile[];
+}
+
 /** The only module that talks to the Rust vault commands. */
 export const vaultApi = {
   defaultPath: () => invoke<string>("default_vault_path"),
@@ -27,6 +39,11 @@ export const vaultApi = {
   /** Copies notes into `.ursa/backups/<name>/` before a bulk operation; returns the final folder name. */
   backup: (name: string, paths: string[]) => invoke<string>("backup_notes", { name, paths }),
   restore: (name: string, items: RestoreItem[]) => invoke<NoteFile[]>("restore_backup", { name, items }),
+  listBackups: () => invoke<BackupInfo[]>("list_backups"),
+  readBackup: (name: string) => invoke<BackupContent>("read_backup", { name }),
+  writeBackupManifest: (name: string, content: string) => invoke<void>("write_backup_manifest", { name, content }),
+  /** Native folder picker; null if cancelled. */
+  pickFolder: (title: string, current: string | null) => invoke<string | null>("pick_vault_folder", { title, current }),
   /** Removes backups whose name sorts before `before` (a file stamp). */
   purgeBackups: (before: string) => invoke<number>("purge_backups", { before }),
   onChanged: (handler: (paths: string[]) => void): Promise<UnlistenFn> =>

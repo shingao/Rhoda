@@ -34,7 +34,11 @@ interface AppState {
   search: SearchInput;
   /** Find in the note (Ctrl+F / Ctrl+H) and the occurrences in the open note. */
   find: FindState;
+  /** Settings dialog and its current page; null = closed. */
+  settingsPage: SettingsPage | null;
 }
+
+export type SettingsPage = "general" | "editor" | "backups";
 
 export interface SearchInput {
   chips: string[];
@@ -73,6 +77,7 @@ export const useApp = create<AppState>()(() => ({
   outline: { items: [], current: null },
   search: { chips: [], text: "" },
   find: { open: false, focusToken: 0, replace: false, query: "", count: 0, current: null },
+  settingsPage: null,
 }));
 
 export const getState = useApp.getState;

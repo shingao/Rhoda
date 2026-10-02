@@ -27,6 +27,8 @@ export const SHORTCUTS = {
   "fold.all": { keys: "Ctrl+Shift+PageUp", scope: "editor" },
   "unfold.all": { keys: "Ctrl+Shift+PageDown", scope: "editor" },
   "section.isolate": { keys: "Ctrl+Shift+Enter", scope: "editor" },
+  // Physical key: "," is the same key on AZERTY and QWERTY.
+  "settings.open": { keys: "Ctrl+Comma", scope: "global" },
 } as const satisfies Record<string, { keys: string; scope: ShortcutScope }>;
 
 /** "editor" shortcuts run inside CodeMirror (see `editorKey`). */

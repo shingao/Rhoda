@@ -1,20 +1,23 @@
 //! Safety copies taken before bulk operations (tag rename/removal, wiki-link
 //! rewrites, emptying the trash): `.ursa/backups/<date-time>-<operation>/`
 //! holds the files as they were, at their vault-relative paths. The frontend
-//! can restore them ("Undo" in the toast); copies older than 30 days are purged
-//! at startup.
+//! can restore them ("Undo" in the toast, or Settings › Backups); copies older
+//! than 30 days are purged at startup. `manifest.json`, written by the frontend
+//! once the operation is done, says which note each copy belongs to and what
+//! the note looked like right after the operation (to detect later edits).
 
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tauri::State;
 
 use crate::error::{CmdError, CmdResult, ErrorKind};
-use crate::vault::{atomic_write, current_root, read_note_file, resolve, unique_note_path, NoteFile, VaultState, INTERNAL_DIR};
+use crate::vault::{atomic_write, current_root, read_note_file, resolve, scan_dir, unique_note_path, NoteFile, VaultState, INTERNAL_DIR};
 
 const BACKUPS_DIR: &str = "backups";
+const MANIFEST: &str = "manifest.json";
 
 fn backups_root(root: &Path) -> PathBuf {
     root.join(INTERNAL_DIR).join(BACKUPS_DIR)
@@ -107,6 +110,78 @@ pub(crate) fn purge_before(root: &Path, before: &str) -> io::Result<usize> {
     Ok(removed)
 }
 
+#[derive(Debug, Serialize)]
+pub struct BackupInfo {
+    pub name: String,
+    /// Number of notes copied.
+    pub notes: usize,
+}
+
+/// Every backup, newest first.
+pub(crate) fn list(root: &Path) -> io::Result<Vec<BackupInfo>> {
+    let Ok(entries) = fs::read_dir(backups_root(root)) else { return Ok(Vec::new()) };
+    let mut out = Vec::new();
+    for entry in entries.flatten() {
+        let name = entry.file_name().to_string_lossy().into_owned();
+        if !entry.file_type()?.is_dir() || validate_name(&name).is_err() {
+            continue;
+        }
+        let mut files = Vec::new();
+        scan_dir(&entry.path(), &entry.path(), &mut files);
+        out.push(BackupInfo { name, notes: files.len() });
+    }
+    out.sort_by(|a, b| b.name.cmp(&a.name));
+    Ok(out)
+}
+
+#[derive(Debug, Serialize)]
+pub struct BackupContent {
+    /// `manifest.json`, absent for backups made before it existed.
+    pub manifest: Option<String>,
+    /// The copies, with paths relative to the backup folder (= vault paths at backup time).
+    pub files: Vec<NoteFile>,
+}
+
+pub(crate) fn read(root: &Path, name: &str) -> CmdResult<BackupContent> {
+    validate_name(name)?;
+    let dir = backups_root(root).join(name);
+    if !dir.is_dir() {
+        return Err(CmdError::new(ErrorKind::NotFound, format!("No backup named {name}")));
+    }
+    let manifest = match fs::read_to_string(dir.join(MANIFEST)) {
+        Ok(text) => Some(text),
+        Err(e) if e.kind() == io::ErrorKind::NotFound => None,
+        Err(e) => return Err(e.into()),
+    };
+    let mut files = Vec::new();
+    scan_dir(&dir, &dir, &mut files);
+    Ok(BackupContent { manifest, files })
+}
+
+pub(crate) fn write_manifest(root: &Path, name: &str, content: &str) -> CmdResult<()> {
+    validate_name(name)?;
+    let dir = backups_root(root).join(name);
+    if !dir.is_dir() {
+        return Err(CmdError::new(ErrorKind::NotFound, format!("No backup named {name}")));
+    }
+    Ok(atomic_write(&dir.join(MANIFEST), content)?)
+}
+
+#[tauri::command]
+pub async fn list_backups(state: State<'_, VaultState>) -> CmdResult<Vec<BackupInfo>> {
+    Ok(list(&current_root(&state)?)?)
+}
+
+#[tauri::command]
+pub async fn read_backup(state: State<'_, VaultState>, name: String) -> CmdResult<BackupContent> {
+    read(&current_root(&state)?, &name)
+}
+
+#[tauri::command]
+pub async fn write_backup_manifest(state: State<'_, VaultState>, name: String, content: String) -> CmdResult<()> {
+    write_manifest(&current_root(&state)?, &name, &content)
+}
+
 #[tauri::command]
 pub async fn backup_notes(state: State<'_, VaultState>, name: String, paths: Vec<String>) -> CmdResult<String> {
     backup_files(&current_root(&state)?, &name, &paths)
@@ -175,6 +250,27 @@ mod tests {
         let files = restore_files(v.path(), &name, &items[1..]).unwrap();
         assert_eq!(files[0].path, "sub/b 2.md");
         assert_eq!(fs::read_to_string(v.path().join("sub/b.md")).unwrap(), "other");
+    }
+
+    #[test]
+    fn list_and_read_backups_with_their_manifest() {
+        let v = vault();
+        let old = backup_files(v.path(), "2026-09-01_10-00-00-delete-tag", &["a.md".into()]).unwrap();
+        let new = backup_files(v.path(), "2026-10-01_10-00-00-rename-tag", &["a.md".into(), "sub/b.md".into()]).unwrap();
+        write_manifest(v.path(), &new, r#"{"version":1}"#).unwrap();
+        fs::create_dir_all(backups_root(v.path()).join(".hidden")).unwrap();
+
+        let listed: Vec<(String, usize)> = list(v.path()).unwrap().into_iter().map(|b| (b.name, b.notes)).collect();
+        assert_eq!(listed, vec![(new.clone(), 2), (old.clone(), 1)]);
+
+        let content = read(v.path(), &new).unwrap();
+        assert_eq!(content.manifest.as_deref(), Some(r#"{"version":1}"#));
+        let mut paths: Vec<&str> = content.files.iter().map(|f| f.path.as_str()).collect();
+        paths.sort();
+        assert_eq!(paths, ["a.md", "sub/b.md"]);
+        assert!(read(v.path(), &old).unwrap().manifest.is_none());
+        assert!(read(v.path(), "missing").is_err());
+        assert!(write_manifest(v.path(), "missing", "{}").is_err());
     }
 
     #[test]

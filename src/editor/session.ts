@@ -104,6 +104,12 @@ export function unmountEditor(): void {
   currentId = null;
 }
 
+/** Another vault: forgets the editor state of every note (call after `showNote(null)`). */
+export function resetEditor(): void {
+  states.clear();
+  scrolls.clear();
+}
+
 /** Shows a note instantly (no animation, DESIGN §4). */
 export function showNote(id: string | null, body: string): void {
   if (!view || id === currentId) return;

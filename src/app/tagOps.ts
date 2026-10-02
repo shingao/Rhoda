@@ -77,23 +77,46 @@ export function updateTagSettings(key: string, patch: Partial<TagSettings>): voi
   });
 }
 
-/** Loads `.ursa/tags.json` and saves it again whenever the settings change. */
+/** False while another vault is being opened: nothing is saved until its tags.json is read. */
+let loaded = false;
+let saveTimer: ReturnType<typeof setTimeout> | undefined;
+
+function saveTagConfig(): Promise<void> {
+  saveTimer = undefined;
+  const content = JSON.stringify({ version: 1, tags: getState().tagConfig }, null, 2);
+  return vaultApi.writeInternal(TAGS_FILE, content).catch((e: unknown) => console.warn("[ursa] tags.json not saved", e));
+}
+
+/** Saves `.ursa/tags.json` whenever the tag settings change (once, at startup). */
+export function connectTagConfig(): void {
+  useApp.subscribe((state, previous) => {
+    if (state.tagConfig === previous.tagConfig || !loaded) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => void saveTagConfig(), SAVE_DELAY);
+  });
+}
+
+/** Reads `.ursa/tags.json` of the open vault. */
 export async function loadTagConfig(): Promise<void> {
+  loaded = false;
+  let tagConfig: Record<string, TagSettings> = {};
   try {
     const text = await vaultApi.readInternal(TAGS_FILE);
     const parsed: unknown = text ? JSON.parse(text) : null;
     const tags = parsed && typeof parsed === "object" && "tags" in parsed ? (parsed as { tags: unknown }).tags : null;
-    if (tags && typeof tags === "object") setState({ tagConfig: tags as Record<string, TagSettings> });
+    if (tags && typeof tags === "object") tagConfig = tags as Record<string, TagSettings>;
   } catch (e) {
     console.warn("[ursa] tags.json ignored", e);
   }
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  useApp.subscribe((state, previous) => {
-    if (state.tagConfig === previous.tagConfig) return;
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      const content = JSON.stringify({ version: 1, tags: getState().tagConfig }, null, 2);
-      void vaultApi.writeInternal(TAGS_FILE, content).catch((e: unknown) => console.warn("[ursa] tags.json not saved", e));
-    }, SAVE_DELAY);
-  });
+  setState({ tagConfig });
+  loaded = true;
+}
+
+/** Before leaving a vault: writes pending changes now, then stops saving until the next load. */
+export async function closeTagConfig(): Promise<void> {
+  if (saveTimer !== undefined) {
+    clearTimeout(saveTimer);
+    await saveTagConfig();
+  }
+  loaded = false;
 }

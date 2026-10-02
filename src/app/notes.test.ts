@@ -12,6 +12,8 @@ const fake = vi.hoisted(() => {
   const state = { clock: 1000, touched: [] as string[], lockWrites: false, lockRenames: false, failBackups: false };
   /** `.ursa/backups/<name>/`: path → content at backup time. */
   const backups = new Map<string, Map<string, string>>();
+  /** `manifest.json` of each backup. */
+  const manifests = new Map<string, string>();
   const file = (path: string) => ({ path, ...files.get(path)! });
   const taken = (name: string, except?: string) =>
     [...files.keys()].some((p) => p.toLowerCase() === name.toLowerCase() && p.toLowerCase() !== except?.toLowerCase());
@@ -61,6 +63,12 @@ const fake = vi.hoisted(() => {
       old.forEach((k) => backups.delete(k));
       return old.length;
     },
+    listBackups: async () => [...backups].map(([name, copies]) => ({ name, notes: copies.size })).sort((a, b) => b.name.localeCompare(a.name)),
+    readBackup: async (name: string) => ({
+      manifest: manifests.get(name) ?? null,
+      files: [...backups.get(name)!].map(([path, content]) => ({ path, content, mtime: 0, created: 0 })),
+    }),
+    writeBackupManifest: async (name: string, content: string) => void manifests.set(name, content),
     readInternal: async () => null,
     writeInternal: async () => undefined,
     rename: async (from: string, stem: string) => {
@@ -74,7 +82,7 @@ const fake = vi.hoisted(() => {
       return to;
     },
   };
-  return { files, backups, state, vaultApi };
+  return { files, backups, manifests, state, vaultApi };
 });
 
 vi.mock("../services/vault", () => ({ vaultApi: fake.vaultApi }));
@@ -101,8 +109,11 @@ const {
   editNote,
   flushAll,
   handleDiskChanges,
+  listBackups,
   loadNotes,
+  parseBackupName,
   prepareClose,
+  restoreBackup,
   purgeOldBackups,
   restoreNote,
   setFilter,
@@ -141,6 +152,7 @@ beforeEach(async () => {
   fake.state.lockRenames = false;
   fake.state.failBackups = false;
   fake.backups.clear();
+  fake.manifests.clear();
   setState({ notes: {}, selectedId: null, saveErrors: {}, filter: { kind: "section", section: "notes" }, tagConfig: {} });
   editor.openId = null;
   editor.text = "";
@@ -509,6 +521,59 @@ describe("safety backups before bulk operations", () => {
     expect(await undoBulk(backup!)).toBe("undone");
     expect(fake.files.has("3.md")).toBe(true);
     expect(getState().notes.n3!.trashed).toBe(true);
+  });
+
+  it("lists backups with their date, operation and number of notes", async () => {
+    await renameTag("voyages", "trips");
+    await deleteNotes(["n3"]);
+    const list = await listBackups();
+    expect(list.map((b) => [b.operation, b.notes])).toEqual(
+      expect.arrayContaining([
+        ["rename-tag", 2],
+        ["delete-notes", 1],
+      ]),
+    );
+    expect(parseBackupName("2026-10-02_15-04-05-rename-tag-2")).toEqual({ time: new Date(2026, 9, 2, 15, 4, 5).getTime(), operation: "rename-tag" });
+    expect(parseBackupName("n'importe quoi")).toEqual({ time: null, operation: null });
+  });
+
+  it("restores from Settings with the same check as Undo, after a restart too", async () => {
+    const before = [content("1.md"), content("2.md")];
+    const { backup } = await renameTag("voyages", "trips");
+    // As after a restart: only the files and their manifest are left.
+    const copy = "2026-10-02_09-00-00-rename-tag";
+    fake.backups.set(copy, fake.backups.get(backup!)!);
+    fake.manifests.set(copy, fake.manifests.get(backup!)!);
+    expect(await restoreBackup(copy, false)).toEqual({ kind: "restored", count: 2, backup: expect.stringMatching(/-restore$/) });
+    expect([content("1.md"), content("2.md")]).toEqual(before);
+    expect(getState().notes.n1!.syntax!.tags.map((t) => t.name)).toContain("voyages/japon");
+  });
+
+  it("asks before restoring over notes edited since, and keeps a copy of them", async () => {
+    const { backup } = await deleteTag("voyages");
+    editNote("n2", "# Deux\nPlan revu\n");
+    expect(await restoreBackup(backup!, false)).toEqual({ kind: "changed", titles: ["Deux"] });
+    expect(content("1.md")).not.toContain("#voyages");
+    const result = await restoreBackup(backup!, true);
+    expect(result).toMatchObject({ kind: "restored", count: 2 });
+    expect(content("2.md")).toContain("Plan #voyages");
+    // The edited text is in the safety copy, and the restore can be undone.
+    const safety = (result as { backup: string }).backup;
+    expect(fake.backups.get(safety)!.get("2.md")).toContain("Plan revu");
+    expect(await undoBulk(safety)).toBe("undone");
+    expect(content("2.md")).toContain("Plan revu");
+  });
+
+  it("restores a deleted note and an old backup without manifest (after confirmation)", async () => {
+    const { backup } = await deleteNotes(["n3"]);
+    fake.manifests.delete(backup!);
+    const copy = "2026-09-01_09-00-00-delete-notes";
+    fake.backups.set(copy, fake.backups.get(backup!)!);
+    // Without manifest nothing can be checked: always ask.
+    expect(await restoreBackup(copy, false)).toEqual({ kind: "changed", titles: ["Trois"] });
+    expect(await restoreBackup(copy, true)).toMatchObject({ kind: "restored", count: 1, backup: null });
+    expect(fake.files.has("3.md")).toBe(true);
+    expect(getState().notes.n3!.title).toBe("Trois");
   });
 
   it("purges backups older than 30 days", async () => {

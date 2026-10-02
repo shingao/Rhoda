@@ -41,14 +41,24 @@ export function rememberFolds(noteId: string, keys: FoldKey[]): void {
   if (keys.length) folds[noteId] = keys;
   else delete folds[noteId];
   clearTimeout(timer);
-  timer = setTimeout(save, SAVE_DELAY);
+  timer = setTimeout(() => void save(), SAVE_DELAY);
 }
 
-function save(): void {
+function save(): Promise<void> {
+  timer = undefined;
   // Notes deleted since are dropped.
   const { notes } = getState();
   const kept = Object.fromEntries(Object.entries(folds).filter(([id]) => notes[id]));
-  void vaultApi
+  return vaultApi
     .writeInternal(FOLDS_FILE, JSON.stringify({ version: 1, notes: kept }, null, 2))
     .catch((e: unknown) => console.warn("[ursa] folds.json not saved", e));
+}
+
+/** Before leaving a vault: writes pending changes now and forgets them. */
+export async function closeFolds(): Promise<void> {
+  if (timer !== undefined) {
+    clearTimeout(timer);
+    await save();
+  }
+  folds = {};
 }

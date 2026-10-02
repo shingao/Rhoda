@@ -1,0 +1,39 @@
+.wrap {
+  --ring-bg: var(--bg-raised);
+
+  position: relative;
+}
+
+.select {
+  width: 100%;
+  height: var(--field-h);
+  padding: 0 calc(var(--field-px) * 2 + var(--field-icon)) 0 var(--field-px);
+  border: 0;
+  border-radius: var(--r-md);
+  background: var(--bg-sunken);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--field-fs);
+  appearance: none;
+  cursor: pointer;
+}
+
+.select:hover {
+  background: linear-gradient(var(--hover), var(--hover)), var(--bg-sunken);
+}
+
+.select option {
+  background: var(--bg-raised);
+  color: var(--text);
+}
+
+.icon {
+  position: absolute;
+  top: 50%;
+  right: var(--field-px);
+  width: var(--field-icon);
+  height: var(--field-icon);
+  color: var(--text-3);
+  transform: translateY(-50%);
+  pointer-events: none;
+}

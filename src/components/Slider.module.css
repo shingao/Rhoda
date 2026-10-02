@@ -1,0 +1,38 @@
+/* Track --bg-sunken, accent fill, white handle like the toggle [§2.19] */
+.slider {
+  --ring-bg: var(--bg-raised);
+  --slider-fill: 0%; /* set inline from the value */
+
+  width: 100%;
+  height: var(--slider-thumb);
+  margin: 0;
+  background: transparent;
+  appearance: none;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-runnable-track {
+  height: var(--slider-track-h);
+  border-radius: var(--r-pill);
+  background: linear-gradient(to right, var(--accent) var(--slider-fill), var(--bg-sunken) var(--slider-fill));
+}
+
+.slider::-webkit-slider-thumb {
+  width: var(--slider-thumb);
+  height: var(--slider-thumb);
+  margin-top: calc((var(--slider-track-h) - var(--slider-thumb)) / 2);
+  border-radius: 50%;
+  background: var(--toggle-handle-color);
+  box-shadow: var(--toggle-handle-shadow), 0 0 0 1px var(--separator);
+  appearance: none;
+}
+
+.slider:focus-visible {
+  outline: none;
+}
+
+.slider:focus-visible::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 var(--focus-gap) var(--ring-bg),
+    0 0 0 var(--focus-outer) var(--focus-ring);
+}

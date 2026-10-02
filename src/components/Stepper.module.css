@@ -1,0 +1,42 @@
+/* Maquette 09: one --bg-sunken field, − and + at the ends, value centred */
+.stepper {
+  --ring-bg: var(--bg-raised);
+
+  display: flex;
+  align-items: center;
+  height: var(--field-h);
+  border-radius: var(--r-md);
+  background: var(--bg-sunken);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--stepper-btn);
+  height: var(--field-h);
+  border-radius: var(--r-md);
+  color: var(--text-2);
+}
+
+.button svg {
+  width: var(--field-icon);
+  height: var(--field-icon);
+}
+
+.button:disabled {
+  opacity: var(--disabled-opacity);
+}
+
+.button:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+.value {
+  flex: 1;
+  border-radius: var(--r-sm);
+  font-size: var(--field-fs);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--text);
+}

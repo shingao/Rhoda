@@ -1,0 +1,27 @@
+/* [§2.20] padding 2, --r-md, --bg-sunken, 12.5/600; segment 4 12, active --bg-2 + --shadow-card */
+.group {
+  --ring-bg: var(--bg-sunken);
+
+  display: inline-flex;
+  padding: var(--segment-pad);
+  border-radius: var(--r-md);
+  background: var(--bg-sunken);
+}
+
+.segment {
+  padding: var(--segment-item-pad);
+  border-radius: var(--r-sm);
+  font-size: var(--segment-fs);
+  font-weight: var(--fw-semibold);
+  color: var(--text-2);
+}
+
+.segment:hover {
+  color: var(--text);
+}
+
+.segment[aria-checked="true"] {
+  background: var(--bg-2);
+  box-shadow: var(--shadow-card);
+  color: var(--text);
+}

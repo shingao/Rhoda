@@ -51,6 +51,10 @@ pub fn run() {
             snapshots::backup_notes,
             snapshots::restore_backup,
             snapshots::purge_backups,
+            snapshots::list_backups,
+            snapshots::read_backup,
+            snapshots::write_backup_manifest,
+            vault::pick_vault_folder,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Ursa");

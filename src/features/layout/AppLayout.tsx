@@ -6,6 +6,7 @@ import { ConfirmHost } from "../../components/ConfirmHost";
 import { Resizer } from "../../components/Resizer";
 import { Toast } from "../../components/Toast";
 import { CloseDialog } from "../close/CloseDialog";
+import { SettingsDialog } from "../settings/SettingsDialog";
 import { EditorPane } from "../editor/EditorPane";
 import { NoteList } from "../notelist/NoteList";
 import { Sidebar } from "../sidebar/Sidebar";
@@ -48,6 +49,7 @@ export function AppLayout() {
           </div>
         </div>
       </div>
+      <SettingsDialog />
       <CloseDialog />
       <ConfirmHost />
       <Toast />

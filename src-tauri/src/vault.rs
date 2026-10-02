@@ -107,7 +107,7 @@ pub(crate) fn read_note_file(root: &Path, abs: &Path) -> io::Result<NoteFile> {
     })
 }
 
-fn scan_dir(root: &Path, dir: &Path, out: &mut Vec<NoteFile>) {
+pub(crate) fn scan_dir(root: &Path, dir: &Path, out: &mut Vec<NoteFile>) {
     let Ok(entries) = fs::read_dir(dir) else { return };
     for entry in entries.flatten() {
         let path = entry.path();
@@ -266,6 +266,19 @@ pub fn default_vault_path(app: AppHandle) -> CmdResult<String> {
         Err(_) => app.path().home_dir()?.join("Documents"),
     };
     Ok(docs.join("Ursa").to_string_lossy().into_owned())
+}
+
+/// Native folder picker for Settings › Notes folder; `None` if cancelled.
+#[tauri::command]
+pub async fn pick_vault_folder(app: AppHandle, title: String, current: Option<String>) -> CmdResult<Option<String>> {
+    use tauri_plugin_dialog::DialogExt;
+    let mut dialog = app.dialog().file().set_title(title);
+    if let Some(dir) = current.map(PathBuf::from).filter(|d| d.is_dir()) {
+        dialog = dialog.set_directory(dir);
+    }
+    let Some(picked) = dialog.blocking_pick_folder() else { return Ok(None) };
+    let path = picked.into_path().map_err(CmdError::other)?;
+    Ok(Some(path.to_string_lossy().into_owned()))
 }
 
 /// Opens (creating it if needed) the vault, returns every note and starts

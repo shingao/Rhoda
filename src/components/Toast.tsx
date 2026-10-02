@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { cssMs } from "../app/cssTokens";
 import { setState, useApp } from "../app/store";
 import s from "./Toast.module.css";
@@ -6,7 +7,8 @@ import s from "./Toast.module.css";
 /**
  * Short non-blocking message at the bottom of the window ("3 liens mis à jour"),
  * with an optional action ("Annuler"). The timer pauses while the pointer or
- * the keyboard focus is on the toast.
+ * the keyboard focus is on the toast. Rendered outside the app root so it
+ * stays usable above an open dialog (the app is inert then).
  */
 export function Toast() {
   const toast = useApp((st) => st.toast);
@@ -21,7 +23,7 @@ export function Toast() {
     );
     return () => clearTimeout(timer);
   }, [toast, held]);
-  return (
+  return createPortal(
     <div className={s.region} role="status" aria-live="polite">
       {toast && (
         <div
@@ -48,6 +50,7 @@ export function Toast() {
           )}
         </div>
       )}
-    </div>
+    </div>,
+    document.body,
   );
 }

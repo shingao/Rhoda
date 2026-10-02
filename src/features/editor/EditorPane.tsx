@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { ChevronsDownUp, ChevronsUpDown, CircleAlert, Ellipsis, Focus, ListTree, Notebook, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { ChevronsDownUp, ChevronsUpDown, CircleAlert, Ellipsis, Focus, ListTree, Notebook, PanelLeftClose, PanelLeftOpen, Settings } from "lucide-react";
 import { useT } from "../../app/i18n";
 import { cssPx } from "../../app/cssTokens";
 import { toggleColumn, toggleOutline } from "../../app/layout";
 import { editNote, trashNote } from "../../app/notes";
 import { shortcutLabel } from "../../app/shortcuts";
-import { updateSettings, useApp } from "../../app/store";
+import { setState, updateSettings, useApp } from "../../app/store";
 import { useNow } from "../../app/useNow";
 import { relativeDate } from "../../core/dates";
 import { attachAutoHideScrollbar } from "../../components/useAutoHideScrollbar";
@@ -165,6 +165,13 @@ export function EditorPane() {
               checked: typewriterOn,
               toggle: true,
               onSelect: () => updateSettings((st) => ({ ...st, editor: { ...st.editor, typewriter: !st.editor.typewriter } })),
+            },
+            {
+              id: "settings",
+              label: t.settings.menu,
+              icon: Settings,
+              shortcut: shortcutLabel("settings.open", t),
+              onSelect: () => setState({ settingsPage: "general" }),
             },
             ...(note ? [{ kind: "separator" as const, id: "sep" }, ...noteMenuEntries(note, t, (id) => void trashNote(id))] : []),
           ]}

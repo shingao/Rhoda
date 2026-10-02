@@ -6,7 +6,9 @@ import { toggleColumn, toggleOutline } from "./app/layout";
 import { createNote } from "./app/notes";
 import { openFindFromSelection } from "./app/search";
 import { useGlobalShortcuts, type ShortcutHandlers } from "./app/shortcuts";
-import { useApp } from "./app/store";
+import { getState, setState, useApp } from "./app/store";
+import { changeVaultFolder } from "./app/vault";
+import { Button } from "./components/Button";
 import { AppLayout } from "./features/layout/AppLayout";
 import s from "./App.module.css";
 
@@ -18,6 +20,7 @@ const globalHandlers: ShortcutHandlers = {
   "outline.toggle": toggleOutline,
   "find.open": () => openFindFromSelection(false),
   "find.replace": () => openFindFromSelection(true),
+  "settings.open": () => setState({ settingsPage: getState().settingsPage ?? "general" }),
 };
 
 export function App() {
@@ -28,8 +31,9 @@ export function App() {
 
   if (vault.kind === "error") {
     return (
-      <div role="alert" className={s.error}>
-        {t.errors.vaultOpen(vault.message)}
+      <div className={s.error}>
+        <p role="alert">{t.errors.vaultOpen(vault.message)}</p>
+        <Button onClick={() => void changeVaultFolder()}>{t.errors.chooseOtherFolder}</Button>
       </div>
     );
   }

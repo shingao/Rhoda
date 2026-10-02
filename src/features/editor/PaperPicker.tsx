@@ -46,21 +46,7 @@ export function PaperPicker({ note, current, margin, at, onClose }: PaperPickerP
       }}
     >
       <div className={s.title}>{t.paper.title}</div>
-      <div className={s.thumbs} role="radiogroup" aria-label={t.paper.title}>
-        {PAPERS.map((p) => (
-          <button
-            key={p}
-            type="button"
-            role="radio"
-            aria-checked={p === current}
-            className={[s.option, p === current && s.selected].filter(Boolean).join(" ")}
-            onClick={() => void setPaper(note.id, p, margin)}
-          >
-            <span className={[s.thumb, paper.thumb, paper[p], margin && paper.margin].filter(Boolean).join(" ")} />
-            <span className={s.label}>{t.paper.names[p]}</span>
-          </button>
-        ))}
-      </div>
+      <PaperChoices value={current} margin={margin} label={t.paper.title} onChange={(p) => void setPaper(note.id, p, margin)} />
       <Toggle checked={margin} onChange={(m) => void setPaper(note.id, current, m)} label={t.paper.margin} />
       <p className={s.hint}>
         {t.paper.saved}{" "}
@@ -70,5 +56,27 @@ export function PaperPicker({ note, current, margin, at, onClose }: PaperPickerP
       </p>
     </div>,
     document.body,
+  );
+}
+
+/** The 4 thumbnails, also used for the default background in the settings. */
+export function PaperChoices({ value, margin, label, onChange }: { value: Paper; margin: boolean; label: string; onChange: (paper: Paper) => void }) {
+  const t = useT();
+  return (
+    <div className={s.thumbs} role="radiogroup" aria-label={label}>
+      {PAPERS.map((p) => (
+        <button
+          key={p}
+          type="button"
+          role="radio"
+          aria-checked={p === value}
+          className={[s.option, p === value && s.selected].filter(Boolean).join(" ")}
+          onClick={() => onChange(p)}
+        >
+          <span className={[s.thumb, paper.thumb, paper[p], margin && paper.margin].filter(Boolean).join(" ")} />
+          <span className={s.label}>{t.paper.names[p]}</span>
+        </button>
+      ))}
+    </div>
   );
 }

@@ -192,6 +192,34 @@
   --modal-scale-from: .98;
   --modal-top: 18vh;                       /* (decision) */
 
+  /* Settings [§2.17] 860×660, nav 200 px, content padding 24 32, sections 22 apart */
+  --settings-w: 860px;
+  --settings-h: 660px;
+  --settings-nav-w: 200px;
+  --settings-nav-pad: var(--sp-4) var(--sp-2);   /* (decision) maquette 09 */
+  --settings-pad: var(--sp-6) var(--sp-8);
+  --settings-section-gap: 22px;
+  --settings-label-fs: var(--fs-sm);       /* maquette 09: labels 13/600 */
+  --settings-hint-fs: var(--fs-xs);
+  --settings-row-gap: var(--sp-2);
+  --palette-card-h: 72px;                  /* [§2.17] cartes aperçu 72 px */
+  --palette-card-min: 120px;               /* (decision) */
+  --backup-row-h: 44px;                    /* (decision) Sauvegardes list */
+
+  /* Form controls: field, select, stepper, slider [§2.17, maquette 09] */
+  --field-h: 34px;
+  --field-px: var(--sp-3);
+  --field-fs: var(--fs-sm);
+  --field-icon: 14px;
+  --stepper-btn: 34px;
+  --slider-track-h: 4px;                   /* maquette 09 */
+  --slider-thumb: 16px;                    /* same handle as the toggle [§2.19] */
+
+  /* Segmented control [§2.20] */
+  --segment-pad: 2px;
+  --segment-item-pad: var(--sp-1) var(--sp-3);
+  --segment-fs: 12.5px;
+
   /* Danger button [§2.18]: luminosity −6 % on hover */
   --danger-hover-brightness: .94;
 
