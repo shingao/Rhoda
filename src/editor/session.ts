@@ -247,3 +247,10 @@ export function replaceOne(replacement: string): void {
 export function replaceEvery(replacement: string): number {
   return view ? replaceAll(view, replacement) : 0;
 }
+
+/** Text selected in the open note (to start Ctrl+F from it). */
+export function editorSelectionText(): string {
+  if (!view) return "";
+  const r = view.state.selection.main;
+  return view.state.sliceDoc(r.from, r.to);
+}

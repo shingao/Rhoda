@@ -1,7 +1,7 @@
 import { fold } from "../core/search/fold";
 import { warmIndex } from "../core/search/search";
 import type { Needle } from "../core/search/query";
-import { focusEditor, revealFirstMatch, setFindNeedles } from "../editor/session";
+import { editorSelectionText, focusEditor, revealFirstMatch, setFindNeedles } from "../editor/session";
 import { createNote, selectNote } from "./notes";
 import { activeQuery, currentList, getState, setState, useApp, type FindState, type SearchInput } from "./store";
 
@@ -46,8 +46,13 @@ export function setFind(patch: Partial<FindState>): void {
   setState((s) => ({ find: { ...s.find, ...patch } }));
 }
 
-export function openFind(replace: boolean): void {
-  setFind({ open: true, replace: replace || getState().find.replace });
+/** Ctrl+F / Ctrl+H: starts from the selected text, else the words of the global search, else the last query. */
+export function openFindFromSelection(replace: boolean): void {
+  const { selectedId, search, find } = getState();
+  if (!selectedId) return;
+  const selected = editorSelectionText();
+  const query = selected && !selected.includes("\n") ? selected : find.open ? find.query : activeQuery(search)?.text || find.query;
+  setFind({ open: true, replace: replace || (find.open && find.replace), query, focusToken: find.focusToken + 1 });
 }
 
 export function closeFind(): void {

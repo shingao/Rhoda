@@ -38,7 +38,8 @@
   --find-pill-fs: 12px;
   --find-pill-btn: 22px;
   --find-panel-w: 340px;                   /* (decision) Ctrl+F / Ctrl+H panel */
-  --find-input-h: 28px;                       /* (decision) occurrence highlight */
+  --find-input-h: 28px;
+  --find-count-w: 44px;                       /* (decision) occurrence highlight */
   --results-page: 30;                      /* (decision) cards rendered per step */
 
   /* Sidebar item [§2.2] */
@@ -131,6 +132,9 @@
   --btn-h-titlebar: 30px;
   --btn-px: 16px;
   --btn-px-titlebar: 12px;
+  --btn-h-small: 28px;                     /* (decision) buttons in the find panel */
+  --btn-px-small: 10px;
+  --btn-fs-small: var(--fs-sm);
   --btn-fs: 13.5px;
   --btn-fs-titlebar: var(--fs-sm);
   --btn-gap: 6px;

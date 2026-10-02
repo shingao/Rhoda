@@ -4,7 +4,7 @@ import s from "./Button.module.css";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "danger";
-  size?: "default" | "titlebar";
+  size?: "default" | "titlebar" | "small";
   icon?: LucideIcon;
 }
 

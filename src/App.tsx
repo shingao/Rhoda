@@ -4,6 +4,7 @@ import { focusSearch } from "./app/commands";
 import { useT } from "./app/i18n";
 import { toggleColumn, toggleOutline } from "./app/layout";
 import { createNote } from "./app/notes";
+import { openFindFromSelection } from "./app/search";
 import { useGlobalShortcuts, type ShortcutHandlers } from "./app/shortcuts";
 import { useApp } from "./app/store";
 import { AppLayout } from "./features/layout/AppLayout";
@@ -15,6 +16,8 @@ const globalHandlers: ShortcutHandlers = {
   "layout.toggleSidebar": () => toggleColumn("sidebar"),
   "layout.toggleList": () => toggleColumn("list"),
   "outline.toggle": toggleOutline,
+  "find.open": () => openFindFromSelection(false),
+  "find.replace": () => openFindFromSelection(true),
 };
 
 export function App() {

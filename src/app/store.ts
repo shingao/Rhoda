@@ -43,6 +43,8 @@ export interface SearchInput {
 
 export interface FindState {
   open: boolean;
+  /** Bumped to focus the find field again (Ctrl+F while it is open). */
+  focusToken: number;
   replace: boolean;
   query: string;
   count: number;
@@ -70,7 +72,7 @@ export const useApp = create<AppState>()(() => ({
   toast: null,
   outline: { items: [], current: null },
   search: { chips: [], text: "" },
-  find: { open: false, replace: false, query: "", count: 0, current: null },
+  find: { open: false, focusToken: 0, replace: false, query: "", count: 0, current: null },
 }));
 
 export const getState = useApp.getState;

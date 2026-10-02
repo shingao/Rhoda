@@ -17,6 +17,10 @@ export const SHORTCUTS = {
   "layout.toggleList": { keys: "Ctrl+Shift+Backslash", scope: "global" },
   "note.trash": { keys: "Delete", scope: "list" },
   "outline.toggle": { keys: "Ctrl+Shift+O", scope: "global" },
+  "find.open": { keys: "Ctrl+F", scope: "global" },
+  "find.replace": { keys: "Ctrl+H", scope: "global" },
+  "find.next": { keys: "Enter", scope: "find" },
+  "find.previous": { keys: "Shift+Enter", scope: "find" },
   // Folding: no [ ] \ (AltGr on AZERTY); arrows and page keys are the same on every layout.
   "fold.section": { keys: "Ctrl+Shift+ArrowUp", scope: "editor" },
   "unfold.section": { keys: "Ctrl+Shift+ArrowDown", scope: "editor" },
@@ -26,7 +30,7 @@ export const SHORTCUTS = {
 } as const satisfies Record<string, { keys: string; scope: ShortcutScope }>;
 
 /** "editor" shortcuts run inside CodeMirror (see `editorKey`). */
-export type ShortcutScope = "global" | "list" | "editor";
+export type ShortcutScope = "global" | "list" | "editor" | "find";
 export type ShortcutId = keyof typeof SHORTCUTS;
 
 const chords = Object.fromEntries(

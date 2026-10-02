@@ -1,0 +1,74 @@
+/* Find / replace in the note (decision P5-7): floating card under the editor bar, right */
+.panel {
+  --ring-bg: var(--bg-raised);
+
+  position: absolute;
+  top: var(--outline-top);
+  right: var(--outline-right);
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  width: var(--find-panel-w);
+  padding: var(--sp-1);
+  border-radius: var(--r-lg);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-pop);
+  animation: find-in var(--dur-base) var(--ease-out);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+
+.input {
+  min-width: 0;
+  flex: 1;
+  height: var(--find-input-h);
+  padding: 0 var(--sp-2);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--bg-sunken);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--menu-fs);
+}
+
+.input:focus-visible {
+  box-shadow: 0 0 0 var(--search-focus-ring) var(--accent);
+}
+
+.count {
+  min-width: var(--find-count-w);
+  font-size: var(--find-pill-fs);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.none {
+  color: var(--danger);
+}
+
+.toggle svg {
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+.toggleOpen svg {
+  transform: rotate(90deg);
+}
+
+.indent {
+  width: var(--icon-btn);
+  flex: none;
+}
+
+@keyframes find-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--popover-shift));
+  }
+}

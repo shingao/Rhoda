@@ -26,6 +26,13 @@
   font-size: var(--btn-fs-titlebar);
 }
 
+/* Compact, inside panels (find / replace) */
+.small {
+  height: var(--btn-h-small);
+  padding: 0 var(--btn-px-small);
+  font-size: var(--btn-fs-small);
+}
+
 .primary {
   background: var(--accent-solid);
   color: var(--on-accent);

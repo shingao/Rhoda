@@ -17,6 +17,7 @@ import { isSectionIsolated, mountEditor, runSectionCommand, setEditorOption, sho
 import { typewriter, typewriterCompartment } from "../../editor/typewriter";
 import { noteMenuEntries } from "../notelist/noteActions";
 import { Breadcrumb } from "./Breadcrumb";
+import { FindPanel } from "./FindPanel";
 import { FindPill } from "./FindPill";
 import { OutlinePanel } from "../outline/OutlinePanel";
 import s from "./EditorPane.module.css";
@@ -34,6 +35,7 @@ export function EditorPane() {
   const saveError = useApp((st) => (st.selectedId ? st.saveErrors[st.selectedId] : undefined));
   const typewriterOn = useApp((st) => st.settings.editor.typewriter);
   const outlineOpen = useApp((st) => st.settings.layout.outlineOpen);
+  const findOpen = useApp((st) => st.find.open);
   const body = useRef<HTMLDivElement>(null);
   const docked = useDocking(body);
   const t = useT();
@@ -90,7 +92,8 @@ export function EditorPane() {
       </div>
       <div ref={body} className={[s.body, outlineOpen && docked && s.docked].filter(Boolean).join(" ")}>
         <div ref={host} className={s.host} hidden={!selectedId} />
-        {outlineOpen && selectedId && <OutlinePanel docked={docked} />}
+        {outlineOpen && selectedId && !(findOpen && !docked) && <OutlinePanel docked={docked} />}
+        {findOpen && selectedId && <FindPanel />}
         {!selectedId && (
           <div className={s.empty}>
             <p className={s.emptyTitle}>{t.editor.noSelection}</p>

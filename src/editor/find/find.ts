@@ -1,4 +1,5 @@
-import { EditorSelection, StateEffect, StateField, type EditorState, type Text } from "@codemirror/state";
+import { isolateHistory } from "@codemirror/commands";
+import { EditorSelection, StateEffect, StateField, type EditorState, type Text, type TransactionSpec } from "@codemirror/state";
 import { Decoration, EditorView, type DecorationSet } from "@codemirror/view";
 import { findAll, foldWithMap } from "../../core/search/fold";
 import type { Needle } from "../../core/search/query";
@@ -98,7 +99,8 @@ export function stepMatch(view: EditorView, direction: 1 | -1): boolean {
   let index: number;
   if (current !== null) index = (current + direction + matches.length) % matches.length;
   else {
-    const head = view.state.selection.main.head;
+    // From the start of the selection, so typing more letters refines the same occurrence.
+    const head = view.state.selection.main.from;
     const after = matches.findIndex(([a]) => a >= head);
     index = direction === 1 ? (after < 0 ? 0 : after) : (after <= 0 ? matches.length : after) - 1;
   }
@@ -118,15 +120,23 @@ export function replaceCurrent(view: EditorView, replacement: string): boolean {
   return true;
 }
 
-/** Replaces every occurrence in one transaction: a single Ctrl+Z undoes it. Returns the count. */
-export function replaceAll(view: EditorView, replacement: string): number {
-  const { matches } = view.state.field(findField);
-  if (!matches.length) return 0;
-  view.dispatch({
+/** One transaction replacing every occurrence: its own undo step, a single Ctrl+Z undoes it. */
+export function replaceAllSpec(state: EditorState, replacement: string): TransactionSpec | null {
+  const { matches } = state.field(findField);
+  if (!matches.length) return null;
+  return {
     changes: matches.map(([from, to]) => ({ from, to, insert: replacement })),
     userEvent: "input.replace.all",
     // Replacing inside folded sections does not unfold them all.
-    annotations: keepFolds.of(true),
-  });
-  return matches.length;
+    annotations: [keepFolds.of(true), isolateHistory.of("full")],
+  };
+}
+
+/** Replaces every occurrence. Returns the count. */
+export function replaceAll(view: EditorView, replacement: string): number {
+  const spec = replaceAllSpec(view.state, replacement);
+  if (!spec) return 0;
+  const count = view.state.field(findField).matches.length;
+  view.dispatch(spec);
+  return count;
 }
