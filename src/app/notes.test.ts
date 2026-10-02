@@ -35,6 +35,12 @@ const fake = vi.hoisted(() => {
       state.touched.push(path);
       return file(path);
     },
+    remove: async (path: string) => {
+      files.delete(path);
+      state.touched.push(path);
+    },
+    readInternal: async () => null,
+    writeInternal: async () => undefined,
     rename: async (from: string, stem: string) => {
       if (state.lockRenames) throw new Error("sharing violation");
       const to = unique(stem, from);
@@ -50,14 +56,25 @@ const fake = vi.hoisted(() => {
 });
 
 vi.mock("../services/vault", () => ({ vaultApi: fake.vaultApi }));
+/** Stand-in for the editor: one "open" note whose text lives here, as in CodeMirror. */
+const editor = vi.hoisted(() => ({ openId: null as string | null, text: "", rewrites: [] as Array<{ id: string; changes: unknown }> }));
 vi.mock("../editor/session", () => ({
   showNote: vi.fn(),
   replaceFromDisk: vi.fn(),
   forgetNote: vi.fn(),
   focusEditor: vi.fn(),
+  editorText: (id: string) => (id === editor.openId ? editor.text : null),
+  rewriteInEditor: (id: string, changes: Array<{ from: number; to: number; insert: string }>) => {
+    if (id !== editor.openId) return "none";
+    editor.rewrites.push({ id, changes });
+    editor.text = [...changes].sort((a, b) => b.from - a.from).reduce((t, c) => t.slice(0, c.from) + c.insert + t.slice(c.to), editor.text);
+    return "view";
+  },
 }));
 
-const { createNote, editNote, flushAll, handleDiskChanges, loadNotes, prepareClose, trashNote, unsavedNotes } = await import("./notes");
+const { createNote, deleteNotes, editNote, flushAll, handleDiskChanges, loadNotes, prepareClose, restoreNote, setFilter, trashNote, unsavedNotes } =
+  await import("./notes");
+const { deleteTag, notesWithTag, renameTag } = await import("./tagOps");
 const { getState, setState, useApp } = await import("./store");
 const session = await import("../editor/session");
 
@@ -86,7 +103,10 @@ beforeEach(async () => {
   fake.state.touched = [];
   fake.state.lockWrites = false;
   fake.state.lockRenames = false;
-  setState({ notes: {}, selectedId: null, saveErrors: {} });
+  setState({ notes: {}, selectedId: null, saveErrors: {}, filter: { kind: "section", section: "notes" }, tagConfig: {} });
+  editor.openId = null;
+  editor.text = "";
+  editor.rewrites = [];
   vi.mocked(session.replaceFromDisk).mockClear();
 });
 
@@ -271,5 +291,97 @@ describe("external edits", () => {
     await handleDiskChanges(["A.md"]);
     expect(getState().notes.a?.body).toContain("from Notepad");
     expect(session.replaceFromDisk).toHaveBeenCalledWith("a", "# A\nfrom Notepad\n");
+  });
+});
+
+describe("wiki links follow a renamed note", () => {
+  it("rewrites links in 3 notes, the open one through the editor (undoable)", async () => {
+    seed("Voyage.md", "---\nid: v\n---\n# Voyage\n");
+    seed("B.md", "---\nid: b\n---\n# B\nVoir [[Voyage]] et [[voyage#Budget|le budget]].\n");
+    seed("C.md", "---\nid: c\n---\n# C\n- [ ] relire [[Voyage]]\n`[[Voyage]]` reste du code\n");
+    seed("D.md", "---\nid: d\n---\n# D\nOuvert : [[Voyage|ici]]\n");
+    seed("E.md", "---\nid: e\n---\n# E\n[[Voyages]] est une autre note\n");
+    await loadNotes(diskFiles());
+
+    // The title of "Voyage" is edited, then the user opens D before the 2 s checkpoint.
+    editNote("v", "# Voyage au Japon\n");
+    editor.openId = "d";
+    editor.text = getState().notes.d!.body;
+    await vi.advanceTimersByTimeAsync(2100);
+
+    expect(fake.files.get("B.md")!.content).toContain("Voir [[Voyage au Japon]] et [[Voyage au Japon#Budget|le budget]].");
+    expect(fake.files.get("C.md")!.content).toContain("relire [[Voyage au Japon]]\n`[[Voyage]]` reste du code");
+    expect(fake.files.get("E.md")!.content).toContain("[[Voyages]]");
+    // D is open: changed through the editor (one undoable transaction), not written behind its back.
+    expect(editor.rewrites).toHaveLength(1);
+    expect(editor.text).toContain("Ouvert : [[Voyage au Japon|ici]]");
+    expect(fake.files.get("D.md")!.content).not.toContain("Japon");
+    expect(getState().toast?.text).toBe("4 liens mis à jour dans 3 notes");
+    expect(getState().notes.v!.path).toBe("Voyage au Japon.md");
+  });
+
+  it("leaves links alone when the old title was ambiguous", async () => {
+    seed("A.md", "---\nid: a\n---\n# Doublon\n");
+    seed("A2.md", "---\nid: a2\n---\n# Doublon\n");
+    seed("L.md", "---\nid: l\n---\n# L\n[[Doublon]]\n");
+    await loadNotes(diskFiles());
+    editNote("a", "# Unique\n");
+    await vi.advanceTimersByTimeAsync(2100);
+    expect(fake.files.get("L.md")!.content).toContain("[[Doublon]]");
+  });
+});
+
+describe("tag operations", () => {
+  beforeEach(async () => {
+    seed("1.md", "---\nid: n1\n---\n# Un\n#Voyages/Japon et #idée\n");
+    seed("2.md", "---\nid: n2\n---\n# Deux\nPlan #voyages\n");
+    seed("3.md", "---\nid: n3\n---\n# Trois\nRien ici, même pas `#voyages`\n");
+    await loadNotes(diskFiles());
+  });
+
+  it("counts the notes a rename would touch, children included", () => {
+    expect(notesWithTag("voyages")).toBe(2);
+    expect(notesWithTag("voyages/japon")).toBe(1);
+  });
+
+  it("renames a tag and its children everywhere", async () => {
+    expect(await renameTag("voyages", "trips")).toBe(2);
+    expect(fake.files.get("1.md")!.content).toContain("#trips/Japon et #idée");
+    expect(fake.files.get("2.md")!.content).toContain("Plan #trips");
+    expect(fake.files.get("3.md")!.content).toContain("`#voyages`");
+  });
+
+  it("removes a tag everywhere", async () => {
+    expect(await deleteTag("voyages")).toBe(2);
+    expect(fake.files.get("1.md")!.content).toContain("# Un\net #idée");
+    expect(fake.files.get("2.md")!.content).toContain("Plan\n");
+  });
+
+  it("filters the list by tag, with descendants", () => {
+    setFilter({ kind: "tag", key: "voyages" });
+    expect(notes().filter((n) => n.syntax?.tags.length).length).toBe(2);
+    expect(getState().selectedId).not.toBe("n3");
+  });
+});
+
+describe("trash", () => {
+  it("restores a note and deletes it permanently through the recycle bin", async () => {
+    seed("T.md", "---\nid: t\n---\n# T\n");
+    await loadNotes(diskFiles());
+    await trashNote("t");
+    expect(getState().notes.t!.trashed).toBe(true);
+    await restoreNote("t");
+    expect(getState().notes.t!.trashed).toBe(false);
+    expect(fake.files.get("T.md")!.content).not.toContain("trashed");
+    await trashNote("t");
+    await deleteNotes(["t"]);
+    expect(fake.files.has("T.md")).toBe(false);
+    expect(getState().notes.t).toBeUndefined();
+  });
+
+  it("creates a note from a missing link title", async () => {
+    await loadNotes([]);
+    await createNote("Idées de voyage");
+    expect(fake.files.get("Idées de voyage.md")!.content).toContain("# Idées de voyage\n");
   });
 });

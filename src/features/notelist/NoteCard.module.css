@@ -29,6 +29,14 @@
   color: var(--text-3);
 }
 
+.todos {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  margin-left: var(--sp-2);
+  font-variant-numeric: tabular-nums;
+}
+
 .metaIcon {
   width: var(--card-meta-icon);
   height: var(--card-meta-icon);

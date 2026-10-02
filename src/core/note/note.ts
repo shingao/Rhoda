@@ -2,6 +2,7 @@ import { isoLocal } from "../dates";
 import { uuidv7 } from "../id";
 import { joinFrontmatter, parseFrontmatter, patchFrontmatter, splitFrontmatter, type FrontmatterData } from "./frontmatter";
 import { applyEol, detectEol, normalizeEol, previewFromBody, titleFromBody, type Eol } from "./text";
+import { extractSyntax, type NoteSyntax } from "../markdown/extract";
 
 /** A note file as returned by the backend. */
 export interface NoteFile {
@@ -35,6 +36,8 @@ export interface Note {
   pinned: boolean;
   archived: boolean;
   trashed: boolean;
+  /** Tags, wiki links and todos; null until indexed (done in the background at startup). */
+  syntax: NoteSyntax | null;
 }
 
 function parseDate(value: unknown): number | null {
@@ -62,8 +65,11 @@ function deriveFromFrontmatter(frontmatter: string | null, file: { created: numb
   };
 }
 
-/** Builds a note from a file. `provisionalId` is used only when the file has no id. */
-export function noteFromFile(file: NoteFile, provisionalId: string = uuidv7()): Note {
+/**
+ * Builds a note from a file. `provisionalId` is used only when the file has no
+ * id. `deferSyntax` leaves the (costlier) syntax extraction for later.
+ */
+export function noteFromFile(file: NoteFile, provisionalId: string = uuidv7(), deferSyntax = false): Note {
   const eol = detectEol(file.content);
   const { frontmatter, body } = splitFrontmatter(normalizeEol(file.content));
   const { storedId: id, ...flags } = deriveFromFrontmatter(frontmatter, file);
@@ -79,7 +85,12 @@ export function noteFromFile(file: NoteFile, provisionalId: string = uuidv7()): 
     title: titleFromBody(body),
     preview: previewFromBody(body),
     ...flags,
+    syntax: deferSyntax ? null : extractSyntax(body),
   };
+}
+
+export function withSyntax(note: Note): Note {
+  return note.syntax ? note : { ...note, syntax: extractSyntax(note.body) };
 }
 
 export function serializeNote(note: Pick<Note, "frontmatter" | "body" | "eol">): string {
@@ -88,7 +99,7 @@ export function serializeNote(note: Pick<Note, "frontmatter" | "body" | "eol">):
 
 export function withBody(note: Note, body: string): Note {
   if (body === note.body) return note;
-  return { ...note, body, title: titleFromBody(body), preview: previewFromBody(body) };
+  return { ...note, body, title: titleFromBody(body), preview: previewFromBody(body), syntax: extractSyntax(body) };
 }
 
 /** Patches frontmatter flags. The note keeps its identity (use `withNewId` to change it). */
@@ -113,7 +124,7 @@ export function withNewId(note: Note, id: string = uuidv7()): Note {
   return { ...withFrontmatter(note, { id }), id, idStored: true };
 }
 
-/** Content of a brand new note: id + creation date, empty H1 ready for a title. */
-export function newNoteContent(now: number = Date.now()): string {
-  return joinFrontmatter(`id: ${uuidv7(now)}\ncreated: ${isoLocal(now)}\n`, "# ");
+/** Content of a brand new note: id + creation date, H1 with the title (empty, ready to type). */
+export function newNoteContent(now: number = Date.now(), title = ""): string {
+  return joinFrontmatter(`id: ${uuidv7(now)}\ncreated: ${isoLocal(now)}\n`, title ? `# ${title}\n\n` : "# ");
 }

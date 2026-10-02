@@ -15,7 +15,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -31,11 +31,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 

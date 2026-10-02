@@ -1,14 +1,14 @@
 # Ursa — PROGRESS
 
-État : **Phase 2 terminée et comparée aux maquettes** (à valider sur Windows) — en attente du « go » pour la phase 3.
+État : **Phase 3 terminée** (à valider sur Windows) — en attente du « go » pour la phase 4.
 
 | Phase | Sujet | État |
 |---|---|---|
 | 0 | Cadrage | ✅ fait |
 | 1 | Squelette et fichiers | ✅ validée |
-| 2 | Éditeur Markdown live | ✅ fait (à valider sur Windows) |
-| 3 | Tags, liens, todos, sections | ⏳ en attente du go |
-| 4 | Sommaire, folding, focus de section | — |
+| 2 | Éditeur Markdown live | ✅ validée |
+| 3 | Tags, liens, todos, sections | ✅ fait (à valider sur Windows) |
+| 4 | Sommaire, folding, focus de section | ⏳ en attente du go |
 | 5 | Recherche | — |
 | 6 | Thèmes, fonds de page, rythme, réglages | — |
 | 7 | Images, aperçus de liens, PDF | — |
@@ -216,6 +216,87 @@ Rendu des 6 thèmes vérifié visuellement : `docs/captures/phase-2/six-themes.p
 10. Les emoji (🐻, 👩🏽‍💻, 🇫🇷) se sélectionnent et s'effacent d'un bloc, sans décalage du curseur.
 11. Ouvre `samples/Maquette éditeur.md` à côté de `design/maquettes/02-editeur.png` : même rendu ; curseur sur une ligne avec du `code`, un lien et un `## ` : backticks hors de la pastille, lien sans soulignement, `##` plus léger.
 12. Barre de l'éditeur : « Modifié à l'instant » se met à jour en tapant ; menu `…` › Masquer la liste des notes (Ctrl Maj \\) ; en-tête de liste « Modification ⌄ » ouvre le menu de tri.
+
+## Phase 3 — Tags, liens, tâches, sections
+
+Livrée en sous-étapes : 3a extraction et index (cœur testé), 3b sidebar (sections, pastilles, arbre, sélecteur d'icône), 3c liste (filtres, corbeille, compteur de tâches), 3d éditeur (liens, tags cliquables, autocomplétion, rétroliens, fil d'Ariane).
+
+### Fait
+- **Extraction** (`src/core/markdown/extract.ts`, même grammaire Lezer que l'éditeur) : tags, wiki-links (cible, ancre, alias, positions) et tâches `fait/total` de chaque note. Notes indexées à l'ouverture ; au-delà de 50 notes, l'extraction se fait en tâche de fond par lots de 25 (66 ms pour la note de 5 000 lignes, 2 ms pour une note normale).
+- **Tags** — cas limites couverts par les tests :
+  - reconnus : `#été`, `#japon-2026`, `#voyages/japon-2026`, `#liste de courses#`, `#l'été en famille#` ;
+  - ignorés : dans un titre (`# Titre`, `## … #tag`), dans le code (bloc et inline), dans une URL (`https://site.fr/page#ancre`), couleurs hexadécimales (`#FFF`, `#E0654A` — un mot hexa en minuscules sans chiffre, comme `#cafe`, reste un tag), `#` collé à un mot (`C#`, `n°#3`), `#123` ;
+  - insensibles à la casse (`#Voyage` = `#voyage`), affichés avec l'orthographe de la **première occurrence** (note la plus ancienne) ;
+  - un tag parent compte les notes de ses enfants ;
+  - un tag multi-mots ne contient que des lettres, chiffres, espaces, `_ - / '` : « (#idée) — mais pas C# » n'est plus un seul tag.
+- **Sidebar** (`features/sidebar/`) :
+  - sections Notes, Sans tag, À faire, Aujourd'hui, Épinglées (avec compteurs), Archives, Corbeille (sans compteur) ;
+  - tags épinglés en pastilles ; titre « Tags » ; arbre imbriqué repliable (état mémorisé), icône au premier niveau seulement, compteur au survol, au focus et sur l'élément actif ; navigation ↑/↓, ←/→ pour replier, F2 pour renommer ;
+  - clic droit sur un tag : Changer l'icône…, Épingler/Désépingler, Renommer… (F2, champ en place), Supprimer le tag… ;
+  - **sélecteur d'icône** (maquette 06) : aperçu, recherche (noms + mots-clés Lucide), 9 pastilles de couleur, grille groupée de 8 colonnes, navigation au clavier, « Retirer l'icône », pied « Lucide · 2 122 icônes ».
+- **Renommer / supprimer un tag** : confirmation qui annonce le nombre de notes touchées (sous-tags compris), réécriture de toutes les notes concernées (corbeille et archives comprises) par la file sérielle, la note ouverte via une transaction annulable (Ctrl+Z). Supprimer retire `#tag` et ses sous-tags du texte, ainsi qu'une ligne qui ne contenait que des tags. Les réglages du tag (icône, couleur, épingle) suivent le renommage. Toast « N notes mises à jour ».
+- **Réglages des tags** dans `.ursa/tags.json` (`{ version: 1, tags: { clé: { icon, color, pinned, collapsed } } }`), écrits 300 ms après un changement.
+- **Liste** : titre selon le filtre (section ou `#tag`), compteur de tâches `☑ 4/7` sur les cartes, textes vides par section, menu contextuel selon l'état (Épingler, Archiver, Placer dans la corbeille / Restaurer, Supprimer définitivement…), bouton « Vider la corbeille », Suppr dans la corbeille = suppression définitive (avec confirmation). La suppression définitive envoie le fichier dans la **corbeille du système** (récupérable depuis Windows).
+- **Éditeur** :
+  - tags : pastille cliquable qui filtre la liste (clic simple hors de la ligne en cours d'édition, Ctrl+clic partout) ; un tag dans un titre reste du texte ;
+  - wiki-links : Ctrl+clic ouvre la note (en basculant sur une liste qui la contient si besoin) ; **lien cassé** en `--text-3` + soulignement pointillé ; Ctrl+clic sur un lien cassé → « Créer la note « X » ? » puis création avec ce titre ;
+  - aperçu flottant au survol d'un lien (400 ms, DESIGN §3) : titre + début de la note ;
+  - **autocomplétion** après `#` (tags du coffre) et après `[[` (titres ; ferme les `]]`), correspondance par sous-chaîne insensible à la casse et aux accents, préfixes en premier ;
+  - **rétroliens** : bloc « Mentionnée dans N notes » après la dernière ligne, avec le titre de chaque note et la phrase qui contient le lien (Markdown retiré), cliquable ;
+  - **fil d'Ariane** (maquettes 04–09) : premier tag de la note, `icône › sous-tag`, parents en `--text-3`, dernier segment en `--text-2` ; chaque segment filtre la liste ;
+  - menu `…` : Épingler, Archiver, Placer dans la corbeille, ou Restaurer / Supprimer définitivement pour une note de la corbeille.
+- **Mise à jour des wiki-links au changement de titre** (stratégie de la phase 1) : au point de contrôle du renommage (2 s), par `id`, en gardant alias et ancre ; titre ambigu → rien. Testé : note citée dans 3 autres dont une ouverte dans l'éditeur — réécriture annulable par Ctrl+Z dans celle-ci, écriture directe des deux autres.
+- **Architecture** : l'éditeur ne lit jamais le store. `src/editor/hooks.ts` déclare ce dont il a besoin (lien existant ?, ouvrir un lien / un tag / une note, données d'autocomplétion, rétroliens, aperçu) ; `src/app/editorBridge.ts` le branche et redessine l'éditeur seulement quand les titres ou les rétroliens de la note ouverte changent.
+- **Vérifié dans la vraie app** (binaire Tauri sous Linux/Xvfb) : chargement de `.ursa/tags.json` (icônes), épinglage écrit dans le fichier, suppression définitive → fichier dans la corbeille du système.
+- Tests : **81 Vitest** (dont 55 du cœur : grammaire, extraction, index des tags, réécritures, extraits ; 23 de `notes.ts` : renommage avec liens, tags, filtres, corbeille), **10 Rust**.
+- Captures : `docs/captures/phase-3/` (vue générale, filtre par tag, menu et sélecteur d'icône, liens et tags, aperçu, lien cassé, rétroliens, autocomplétion, corbeille, renommage de tag, app réelle).
+
+### Décisions (phase 3)
+| # | Sujet | Décision |
+|---|---|---|
+| P3-1 | Tags dans les titres | Ignorés (ni pastille, ni index), conformément au point 1 du brief. |
+| P3-2 | Couleurs hexadécimales | Un mot de 3, 4, 6 ou 8 caractères hexa est une couleur s'il contient un chiffre ou s'il est tout en majuscules ; `#cafe`, `#bed` restent des tags. |
+| P3-3 | Orthographe affichée | Celle de la première occurrence, en partant de la note la plus ancienne (date de création). |
+| P3-4 | Tags des notes archivées / dans la corbeille | Hors de l'arbre et des compteurs ; mais un renommage ou une suppression de tag les réécrit aussi (sinon le tag réapparaîtrait à la restauration). |
+| P3-5 | Tag épinglé | Affiché en pastille et retiré de l'arbre, comme sur la maquette 06 ; s'il a des sous-tags, il reste aussi dans l'arbre pour qu'ils restent accessibles. |
+| P3-6 | Compteurs de l'arbre | Visibles au survol, au focus et sur le tag actif (la maquette 06 n'en montre pas au repos). |
+| P3-7 | Couleurs des icônes de tags | 8 couleurs (`--tag-color-1…8`, relevées sur la maquette 06) + couleur par défaut ; tokens de composants, identiques dans les 6 thèmes. |
+| P3-8 | Grille du sélecteur d'icône | Groupes choisis à la main (voyages et lieux, travail et études, vie quotidienne, nature, divers) ; la recherche couvre toute la bibliothèque Lucide. |
+| P3-9 | Suppression définitive | Envoi dans la corbeille du système (crate `trash`) plutôt qu'un effacement : la confirmation le dit. |
+| P3-10 | Section « À faire » | Notes ayant au moins une tâche non cochée. « Aujourd'hui » = modifiées aujourd'hui (D14). |
+| P3-11 | Résolution d'un lien | Par titre, insensible à la casse ; si plusieurs notes ont ce titre, la plus récemment modifiée gagne. Les notes de la corbeille ne sont pas des cibles. |
+| P3-12 | Rétroliens | Bloc en fin de note (pas un panneau) : il défile avec le texte et ne prend pas de place quand il n'y a rien. Une entrée par note source. |
+| P3-13 | Autocomplétion | Correspondance par sous-chaîne (la correspondance floue de CodeMirror proposait `#travail/réunions` pour `#vo`). Habillage identique aux menus (§2.13). |
+| P3-14 | Clic sur une pastille de tag | Filtre la liste, sauf sur la ligne en cours d'édition (clic = placer le curseur) où il faut Ctrl+clic. |
+| P3-15 | Fil d'Ariane | Premier tag du texte (hors titres). Un segment qui n'existe pas dans l'index (note de la corbeille) est affiché mais inactif. |
+| P3-16 | Toasts | Message court centré en bas de la fenêtre, 3,5 s (`--toast-duration`), annoncé aux lecteurs d'écran (`role="status"`). DESIGN muet. |
+
+### Comparaison avec les maquettes (phase 3)
+Maquettes utilisées : `sélecteur icone de tag.png` (06) pour la sidebar et le sélecteur, `recherche active.png`, `sommaire en overlayflottant.png`, `mode focus.png` pour la barre de l'éditeur et les cartes.
+
+**Conforme** : sections avec icônes et compteurs (Archives et Corbeille sans compteur) ; pastilles des tags épinglés (`--chrome-tag-bg`, icône) ; titre « Tags » ; arbre avec chevrons, icône au premier niveau, enfants en retrait et plus clairs ; sélecteur d'icône (aperçu dans une pastille accent, « Icône de #tag », champ de recherche avec anneau accent, 9 pastilles de couleur, groupes titrés, 8 colonnes, case active cerclée, pied « Retirer l'icône » / « Lucide · N icônes ») ; ligne active de l'arbre cerclée pendant que le sélecteur est ouvert ; fil d'Ariane `✈ voyages › japon-2026` ; méta des cartes `il y a 12 min ☑ 4/7`.
+
+**Écarts** :
+- Barre de l'éditeur : boutons `list-tree` (sommaire, ph. 4) et partage/export (ph. 10) pas encore présents.
+- Miniature 64 px des cartes : phase 7 (images).
+- Le compteur du nombre d'icônes affiche le vrai total de la version embarquée de Lucide (2 122), pas « 1 500 ».
+- Aperçu au survol des liens, autocomplétion, rétroliens, toast : pas de maquette ; habillage des menus/popovers (§2.13).
+
+### Problème connu
+- CodeMirror émet parfois l'avertissement « Measure loop restarted more than 5 times » dans la console en passant d'une note défilée à la note de 5 000 lignes. Présent dès la phase 2 (vérifié sur le code de la phase 2), sans effet visible ; à examiner avec le sommaire et le folding (ph. 4), qui touchent aux mêmes mesures.
+
+### Checklist de test manuel (phase 3)
+Copie `samples/*.md` dans `Documents\Ursa` et ajoute quelques notes avec tags (`#voyages/japon-2026`, `#maison`…).
+1. Sidebar : les compteurs de Notes / Sans tag / À faire / Aujourd'hui / Épinglées sont justes ; l'arbre montre `voyages › japon-2026`, un clic filtre la liste et le parent compte les notes de ses enfants.
+2. Dans `Démo éditeur`, section Tags : seuls `#idée`, `#voyages/japon-2026`, `#été`, `#liste de courses#`, `#Idée` sont en pastille ; `C#`, `#123`, `n°#3`, `#FFF`, `#E0654A`, `` `#code` ``, l'ancre de l'URL et le `#tag` du titre restent du texte. `#Idée` et `#idée` ne font qu'un tag.
+3. Tape `#vo` dans une note : la liste propose les tags ; Entrée insère `#voyages `. Tape `[[Voy` : propose les titres ; Entrée insère `[[Voyage au Japon]]`.
+4. Ctrl+clic sur un wiki-link : la note s'ouvre. Survole-le 0,5 s : aperçu. Ctrl+clic sur `[[Note qui n'existe pas]]` (grisé, pointillé) : « Créer la note » crée la note et le lien redevient normal.
+5. Renomme le titre de `Voyage au Japon` (cité par 3 notes, dont une ouverte à côté) : après 2 s, toast « N liens mis à jour » ; dans la note ouverte qui le cite, Ctrl+Z rétablit l'ancien lien. Le bloc « Mentionnée dans N notes » en bas de la note liste les sources.
+6. Clic droit sur un tag › Renommer… (ou F2) : la confirmation annonce le nombre de notes ; après validation, le texte de ces notes est à jour, l'icône suit. Clic droit › Supprimer le tag… : le tag disparaît des notes.
+7. Clic droit › Changer l'icône… : choisis une icône et une couleur, ferme, redémarre l'app : elles sont conservées (`.ursa\tags.json`). Clic droit › Épingler : le tag passe en pastille en haut.
+8. Clic droit sur une note › Épingler / Archiver / Placer dans la corbeille ; dans Corbeille : Restaurer, puis Supprimer définitivement (confirmation) → le fichier est dans la Corbeille de Windows. « Vider la corbeille » idem pour toutes.
+9. Fil d'Ariane de l'éditeur : premier tag de la note avec son icône ; clic sur un segment = filtre.
+10. Les cartes affichent `☑ fait/total` pour les notes avec des tâches ; cocher une tâche met le compteur à jour.
 
 ---
 

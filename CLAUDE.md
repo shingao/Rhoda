@@ -80,6 +80,8 @@ cd src-tauri && cargo clippy --all-targets -- -D warnings && cargo test
 
 - `src/app/notes.ts` est le seul endroit qui modifie des notes : sauvegarde (debounce 500 ms), renommage (2 s), création, corbeille, réconciliation avec le watcher. Toutes les opérations disque passent par sa file sérielle.
 - `src/editor/session.ts` possède l'unique `EditorView` et un `EditorState` par note ; les mises à jour venues du disque sont annotées pour ne pas déclencher de sauvegarde.
+- L'éditeur ne lit jamais le store : `src/editor/hooks.ts` déclare ce dont il a besoin (liens, tags, rétroliens, autocomplétion), `src/app/editorBridge.ts` le branche. Confirmations via `confirmAction()` (`src/app/confirm.ts`), messages courts via `showToast()`.
+- Réglages des tags (icône, couleur, épingle, repli) : `.ursa/tags.json`, gérés par `src/app/tagOps.ts`.
 - Identité d'une note : l'`id` du frontmatter (provisoire en mémoire pour une note externe, écrit à la 1re écriture). L'index est indexé par `id`, jamais par chemin.
 - Échecs disque (fichier verrouillé) : jamais bloquants ni destructeurs ; texte gardé en attente, ancien nom conservé, nouvelle tentative plus tard.
 - **Textes d'interface** : uniquement via `src/i18n/` (`fr.ts` = référence, `en.ts` mêmes clés) et `useT()` / `currentMessages()`. Aucune chaîne visible en dur dans les composants.

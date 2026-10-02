@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { ChevronDown, Trash2 } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import { noteIndex } from "../../app/noteIndex";
+import { formatTag } from "../../core/tags";
+import { Button } from "../../components/Button";
 import { useT } from "../../app/i18n";
-import { selectNote, trashNote } from "../../app/notes";
-import { matchShortcut, shortcutLabel } from "../../app/shortcuts";
+import { selectNote, trashedNoteIds, trashNote } from "../../app/notes";
+import { matchShortcut } from "../../app/shortcuts";
 import { listedNotes, updateSettings, useApp } from "../../app/store";
 import { useNow } from "../../app/useNow";
 import type { SortKey } from "../../core/note/sort";
@@ -10,6 +13,7 @@ import { focusEditor } from "../../editor/session";
 import { Menu, type MenuEntry } from "../../components/Menu";
 import { useAutoHideScrollbar } from "../../components/useAutoHideScrollbar";
 import { NoteCard } from "./NoteCard";
+import { confirmDeleteNotes, noteMenuEntries } from "./noteActions";
 import s from "./NoteList.module.css";
 
 const SORT_KEYS: SortKey[] = ["modified", "created", "title"];
@@ -23,9 +27,14 @@ export function NoteList() {
   const notes = useApp((st) => st.notes);
   const sort = useApp((st) => st.settings.sort);
   const selectedId = useApp((st) => st.selectedId);
+  const filter = useApp((st) => st.filter);
   const t = useT();
-  const list = useMemo(() => listedNotes(notes, sort), [notes, sort]);
   const now = useNow();
+  const list = useMemo(() => listedNotes(notes, sort, filter, now), [notes, sort, filter, now]);
+  const inTrash = filter.kind === "section" && filter.section === "trash";
+  const tagNode = filter.kind === "tag" ? noteIndex(notes).tags.byKey.get(filter.key) : undefined;
+  const title = filter.kind === "section" ? t.sidebar.sections[filter.section] : tagNode ? formatTag(tagNode.path) : t.list.title;
+  const emptyText = filter.kind === "section" ? t.list.emptySection[filter.section] : t.list.emptyTag;
   const scroller = useRef<HTMLDivElement>(null);
   const cards = useRef(new Map<string, HTMLDivElement>());
   const [menu, setMenu] = useState<MenuState | null>(null);
@@ -50,7 +59,10 @@ export function NoteList() {
 
   const onKeyDown = (e: KeyboardEvent) => {
     if (matchShortcut(e.nativeEvent, "list") === "note.trash") {
-      if (focusId) trashAndRefocus(focusId);
+      if (focusId) {
+        if (inTrash) void confirmDeleteNotes([focusId]);
+        else trashAndRefocus(focusId);
+      }
       e.preventDefault();
       return;
     }
@@ -89,21 +101,17 @@ export function NoteList() {
           checked: key === sort,
           onSelect: () => updateSettings((st) => ({ ...st, sort: key })),
         }))
-      : [
-          {
-            id: "trash",
-            label: t.list.moveToTrash,
-            icon: Trash2,
-            shortcut: shortcutLabel("note.trash", t),
-            danger: true,
-            onSelect: () => trashAndRefocus(m.id),
-          },
-        ];
+      : noteMenuEntries(notes[m.id], t, trashAndRefocus);
 
   return (
-    <section className={s.panel} aria-label={t.list.title}>
+    <section className={s.panel} aria-label={title}>
       <header className={s.header}>
-        <h2 className={s.title}>{t.list.title}</h2>
+        <h2 className={s.title}>{title}</h2>
+        {inTrash && list.length > 0 && (
+          <Button className={s.emptyTrash} onClick={() => void confirmDeleteNotes(trashedNoteIds())}>
+            {t.list.emptyTrash}
+          </Button>
+        )}
         <button
           type="button"
           className={s.sort}
@@ -120,9 +128,9 @@ export function NoteList() {
       </header>
       <div ref={scroller} className={s.scroller}>
         {list.length === 0 ? (
-          <p className={s.empty}>{t.list.empty}</p>
+          <p className={s.empty}>{emptyText}</p>
         ) : (
-          <div role="listbox" aria-label={t.list.title} className={s.cards} onKeyDown={onKeyDown}>
+          <div role="listbox" aria-label={title} className={s.cards} onKeyDown={onKeyDown}>
             {list.map((note) => (
               <NoteCard
                 key={note.id}
@@ -134,6 +142,7 @@ export function NoteList() {
                 note={note}
                 now={now}
                 dateKind={sort === "created" ? "created" : "modified"}
+                todoLabel={note.syntax?.todos.total ? t.list.todos(note.syntax.todos.done, note.syntax.todos.total) : null}
                 selected={note.id === selectedId}
                 focusable={note.id === focusId}
                 onSelect={() => selectNote(note.id)}

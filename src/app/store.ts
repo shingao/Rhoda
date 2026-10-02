@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type { Note } from "../core/note/note";
 import { sortNotes, type SortKey } from "../core/note/sort";
 import type { VaultErrorKind } from "../services/errors";
+import { matchesFilter, type ListFilter } from "./sections";
 import { DEFAULT_SETTINGS, type Settings } from "../services/settings";
 
 export type VaultStatus = { kind: "loading" } | { kind: "ready"; path: string } | { kind: "error"; message: string };
@@ -18,6 +19,20 @@ interface AppState {
   saveErrors: Record<string, VaultErrorKind>;
   /** Shown when the window is closing with unsaved content. */
   closePrompt: boolean;
+  /** Section or tag shown in the note list. */
+  filter: ListFilter;
+  /** Per-tag settings from `.ursa/tags.json` (icon, colour, pinned, collapsed), keyed by tag key. */
+  tagConfig: Record<string, TagSettings>;
+  /** Short, non-blocking message ("3 liens mis à jour"). */
+  toast: { id: number; text: string } | null;
+}
+
+export interface TagSettings {
+  icon?: string;
+  /** Index in the tag colour palette (1–8); absent = default colour. */
+  color?: number;
+  pinned?: boolean;
+  collapsed?: boolean;
 }
 
 export const useApp = create<AppState>()(() => ({
@@ -28,6 +43,9 @@ export const useApp = create<AppState>()(() => ({
   resizing: false,
   saveErrors: {},
   closePrompt: false,
+  filter: { kind: "section", section: "notes" },
+  tagConfig: {},
+  toast: null,
 }));
 
 export const getState = useApp.getState;
@@ -61,17 +79,21 @@ export function updateSettings(patch: (s: Settings) => Settings): void {
   setState((s) => ({ settings: patch(s.settings) }));
 }
 
-/** Notes shown in the "Notes" section: not archived, not in the trash. */
-export function isListed(note: Note): boolean {
-  return !note.trashed && !note.archived;
+export function listedNotes(notes: Record<string, Note>, sort: SortKey, filter: ListFilter, now: number = Date.now()): Note[] {
+  return sortNotes(
+    Object.values(notes).filter((n) => matchesFilter(n, filter, now)),
+    sort,
+  );
 }
 
-export function listedNotes(notes: Record<string, Note>, sort: SortKey): Note[] {
-  return sortNotes(Object.values(notes).filter(isListed), sort);
-}
-
-/** The "Notes" list as currently displayed. */
+/** The note list as currently displayed. */
 export function currentList(): Note[] {
-  const { notes, settings } = getState();
-  return listedNotes(notes, settings.sort);
+  const { notes, settings, filter } = getState();
+  return listedNotes(notes, settings.sort, filter);
+}
+
+let toastId = 0;
+/** Shows a toast; the Toast component hides it after --toast-duration. */
+export function showToast(text: string): void {
+  setState({ toast: { id: ++toastId, text } });
 }

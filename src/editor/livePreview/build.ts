@@ -2,6 +2,8 @@ import { syntaxTree } from "@codemirror/language";
 import type { EditorState, Range } from "@codemirror/state";
 import { Decoration, type DecorationSet, type EditorView } from "@codemirror/view";
 import type { SyntaxNode, SyntaxNodeRef } from "@lezer/common";
+import { isInHeading } from "../../core/markdown/syntax";
+import { editorHooks } from "../hooks";
 import { BulletWidget, CheckboxWidget, CopyCodeWidget, NumberWidget } from "./widgets";
 
 /**
@@ -139,7 +141,9 @@ export function buildDecorations(view: EditorView, revealed: ReadonlySet<number>
     if (!open || !close || !target) return;
     syntax(open.from, open.to, reveal);
     syntax(close.from, close.to, reveal);
-    const cls = reveal ? "cm-wikilink cm-wikilink-revealed" : "cm-wikilink";
+    const title = doc.sliceString(target.from, target.to).split("#")[0]!.trim();
+    const broken = title !== "" && !editorHooks().linkExists(title);
+    const cls = `cm-wikilink${broken ? " cm-wikilink-broken" : ""}${reveal ? " cm-wikilink-revealed" : ""}`;
     if (alias) {
       syntax(target.from, alias.from, reveal);
       addMark(cls, alias.from, alias.to);
@@ -317,7 +321,8 @@ export function buildDecorations(view: EditorView, revealed: ReadonlySet<number>
         wikiLink(ref.node);
         return false;
       case "Tag":
-        addMark("cm-tag", ref.from, ref.to);
+        // Titles never carry tags: there it is plain text.
+        if (!isInHeading(ref.node)) addMark("cm-tag", ref.from, ref.to);
         return false;
       case "HorizontalRule": {
         const line = lineOf(ref.from);

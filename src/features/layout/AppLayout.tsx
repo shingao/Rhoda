@@ -2,7 +2,9 @@ import type { ReactNode } from "react";
 import { useT } from "../../app/i18n";
 import { clampWidth, defaultWidth, setColumnWidth } from "../../app/layout";
 import { setState, useApp } from "../../app/store";
+import { ConfirmHost } from "../../components/ConfirmHost";
 import { Resizer } from "../../components/Resizer";
+import { Toast } from "../../components/Toast";
 import { CloseDialog } from "../close/CloseDialog";
 import { EditorPane } from "../editor/EditorPane";
 import { NoteList } from "../notelist/NoteList";
@@ -47,6 +49,8 @@ export function AppLayout() {
         </div>
       </div>
       <CloseDialog />
+      <ConfirmHost />
+      <Toast />
     </div>
   );
 }

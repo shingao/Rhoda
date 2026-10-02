@@ -1,6 +1,7 @@
 import type { Compartment} from "@codemirror/state";
 import { Annotation, EditorSelection, EditorState, type Extension } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
+import { refreshPreview } from "./hooks";
 
 /**
  * Owns the single EditorView and one EditorState per note (keyed by note id),
@@ -62,6 +63,13 @@ export function showNote(id: string | null, body: string): void {
   currentId = id;
   view.setState(states.get(id ?? "") ?? EditorState.create({ doc: id ? body : "", extensions: stateExtensions() }));
   applyDynamic();
+  // A kept state may show stale links or backlinks.
+  refreshEditor();
+}
+
+/** Redraws what depends on other notes (broken links, backlinks). */
+export function refreshEditor(): void {
+  view?.dispatch({ effects: refreshPreview.of(null) });
 }
 
 /** Applies a change made outside Ursa, keeping the cursor where it can. */
@@ -78,6 +86,30 @@ export function replaceFromDisk(id: string, body: string): void {
     selection: EditorSelection.create(state.selection.ranges.map((r) => EditorSelection.range(clamp(r.anchor), clamp(r.head)))),
     annotations: [fromDisk.of(true)],
   });
+}
+
+/** Latest text of a note in the editor (open or kept in memory), or null. */
+export function editorText(id: string): string | null {
+  if (id === currentId && view) return view.state.doc.toString();
+  return states.get(id)?.doc.toString() ?? null;
+}
+
+/**
+ * Applies edits computed elsewhere (link or tag rewrites). In the open note it
+ * is a normal transaction, undoable with Ctrl+Z; a note kept in memory gets the
+ * same change in its saved state so its history stays consistent.
+ */
+export function rewriteInEditor(id: string, changes: Array<{ from: number; to: number; insert: string }>): "view" | "cached" | "none" {
+  if (id === currentId && view) {
+    view.dispatch({ changes, userEvent: "ursa.rewrite" });
+    return "view";
+  }
+  const cached = states.get(id);
+  if (cached) {
+    states.set(id, cached.update({ changes, userEvent: "ursa.rewrite" }).state);
+    return "cached";
+  }
+  return "none";
 }
 
 export function forgetNote(id: string): void {

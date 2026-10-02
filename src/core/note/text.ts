@@ -62,6 +62,23 @@ export function previewFromBody(body: string, maxLength = 240): string {
 
 export type Eol = "\n" | "\r\n";
 
+/**
+ * Plain-text line around the range [from, to) of `body` (a backlink's context):
+ * list/quote markers and inline Markdown removed, the start cut so the range stays visible.
+ */
+export function snippetAround(body: string, from: number, to: number, before = 48): string {
+  const start = body.lastIndexOf("\n", from - 1) + 1;
+  const endIndex = body.indexOf("\n", to);
+  const line = body.slice(start, endIndex < 0 ? undefined : endIndex);
+  const markers = /^\s*>+\s?|^\s*([-*+]|\d+[.)])\s+(\[[ xX]\]\s+)?/;
+  const text = stripInline(line.replace(markers, "")).trim();
+  // Approximate position of the range in the stripped text.
+  const lead = stripInline(line.slice(0, from - start).replace(markers, "")).length;
+  if (lead <= before) return text;
+  const cut = text.slice(lead - before);
+  return `…${cut.slice(cut.indexOf(" ") + 1)}`;
+}
+
 export function detectEol(content: string): Eol {
   return content.includes("\r\n") ? "\r\n" : "\n";
 }

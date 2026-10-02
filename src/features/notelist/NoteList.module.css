@@ -23,6 +23,14 @@
   line-height: var(--lh-tight);
 }
 
+.emptyTrash {
+  margin-left: auto;
+  margin-right: var(--sp-1);
+  height: var(--sort-btn-h);
+  padding: 0 var(--sp-3);
+  font-size: var(--fs-xs);
+}
+
 .sort {
   display: inline-flex;
   align-items: center;

@@ -16,6 +16,7 @@
     "check:tokens": "node scripts/check-tokens.mjs"
   },
   "dependencies": {
+    "@codemirror/autocomplete": "^6.20.3",
     "@codemirror/commands": "^6.11.1",
     "@codemirror/lang-markdown": "^6.5.2",
     "@codemirror/language": "^6.12.4",
@@ -33,6 +34,7 @@
     "@tauri-apps/plugin-window-state": "^2.5.0",
     "lucide": "^1.50.0",
     "lucide-react": "^1.50.0",
+    "lucide-static": "^1.50.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "yaml": "^2.9.1",

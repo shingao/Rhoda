@@ -260,7 +260,11 @@ pub(crate) fn unique_note_path(dir: &Path, stem: &str, current: Option<&Path>) -
 
 #[tauri::command]
 pub fn default_vault_path(app: AppHandle) -> CmdResult<String> {
-    let docs = app.path().document_dir()?;
+    // Without a configured Documents folder (some Linux setups), fall back to ~/Documents.
+    let docs = match app.path().document_dir() {
+        Ok(dir) => dir,
+        Err(_) => app.path().home_dir()?.join("Documents"),
+    };
     Ok(docs.join("Ursa").to_string_lossy().into_owned())
 }
 
@@ -356,6 +360,45 @@ pub async fn rename_note(state: State<'_, VaultState>, from: String, stem: Strin
     let src = resolve(&root, &from)?;
     let dst = rename_in_place(&src, &stem)?;
     note_rel(&root, &dst).ok_or_else(|| CmdError::other("Renamed note is outside the vault"))
+}
+
+/// Sends a note to the system recycle bin ("delete permanently" from Ursa's
+/// trash): never an unrecoverable deletion.
+#[tauri::command]
+pub async fn delete_note(state: State<'_, VaultState>, path: String) -> CmdResult<()> {
+    let root = current_root(&state)?;
+    let abs = resolve(&root, &path)?;
+    if !abs.exists() {
+        return Ok(());
+    }
+    trash::delete(&abs).map_err(CmdError::other)
+}
+
+/// Internal files live directly in `.ursa/` and have plain names (`tags.json`).
+fn internal_path(root: &Path, name: &str) -> CmdResult<PathBuf> {
+    let valid = !name.is_empty() && name.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.')) && !name.starts_with('.');
+    if valid {
+        Ok(root.join(INTERNAL_DIR).join(name))
+    } else {
+        Err(CmdError::new(ErrorKind::InvalidName, format!("Invalid internal file: {name}")))
+    }
+}
+
+/// Reads `.ursa/<name>`; `None` if it does not exist yet.
+#[tauri::command]
+pub async fn read_internal(state: State<'_, VaultState>, name: String) -> CmdResult<Option<String>> {
+    let path = internal_path(&current_root(&state)?, &name)?;
+    match fs::read_to_string(path) {
+        Ok(text) => Ok(Some(text)),
+        Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(None),
+        Err(e) => Err(e.into()),
+    }
+}
+
+#[tauri::command]
+pub async fn write_internal(state: State<'_, VaultState>, name: String, content: String) -> CmdResult<()> {
+    let path = internal_path(&current_root(&state)?, &name)?;
+    Ok(atomic_write(&path, &content)?)
 }
 
 #[cfg(test)]
@@ -485,6 +528,15 @@ mod tests {
         move_no_clobber(&a, &d.join("c.md")).unwrap();
         assert!(!a.exists());
         assert_eq!(fs::read_to_string(d.join("c.md")).unwrap(), "a.md");
+    }
+
+    #[test]
+    fn internal_names_are_restricted() {
+        let root = Path::new("/v");
+        assert_eq!(internal_path(root, "tags.json").unwrap(), root.join(".ursa").join("tags.json"));
+        for bad in ["", "../x", "a/b", ".hidden", "x\\y", "é.json"] {
+            assert!(internal_path(root, bad).is_err(), "{bad:?}");
+        }
     }
 
     #[test]

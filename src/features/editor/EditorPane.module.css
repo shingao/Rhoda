@@ -28,6 +28,58 @@
   flex: 1;
 }
 
+/* Breadcrumb (maquettes 04–09): root icon, parents in --text-3, last segment in --text-2 */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  min-width: 0;
+  font-size: var(--breadcrumb-fs);
+  color: var(--text-3);
+}
+
+.crumbIcon {
+  width: var(--breadcrumb-icon);
+  height: var(--breadcrumb-icon);
+  flex: none;
+  margin-right: var(--sp-1);
+  color: var(--text-3);
+}
+
+.crumbChevron {
+  width: var(--breadcrumb-chevron);
+  height: var(--breadcrumb-chevron);
+  flex: none;
+  color: var(--text-faint);
+}
+
+.crumb {
+  overflow: hidden;
+  padding: 0 var(--sp-1);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.crumb:disabled {
+  cursor: default;
+}
+
+.crumb:hover:not(:disabled) {
+  background: var(--hover);
+  color: var(--text-2);
+}
+
+.crumbLast {
+  color: var(--text-2);
+  font-weight: var(--fw-medium);
+}
+
 .unsaved {
   display: inline-flex;
   align-items: center;

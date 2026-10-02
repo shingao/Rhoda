@@ -3,7 +3,10 @@ import type { Extension } from "@codemirror/state";
 import { drawSelection, EditorView, keymap, placeholder } from "@codemirror/view";
 import { cssMs } from "../app/cssTokens";
 import { currentMessages } from "../app/i18n";
+import { backlinks } from "./backlinks";
+import { completions } from "./completion";
 import { markdownLanguage } from "./language";
+import { linkPreview } from "./linkPreview";
 import { livePreview } from "./livePreview/plugin";
 import "./editor.css";
 
@@ -52,6 +55,8 @@ export function editorExtensions(): Extension {
     EditorView.lineWrapping,
     markdownLanguage(),
     rawMarkdown ? [] : livePreview,
+    rawMarkdown ? [] : [linkPreview(), backlinks],
+    completions(),
     keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
     // Functions, so the texts follow the language setting.
     placeholder(() => {

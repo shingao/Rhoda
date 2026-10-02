@@ -1,8 +1,11 @@
 import { appWindow } from "../services/appWindow";
+import { errorMessage } from "../services/errors";
 import { loadSettings, saveSettings } from "../services/settings";
 import { vaultApi } from "../services/vault";
+import { connectEditor } from "./editorBridge";
 import { flushAll, handleDiskChanges, loadNotes, prepareClose } from "./notes";
 import { getState, setState, useApp } from "./store";
+import { loadTagConfig } from "./tagOps";
 
 const SETTINGS_SAVE_DELAY = 300;
 let started = false;
@@ -17,10 +20,12 @@ export async function bootstrap(): Promise<void> {
     document.documentElement.dataset.theme = settings.theme;
     document.documentElement.lang = settings.language;
     persistSettingsOnChange();
+    connectEditor();
 
     await vaultApi.onChanged((paths) => void handleDiskChanges(paths));
     const path = settings.vaultPath ?? (await vaultApi.defaultPath());
     await loadNotes(await vaultApi.open(path));
+    await loadTagConfig();
     setState({ vault: { kind: "ready", path } });
 
     window.addEventListener("blur", () => void flushAll());
@@ -30,7 +35,8 @@ export async function bootstrap(): Promise<void> {
       return false;
     });
   } catch (e) {
-    setState({ vault: { kind: "error", message: String(e) } });
+    console.error("[ursa] startup failed", e);
+    setState({ vault: { kind: "error", message: errorMessage(e) } });
   }
 }
 

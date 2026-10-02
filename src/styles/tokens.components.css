@@ -174,6 +174,82 @@
   /* "Unsaved" indicator in the editor bar (decision) */
   --unsaved-icon: 16px;
 
+  /* Sidebar groups (maquettes 04–09) */
+  --sidebar-heading-fs: var(--fs-xs);
+  --sidebar-heading-pad: var(--sp-4) var(--sidebar-item-px) var(--sp-1);
+
+  /* Tag tree item [§2.5] */
+  --tree-item-h: 30px;
+  --tree-item-pad-l: 6px;
+  --tree-item-gap: 9px;
+  --tree-chevron: 12px;
+  --tree-icon: 15px;
+  --tree-indent: 20px;                     /* per level */
+  --tree-child-pad: 48px;                  /* 1st-level child, no icon */
+
+  /* Pinned tag pill in the sidebar [§2.5] */
+  --pinned-tag-h: 26px;
+  --pinned-tag-pad: 0 10px;
+  --pinned-tag-icon: 13px;
+  --pinned-tag-gap: 6px;
+
+  /* Tag colours (maquette 06; DESIGN §2.6 names a --tag-colors palette that ursa-tokens.css does not define) */
+  --tag-color-1: #C4432F;
+  --tag-color-2: #C27A1A;
+  --tag-color-3: #8A8A2E;
+  --tag-color-4: #3F8A5A;
+  --tag-color-5: #2F7F8A;
+  --tag-color-6: #4A6FB5;
+  --tag-color-7: #8A5BB0;
+  --tag-color-8: #A8507A;
+
+  /* Tag icon picker [§2.6] */
+  --picker-w: 344px;
+  --picker-offset: 6px;
+  --picker-preview: 28px;
+  --picker-preview-icon: 15px;
+  --picker-title-fs: var(--fs-md);
+  --picker-search-h: 32px;
+  --picker-swatch: 20px;
+  --picker-swatch-ring: 0 0 0 2px var(--bg-raised), 0 0 0 3.5px var(--accent);
+  --picker-cell: 36px;
+  --picker-icon: 17px;
+  --picker-group-fs: 11.5px;
+  --picker-foot-fs: 12.5px;
+  --picker-max-h: 420px;                   /* (decision) scroll beyond */
+
+  /* Breadcrumb in the editor bar (maquettes 04–09) */
+  --breadcrumb-fs: var(--fs-sm);
+  --breadcrumb-icon: 14px;
+  --breadcrumb-chevron: 12px;
+
+  /* Inline rename field [§2.5] */
+  --rename-ring: 1.5px;
+
+  /* Toast (decision): short non-blocking message */
+  --toast-offset: var(--sp-6);
+  --toast-pad: var(--sp-2) var(--sp-4);
+  --toast-duration: 3500ms;
+
+  /* Backlinks block at the end of a note (decision) */
+  --backlinks-gap: var(--rhythm);
+  --backlinks-title-fs: var(--fs-xs);
+  --backlinks-item-fs: var(--fs-md);
+  --backlinks-snippet-fs: var(--fs-sm);
+
+  /* Broken wiki link [§3] */
+  --broken-link-underline: 1.5px;
+
+  /* Wiki link hover preview [§3]: "survol 400 ms = aperçu flottant" */
+  --link-preview-delay: 400ms;
+  --link-preview-w: 300px;
+  --link-preview-pad: var(--sp-3) var(--sp-4);
+  --link-preview-lines: 4;
+
+  /* Autocompletion of # and [[ (decision: same surface as menus [§2.13]) */
+  --completion-max-h: 260px;
+  --completion-w: 240px;
+
   /* Empty states (decision) */
   --empty-icon: 28px;
 }

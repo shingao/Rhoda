@@ -51,6 +51,8 @@ for (const f of code) {
   const text = readFileSync(f, "utf8");
   for (const [, k] of text.matchAll(/(--[\w-]+)\s*:/g)) locallyDefined.add(k);
   for (const [, k] of text.matchAll(/["'`](--[\w-]+):/g)) locallyDefined.add(k);
+  // Inline style objects: { ["--depth" as string]: n }
+  for (const [, k] of text.matchAll(/\[["'`](--[\w-]+)["'`](?: as string)?\]:/g)) locallyDefined.add(k);
 }
 const defined = new Set([...designTokens, ...componentTokens, ...locallyDefined]);
 const used = new Map();

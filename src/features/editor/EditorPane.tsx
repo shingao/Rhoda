@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { CircleAlert, Ellipsis, PanelLeftClose, PanelLeftOpen, Trash2 } from "lucide-react";
+import { CircleAlert, Ellipsis, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useT } from "../../app/i18n";
 import { toggleColumn } from "../../app/layout";
 import { editNote, trashNote } from "../../app/notes";
@@ -14,16 +14,19 @@ import { Tooltip } from "../../components/Tooltip";
 import { editorExtensions } from "../../editor/setup";
 import { mountEditor, setEditorOption, showNote, unmountEditor } from "../../editor/session";
 import { typewriter, typewriterCompartment } from "../../editor/typewriter";
+import { noteMenuEntries } from "../notelist/noteActions";
+import { Breadcrumb } from "./Breadcrumb";
 import s from "./EditorPane.module.css";
 
 /**
  * Right column: editor bar + CodeMirror. Bar as in the maquettes: breadcrumb on
- * the left (phase 3), modification date and actions on the right.
+ * the left, modification date and actions on the right.
  */
 export function EditorPane() {
   const host = useRef<HTMLDivElement>(null);
   const selectedId = useApp((st) => st.selectedId);
-  const mtime = useApp((st) => (st.selectedId ? st.notes[st.selectedId]?.mtime : undefined));
+  const note = useApp((st) => (st.selectedId ? st.notes[st.selectedId] : undefined));
+  const mtime = note?.mtime;
   const listCollapsed = useApp((st) => st.settings.layout.listCollapsed);
   const saveError = useApp((st) => (st.selectedId ? st.saveErrors[st.selectedId] : undefined));
   const typewriterOn = useApp((st) => st.settings.editor.typewriter);
@@ -50,6 +53,7 @@ export function EditorPane() {
   return (
     <section className={s.pane} aria-label={t.editor.label}>
       <div className={s.bar}>
+        <Breadcrumb />
         <div className={s.spacer} />
         {edited && <span className={s.edited}>{t.editor.editedAt(edited.kind, edited.text)}</span>}
         {saveError && (
@@ -96,12 +100,7 @@ export function EditorPane() {
               toggle: true,
               onSelect: () => updateSettings((st) => ({ ...st, editor: { ...st.editor, typewriter: !st.editor.typewriter } })),
             },
-            ...(selectedId
-              ? [
-                  { kind: "separator" as const, id: "sep" },
-                  { id: "trash", label: t.list.moveToTrash, icon: Trash2, danger: true, onSelect: () => void trashNote(selectedId) },
-                ]
-              : []),
+            ...(note ? [{ kind: "separator" as const, id: "sep" }, ...noteMenuEntries(note, t, (id) => void trashNote(id))] : []),
           ]}
           onClose={() => setMenuAt(null)}
         />

@@ -17,3 +17,9 @@ export function errorKind(e: unknown): VaultErrorKind {
   }
   return "other";
 }
+
+/** Readable text of a backend error (`{ kind, message }`) or any thrown value. */
+export function errorMessage(e: unknown): string {
+  if (typeof e === "object" && e !== null && "message" in e && typeof e.message === "string") return e.message;
+  return String(e);
+}

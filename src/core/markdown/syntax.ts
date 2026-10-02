@@ -77,16 +77,32 @@ export const WikiLink: MarkdownConfig = {
 const TAG_CHAR = String.raw`[\p{L}\p{N}_\-]`;
 /** `#tag` or `#nested/tag`: letters, digits, `_`, `-`, `/` between segments; at least one letter. */
 const SIMPLE_TAG = new RegExp(String.raw`^#(${TAG_CHAR}+(?:\/${TAG_CHAR}+)*)`, "u");
-/** `#several words#`, closed by a `#` followed by a boundary. */
-const MULTI_WORD_TAG = new RegExp(String.raw`^#(${TAG_CHAR}[^#\n]*?[\p{L}\p{N}_\-\/])#(?=$|[\s.,;:!?)\]])`, "u");
+/**
+ * `#several words#`, closed by a `#` followed by a boundary. Only tag characters,
+ * spaces, `/` and apostrophes inside, so prose such as "(#idée) … C#" is not one tag.
+ */
+const MULTI_WORD_TAG = new RegExp(String.raw`^#(${TAG_CHAR}[\p{L}\p{N}_\-\/ '’]*?[\p{L}\p{N}_\-\/])#(?=$|[\s.,;:!?)\]])`, "u");
 const HAS_LETTER = /\p{L}/u;
+
+/**
+ * Hex colour codes (3, 4, 6 or 8 hex digits) are not tags. A hex-looking word counts as a colour
+ * only when it has a digit or is all upper case, so lowercase words such as
+ * "cafe" stay tags.
+ */
+function isHexColor(name: string): boolean {
+  return /^(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(name) && (/\d/.test(name) || name === name.toUpperCase());
+}
 
 function tagBoundaryBefore(cx: InlineContext, pos: number): boolean {
   if (pos === cx.offset) return true;
   return /[\s([{"'«]/.test(cx.slice(pos - 1, pos));
 }
 
-/** Tag syntax as specified for phase 3: `#tag`, `#tag/sub-tag`, `#multi word tag#`. */
+/**
+ * `#tag`, `#tag/sub-tag`, `#multi word tag#`. Never inside code, URLs or
+ * words (`C#`, `n°#3`). Tags inside headings are parsed but ignored by
+ * `extractSyntax` and the editor (`isInHeading`).
+ */
 export const Tag: MarkdownConfig = {
   defineNodes: [
     { name: "Tag", style: tags.labelName },
@@ -104,7 +120,7 @@ export const Tag: MarkdownConfig = {
           return cx.addElement(cx.elt("Tag", pos, end, [cx.elt("TagMark", pos, pos + 1), cx.elt("TagMark", end - 1, end)]));
         }
         const simple = SIMPLE_TAG.exec(rest);
-        if (!simple || !HAS_LETTER.test(simple[1]!)) return -1;
+        if (!simple || !HAS_LETTER.test(simple[1]!) || isHexColor(simple[1]!)) return -1;
         const end = pos + simple[0].length;
         return cx.addElement(cx.elt("Tag", pos, end, [cx.elt("TagMark", pos, pos + 1)]));
       },
@@ -117,3 +133,13 @@ export const ursaMarkdownExtensions = [GFM, Highlight, WikiLink, Tag];
 
 /** Standalone parser (indexing, tests). The editor builds the same dialect through @codemirror/lang-markdown. */
 export const ursaParser = baseParser.configure(ursaMarkdownExtensions);
+
+const HEADINGS = new Set(["ATXHeading1", "ATXHeading2", "ATXHeading3", "ATXHeading4", "ATXHeading5", "ATXHeading6", "SetextHeading1", "SetextHeading2"]);
+
+/** True when a node sits in a heading: tags there are plain text (titles never carry tags). */
+export function isInHeading(node: { parent: { name: string; parent: unknown } | null }): boolean {
+  for (let p = node.parent as { name: string; parent: unknown } | null; p; p = p.parent as typeof p) {
+    if (HEADINGS.has(p.name)) return true;
+  }
+  return false;
+}

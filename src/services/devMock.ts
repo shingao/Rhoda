@@ -30,13 +30,36 @@ function seed(now: number): Array<[string, string, number]> {
       "# Recette — pain au levain\n\n> Hydratation 75 %, pointage long au frais.\n\n```\n500 g farine T65\n375 g eau\n```\n",
       now - DAY - HOUR,
     ],
-    ["Meeting notes.md", "# Meeting notes\n\nAction items: ship the beta, write the changelog, ==book the room==.\n", now - 4 * DAY],
+    ["Meeting notes.md", "# Meeting notes\n\n#travail/réunions\n\nAction items: ship the beta, write the changelog, ==book the room==.\n", now - 4 * DAY],
     ["Old ideas.md", "# Old ideas\n\nA note from last year.\n", now - 400 * DAY],
+    [
+      "Itinéraire Kyoto.md",
+      "# Itinéraire Kyoto\n\n#voyages/japon-2026/kyoto\n\nTrois jours, à relier à [[Voyage au Japon]].\n\n- [x] Fushimi Inari tôt le matin\n- [x] Arashiyama\n- [ ] Philosopher's path\n- [ ] Nishiki market\n- [x] Kiyomizu-dera\n- [x] Gion le soir\n- [ ] Daitoku-ji\n",
+      now - 3 * HOUR,
+    ],
+    [
+      "Format des métadonnées.md",
+      "# Format des métadonnées\n\n#projets/ursa\n\nEn-tête YAML géré par l'app ; les clés inconnues sont préservées. Voir aussi [[Synchronisation des fichiers]].\n",
+      now - 2 * DAY,
+    ],
+    ["Courses.md", "# Courses\n\n#maison\n\n- [ ] Farine T65\n- [x] Levure\n- [ ] Café\n", now - 5 * HOUR],
+    [
+      "Brouillon supprimé.md",
+      "---\ntrashed: 2026-09-30T18:00:00+02:00\n---\n# Brouillon supprimé\n\nUne note dans la corbeille. #maison\n",
+      now - 3 * DAY,
+    ],
+    ["Projet archivé.md", "---\narchived: true\n---\n# Projet archivé\n\nTerminé l'an dernier. #travail\n", now - 90 * DAY],
     ["Démo éditeur.md", demoNote, now - 60_000],
     ["Maquette éditeur.md", mockupNote, now - 90_000],
     ["Note longue (5000 lignes).md", longNote, now - 30 * DAY],
   ];
 }
+
+/** Tag settings of the demo vault (icons as in maquettes 04–09). */
+const DEMO_TAGS = JSON.stringify({
+  version: 1,
+  tags: { voyages: { icon: "plane", pinned: true }, "projets": { icon: "folder" }, maison: { icon: "house", color: 4 }, travail: { icon: "briefcase" } },
+});
 
 export function installDevMock(): void {
   const now = Date.now();
@@ -85,6 +108,14 @@ export function installDevMock(): void {
         files.set(path, file);
         return path;
       }
+      case "delete_note":
+        files.delete(args.path!);
+        return null;
+      case "read_internal":
+        return localStorage.getItem(`ursa-dev-internal:${args.name}`) ?? (args.name === "tags.json" ? DEMO_TAGS : null);
+      case "write_internal":
+        localStorage.setItem(`ursa-dev-internal:${args.name}`, args.content!);
+        return null;
       case "load_settings":
         return JSON.parse(localStorage.getItem("ursa-dev-settings") ?? "null") as unknown;
       case "save_settings":

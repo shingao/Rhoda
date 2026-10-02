@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { joinFrontmatter, patchFrontmatter, splitFrontmatter } from "./frontmatter";
 import { MAX_STEM_LENGTH, sanitizeStem, stemOf } from "./filename";
 import { newNoteContent, noteFromFile, serializeNote, withBody, withFrontmatter, withNewId, withStoredId } from "./note";
-import { previewFromBody, titleFromBody } from "./text";
+import { previewFromBody, snippetAround, titleFromBody } from "./text";
 import { sortNotes } from "./sort";
 
 const file = (content: string, path = "a.md") => ({ path, content, mtime: 2000, created: 1000 });
@@ -176,5 +176,22 @@ describe("note", () => {
     const c = { ...noteFromFile(file("---\npinned: true\n---\n# C"), "c"), mtime: 2 };
     expect(sortNotes([a, b, c], "modified").map((n) => n.id)).toEqual(["c", "b", "a"]);
     expect(sortNotes([a, b, c], "title").map((n) => n.id)).toEqual(["c", "b", "a"]);
+  });
+});
+
+describe("snippetAround", () => {
+  it("gives the plain line around a link", () => {
+    const body = "# T\n\n- [ ] Voir **[[Kyoto]]** et [la doc](https://x.fr)\nsuite";
+    const from = body.indexOf("[[");
+    expect(snippetAround(body, from, from + 9)).toBe("Voir Kyoto et la doc");
+  });
+
+  it("cuts a long start at a word boundary", () => {
+    const body = `${"mot ".repeat(30)}[[Kyoto]] fin`;
+    const from = body.indexOf("[[");
+    const snippet = snippetAround(body, from, from + 9, 20);
+    expect(snippet.startsWith("…")).toBe(true);
+    expect(snippet.endsWith("Kyoto fin")).toBe(true);
+    expect(snippet.length).toBeLessThan(35);
   });
 });

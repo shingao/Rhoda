@@ -129,6 +129,20 @@
   box-shadow: none;
 }
 
+/* Broken link [§3]: --text-3 + dotted underline */
+.cm-wikilink.cm-wikilink-broken {
+  color: var(--text-3);
+  box-shadow: none;
+  text-decoration: underline dotted var(--text-3);
+  text-decoration-thickness: var(--broken-link-underline);
+  text-underline-offset: var(--link-underline-offset);
+}
+
+.cm-wikilink.cm-wikilink-broken.cm-wikilink-revealed {
+  text-decoration: none;
+}
+
+
 /* Tag pill [§2.5]: identical on the active line, the # stays visible */
 .cm-tag {
   display: inline-block;
@@ -144,6 +158,11 @@
   letter-spacing: 0;
   text-indent: 0;
   vertical-align: var(--tag-lift);
+}
+
+/* Clickable pill (filters the list) */
+.cm-editor:not(.cm-focused) .cm-tag {
+  cursor: pointer;
 }
 
 /* Lists [§3]: hanging indent of --list-indent per level */
@@ -366,4 +385,129 @@
 .cm-editor.cm-typewriter .cm-content {
   padding-top: var(--typewriter-pad);
   padding-bottom: var(--typewriter-pad);
+}
+
+/* Backlinks at the end of the note (decision P3) */
+.cm-backlinks {
+  margin-top: var(--backlinks-gap);
+  padding-top: var(--rhythm);
+  font-family: var(--font-ui);
+  white-space: normal;
+}
+
+.cm-backlinks-title {
+  margin: 0 0 var(--sp-2);
+  color: var(--text-3);
+  font-size: var(--backlinks-title-fs);
+  font-weight: var(--fw-medium);
+}
+
+.cm-backlink {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  width: 100%;
+  padding: var(--sp-2) var(--sp-3);
+  margin-left: calc(-1 * var(--sp-3));
+  border: 0;
+  border-radius: var(--r-md);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cm-backlink:hover {
+  background: var(--hover);
+}
+
+.cm-backlink-title {
+  color: var(--accent-text);
+  font-size: var(--backlinks-item-fs);
+  font-weight: var(--fw-semibold);
+}
+
+.cm-backlink-snippet {
+  overflow: hidden;
+  color: var(--text-2);
+  font-size: var(--backlinks-snippet-fs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Hover preview of a wiki link [§3] */
+.cm-editor .cm-tooltip.cm-tooltip-hover {
+  border: 0;
+  border-radius: var(--r-lg);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-pop);
+  animation: cm-pop-in var(--dur-popover-in) var(--ease-out);
+}
+
+.cm-link-preview {
+  width: var(--link-preview-w);
+  padding: var(--link-preview-pad);
+  font-family: var(--font-ui);
+}
+
+.cm-link-preview-title {
+  margin-bottom: var(--sp-1);
+  color: var(--text);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+}
+
+.cm-link-preview-text {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--link-preview-lines);
+}
+
+/* Autocompletion of # and [[ (same surface as menus [§2.13]) */
+.cm-editor .cm-tooltip.cm-tooltip-autocomplete {
+  padding: var(--menu-pad);
+  border: 0;
+  border-radius: var(--r-lg);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-pop);
+  animation: cm-pop-in var(--dur-popover-in) var(--ease-out);
+}
+
+.cm-editor .cm-tooltip.cm-tooltip-autocomplete > ul {
+  min-width: var(--completion-w);
+  max-height: var(--completion-max-h);
+  font-family: var(--font-ui);
+  font-size: var(--menu-fs);
+}
+
+.cm-editor .cm-tooltip.cm-tooltip-autocomplete > ul > li {
+  display: flex;
+  font-family: var(--font-ui);
+  align-items: center;
+  height: var(--menu-item-h);
+  padding: 0 var(--menu-item-px);
+  border-radius: var(--r-sm);
+  color: var(--text);
+}
+
+.cm-editor .cm-tooltip.cm-tooltip-autocomplete > ul > li[aria-selected] {
+  background: var(--active);
+  color: var(--text);
+}
+
+.cm-editor .cm-completionMatchedText {
+  color: var(--accent-text);
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+}
+
+@keyframes cm-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--popover-shift));
+  }
 }

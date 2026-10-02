@@ -1,4 +1,5 @@
 import { isoLocal } from "../core/dates";
+import { titleKey } from "../core/markdown/extract";
 import { sanitizeStem, stemOf } from "../core/note/filename";
 import {
   newNoteContent,
@@ -8,14 +9,17 @@ import {
   withFrontmatter,
   withNewId,
   withStoredId,
+  withSyntax,
   type Note,
   type NoteFile,
 } from "../core/note/note";
-import { focusEditor, forgetNote, replaceFromDisk, showNote } from "../editor/session";
+import { applyChanges, wikiLinkRenameChanges, type TextChange } from "../core/rewrite";
+import { editorText, focusEditor, forgetNote, replaceFromDisk, rewriteInEditor, showNote } from "../editor/session";
 import { errorKind } from "../services/errors";
 import { vaultApi } from "../services/vault";
 import { currentMessages } from "./i18n";
-import { currentList, getState, putNote, removeNotes, setSaveError, setState } from "./store";
+import type { ListFilter } from "./sections";
+import { currentList, getState, putNote, removeNotes, setSaveError, setState, showToast } from "./store";
 
 /**
  * Note lifecycle: autosave, rename-from-title, create, trash and reconciliation
@@ -48,6 +52,11 @@ const saveTimers = new Map<string, Timer>();
 const renameTimers = new Map<string, Timer>();
 /** Consecutive failures per operation, to space out retries. */
 const failures = new Map<string, number>();
+/** Title of each note at its last rename checkpoint: what wiki links pointed to. */
+const lastTitles = new Map<string, string>();
+/** Below this many notes, startup indexing runs inline; above, in background batches. */
+const INLINE_INDEX_LIMIT = 50;
+const INDEX_BATCH = 25;
 
 const noteById = (id: string): Note | undefined => getState().notes[id];
 const noteByPath = (path: string): Note | undefined => Object.values(getState().notes).find((n) => n.path === path);
@@ -111,8 +120,87 @@ function save(id: string): Promise<void> {
   });
 }
 
+/** Latest text of a note: the editor's if it is open or cached, else pending, else saved. */
+function currentText(id: string): string {
+  return editorText(id) ?? pendingBodies.get(id) ?? noteById(id)?.body ?? "";
+}
+
+/**
+ * Applies text edits to several notes (wiki links, tags). The open note is
+ * changed through an editor transaction, so Ctrl+Z undoes it; other notes are
+ * written directly. Runs inside the queue. Returns the number of notes changed.
+ */
+async function applyRewrites(changesById: Map<string, TextChange[]>): Promise<number> {
+  let changed = 0;
+  for (const [id, changes] of changesById) {
+    const note = noteById(id);
+    if (!note || changes.length === 0) continue;
+    changed++;
+    const before = currentText(id);
+    if (rewriteInEditor(id, changes) === "view") continue; // saved by the editor's own autosave
+    const body = applyChanges(before, changes);
+    pendingBodies.delete(id);
+    cancel(saveTimers, id);
+    try {
+      await persist(withBody(note, body));
+    } catch (e) {
+      pendingBodies.set(id, body);
+      schedule(saveTimers, id, nextRetryDelay(`save:${id}`), (i) => void save(i));
+      console.warn("[ursa] rewrite saved later", note.path, e);
+    }
+  }
+  return changed;
+}
+
+/** Notes worth re-parsing for a rewrite: the index says so, or their text is newer than the index. */
+function rewriteCandidates(indexed: (note: Note) => boolean): Note[] {
+  return Object.values(getState().notes).filter(
+    (n) => n.syntax === null || indexed(n) || pendingBodies.has(n.id) || editorText(n.id) !== null,
+  );
+}
+
+/** Public entry point for tag renames/removals: same queue, same rules. */
+export function rewriteNotes(indexed: (note: Note) => boolean, compute: (text: string) => TextChange[]): Promise<number> {
+  return enqueue(async () => {
+    const changes = new Map<string, TextChange[]>();
+    for (const note of rewriteCandidates(indexed)) {
+      const c = compute(currentText(note.id));
+      if (c.length) changes.set(note.id, c);
+    }
+    return applyRewrites(changes);
+  });
+}
+
+/**
+ * Rename checkpoint, part 1 (strategy in PROGRESS.md): links written for the
+ * note's previous title are rewritten to the new one, keeping anchor and
+ * alias. Skipped when the old title is ambiguous. Runs inside the queue.
+ */
+async function updateLinksToRetitledNote(id: string): Promise<void> {
+  const note = noteById(id);
+  if (!note) return;
+  const previous = lastTitles.get(id);
+  lastTitles.set(id, note.title);
+  if (!previous || !note.title || titleKey(previous) === titleKey(note.title)) return;
+  const others = Object.values(getState().notes).filter((n) => n.id !== id && !n.trashed);
+  if (others.some((n) => n.title && titleKey(n.title) === titleKey(previous))) return;
+  const changes = new Map<string, TextChange[]>();
+  let links = 0;
+  const oldKey = titleKey(previous);
+  for (const n of rewriteCandidates((x) => x.syntax?.links.some((l) => titleKey(l.target) === oldKey) ?? false)) {
+    const c = wikiLinkRenameChanges(currentText(n.id), previous, note.title);
+    if (c.length) {
+      changes.set(n.id, c);
+      links += c.length;
+    }
+  }
+  const notes = await applyRewrites(changes);
+  if (links > 0) showToast(currentMessages().links.updated(links, notes));
+}
+
 function renameFromTitle(id: string): Promise<void> {
   return enqueue(async () => {
+    await updateLinksToRetitledNote(id);
     const note = noteById(id);
     if (!note) return;
     const desired = sanitizeStem(note.title, currentMessages().untitled);
@@ -172,28 +260,109 @@ export function selectNote(id: string | null): void {
   showNote(id, id ? (noteById(id)?.body ?? "") : "");
 }
 
-export async function createNote(): Promise<void> {
+/** New note, empty or with a title (e.g. from a link to a note that does not exist yet). */
+export async function createNote(title?: string): Promise<void> {
+  const untitled = currentMessages().untitled;
   const note = await enqueue(async () => {
-    const file = await vaultApi.create(currentMessages().untitled, newNoteContent());
+    const file = await vaultApi.create(sanitizeStem(title ?? "", untitled), newNoteContent(Date.now(), title));
     const created = noteFromFile(file);
     putNote(created);
+    lastTitles.set(created.id, created.title);
     return created;
   });
+  // A note created from a filtered view must be visible: fall back to "Notes".
+  if (!currentList().some((n) => n.id === note.id)) setState({ filter: { kind: "section", section: "notes" } });
   selectNote(note.id);
   focusEditor(true);
 }
 
-export async function trashNote(id: string): Promise<void> {
-  const list = currentList();
-  const index = list.findIndex((n) => n.id === id);
+/** Keeps a sensible selection when a note leaves the current list. */
+function reselectAfter(id: string, listBefore: Note[]): void {
+  if (getState().selectedId !== id || currentList().some((n) => n.id === id)) return;
+  const index = listBefore.findIndex((n) => n.id === id);
+  const next = listBefore[index + 1] ?? listBefore[index - 1];
+  selectNote(next && next.id !== id ? next.id : null);
+}
+
+async function patchFlags(id: string, patch: Record<string, unknown>): Promise<void> {
+  const before = currentList();
   await flushNote(id);
   await enqueue(async () => {
     const note = noteById(id);
-    if (note) await persist(withFrontmatter(note, { trashed: isoLocal() }));
+    if (note) await persist(withFrontmatter(note, patch));
   });
-  if (getState().selectedId === id) {
-    const next = list[index + 1] ?? list[index - 1];
-    selectNote(next && next.id !== id ? next.id : null);
+  reselectAfter(id, before);
+}
+
+export const trashNote = (id: string) => patchFlags(id, { trashed: isoLocal() });
+export const restoreNote = (id: string) => patchFlags(id, { trashed: undefined });
+export const setPinned = (id: string, pinned: boolean) => patchFlags(id, { pinned: pinned || undefined });
+export const setArchived = (id: string, archived: boolean) => patchFlags(id, { archived: archived || undefined });
+
+/** "Delete permanently" from the trash: the file goes to the system recycle bin. */
+export async function deleteNotes(ids: string[]): Promise<void> {
+  const before = currentList();
+  await enqueue(async () => {
+    for (const id of ids) {
+      const note = noteById(id);
+      if (!note) continue;
+      await vaultApi.remove(note.path);
+      forget(id);
+      removeNotes([id]);
+    }
+  });
+  for (const id of ids) reselectAfter(id, before);
+  if (getState().selectedId === null) selectNote(currentList()[0]?.id ?? null);
+}
+
+export function trashedNoteIds(): string[] {
+  return Object.values(getState().notes)
+    .filter((n) => n.trashed)
+    .map((n) => n.id);
+}
+
+function forget(id: string): void {
+  forgetNote(id);
+  cancel(saveTimers, id);
+  cancel(renameTimers, id);
+  pendingBodies.delete(id);
+  failures.delete(`save:${id}`);
+  lastTitles.delete(id);
+  setSaveError(id, null);
+}
+
+/** Shows a section or a tag; keeps the selection if it is in the new list. */
+export function setFilter(filter: ListFilter): void {
+  setState({ filter });
+  const list = currentList();
+  const selected = getState().selectedId;
+  if (!selected || !list.some((n) => n.id === selected)) selectNote(list[0]?.id ?? null);
+}
+
+/** Opens a note from a link, switching to a list that contains it if needed. */
+export function revealNote(id: string): void {
+  const note = noteById(id);
+  if (!note) return;
+  if (!currentList().some((n) => n.id === id)) {
+    const section = note.trashed ? "trash" : note.archived ? "archive" : "notes";
+    setState({ filter: { kind: "section", section } });
+  }
+  selectNote(id);
+}
+
+/** Extracts tags, links and todos of notes loaded without them, in small batches. */
+async function indexInBackground(): Promise<void> {
+  for (;;) {
+    const batch = Object.values(getState().notes)
+      .filter((n) => n.syntax === null)
+      .slice(0, INDEX_BATCH);
+    if (batch.length === 0) return;
+    setState((s) => {
+      const notes = { ...s.notes };
+      for (const n of batch) if (notes[n.id]) notes[n.id] = withSyntax(notes[n.id]!);
+      return { notes };
+    });
+    await new Promise((r) => setTimeout(r, 0));
   }
 }
 
@@ -218,14 +387,19 @@ export function loadNotes(files: NoteFile[]): Promise<void> {
     const notes: Record<string, Note> = {};
     const copies: Note[] = [];
     const ordered = [...files].sort((a, b) => a.created - b.created || a.path.localeCompare(b.path));
+    const defer = files.length > INLINE_INDEX_LIMIT;
     for (const file of ordered) {
-      const note = noteFromFile(file);
+      const note = noteFromFile(file, undefined, defer);
+      lastTitles.set(note.id, note.title);
       if (notes[note.id]) copies.push(note);
       else notes[note.id] = note;
     }
     setState({ notes });
     for (const copy of copies) await reidentify(copy);
-  }).then(() => selectNote(currentList()[0]?.id ?? null));
+  }).then(() => {
+    selectNote(currentList()[0]?.id ?? null);
+    void indexInBackground();
+  });
 }
 
 /**
@@ -253,6 +427,7 @@ export function handleDiskChanges(paths: string[]): Promise<void> {
         const updated = noteFromFile(file, existing.id);
         if (updated.id === existing.id) {
           putNote(updated);
+          lastTitles.set(updated.id, updated.title);
           replaceFromDisk(existing.id, updated.body);
         } else {
           // Its id was edited by hand: treat as a different note.
@@ -278,18 +453,12 @@ export function handleDiskChanges(paths: string[]): Promise<void> {
       } else {
         putNote(note);
       }
+      lastTitles.set(note.id, note.title);
     }
 
     const selectedVanished = vanished.has(getState().selectedId ?? "");
     if (selectedVanished) showNote(null, "");
-    for (const id of vanished.keys()) {
-      forgetNote(id);
-      cancel(saveTimers, id);
-      cancel(renameTimers, id);
-      pendingBodies.delete(id);
-      failures.delete(`save:${id}`);
-      setSaveError(id, null);
-    }
+    for (const id of vanished.keys()) forget(id);
     removeNotes([...vanished.keys()]);
     if (selectedVanished) selectNote(currentList()[0]?.id ?? null);
   });

@@ -10,6 +10,11 @@ export const vaultApi = {
   write: (path: string, content: string) => invoke<number>("write_note", { path, content }),
   create: (stem: string, content: string) => invoke<NoteFile>("create_note", { stem, content }),
   rename: (from: string, stem: string) => invoke<string>("rename_note", { from, stem }),
+  /** Sends the file to the system recycle bin. */
+  remove: (path: string) => invoke<void>("delete_note", { path }),
+  /** Files of the vault's `.ursa/` folder (tags.json…). */
+  readInternal: (name: string) => invoke<string | null>("read_internal", { name }),
+  writeInternal: (name: string, content: string) => invoke<void>("write_internal", { name, content }),
   onChanged: (handler: (paths: string[]) => void): Promise<UnlistenFn> =>
     listen<string[]>("vault://changed", (e) => handler(e.payload)),
 };
