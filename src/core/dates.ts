@@ -8,21 +8,43 @@ function startOfDay(t: number): number {
   return d.getTime();
 }
 
-const weekday = new Intl.DateTimeFormat("en-US", { weekday: "short" });
-const monthDay = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
-const monthDayYear = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" });
+/** Locale-specific words for relative dates (provided by the i18n catalogues). */
+export interface RelativeDateLabels {
+  /** BCP 47 locale for weekday and month names, e.g. "fr-FR". */
+  locale: string;
+  justNow: string;
+  minutesAgo: (n: number) => string;
+  hoursAgo: (n: number) => string;
+  yesterday: string;
+}
 
-/** Relative date as specified in DESIGN.md §2.4. */
-export function formatRelative(time: number, now: number = Date.now()): string {
+const formatters = new Map<string, { weekday: Intl.DateTimeFormat; monthDay: Intl.DateTimeFormat; monthDayYear: Intl.DateTimeFormat }>();
+
+function formattersFor(locale: string) {
+  let f = formatters.get(locale);
+  if (!f) {
+    f = {
+      weekday: new Intl.DateTimeFormat(locale, { weekday: "short" }),
+      monthDay: new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" }),
+      monthDayYear: new Intl.DateTimeFormat(locale, { month: "short", day: "numeric", year: "numeric" }),
+    };
+    formatters.set(locale, f);
+  }
+  return f;
+}
+
+/** Relative date following the rules of DESIGN.md §2.4, in the given language. */
+export function formatRelative(time: number, now: number, labels: RelativeDateLabels): string {
   const diff = now - time;
-  if (diff < MINUTE) return "just now";
-  if (diff < HOUR) return `${Math.floor(diff / MINUTE)} min ago`;
+  if (diff < MINUTE) return labels.justNow;
+  if (diff < HOUR) return labels.minutesAgo(Math.floor(diff / MINUTE));
   const today = startOfDay(now);
-  if (time >= today) return `${Math.floor(diff / HOUR)} h ago`;
-  if (time >= today - DAY) return "Yesterday";
-  if (time >= today - 6 * DAY) return weekday.format(time);
-  if (new Date(time).getFullYear() === new Date(now).getFullYear()) return monthDay.format(time);
-  return monthDayYear.format(time);
+  if (time >= today) return labels.hoursAgo(Math.floor(diff / HOUR));
+  if (time >= today - DAY) return labels.yesterday;
+  const f = formattersFor(labels.locale);
+  if (time >= today - 6 * DAY) return f.weekday.format(time);
+  if (new Date(time).getFullYear() === new Date(now).getFullYear()) return f.monthDay.format(time);
+  return f.monthDayYear.format(time);
 }
 
 /** ISO 8601 with the local UTC offset, e.g. 2026-10-02T11:24:00+02:00. */

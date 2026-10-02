@@ -1,16 +1,26 @@
 import { describe, expect, it } from "vitest";
+import { en } from "../i18n/en";
+import { fr } from "../i18n/fr";
 import { formatRelative, isoLocal } from "./dates";
 
+const now = new Date(2026, 9, 2, 15, 0).getTime();
+const cases = (labels: typeof fr.dates) => [
+  formatRelative(now - 10_000, now, labels),
+  formatRelative(now - 12 * 60_000, now, labels),
+  formatRelative(now - 2 * 3_600_000, now, labels),
+  formatRelative(new Date(2026, 9, 1, 20).getTime(), now, labels),
+  formatRelative(new Date(2026, 8, 28).getTime(), now, labels),
+  formatRelative(new Date(2026, 7, 28).getTime(), now, labels),
+  formatRelative(new Date(2025, 8, 28).getTime(), now, labels),
+];
+
 describe("formatRelative", () => {
-  const now = new Date(2026, 9, 2, 15, 0).getTime();
-  it("follows DESIGN.md §2.4", () => {
-    expect(formatRelative(now - 10_000, now)).toBe("just now");
-    expect(formatRelative(now - 12 * 60_000, now)).toBe("12 min ago");
-    expect(formatRelative(now - 2 * 3_600_000, now)).toBe("2 h ago");
-    expect(formatRelative(new Date(2026, 9, 1, 20).getTime(), now)).toBe("Yesterday");
-    expect(formatRelative(new Date(2026, 8, 28).getTime(), now)).toBe("Mon");
-    expect(formatRelative(new Date(2026, 7, 28).getTime(), now)).toBe("Aug 28");
-    expect(formatRelative(new Date(2025, 8, 28).getTime(), now)).toBe("Sep 28, 2025");
+  it("speaks French by default", () => {
+    expect(cases(fr.dates)).toEqual(["à l'instant", "il y a 12 min", "il y a 2 h", "hier", "lun.", "28 août", "28 sept. 2025"]);
+  });
+
+  it("speaks English (DESIGN.md §2.4)", () => {
+    expect(cases(en.dates)).toEqual(["just now", "12 min ago", "2 h ago", "Yesterday", "Mon", "Aug 28", "Sep 28, 2025"]);
   });
 
   it("formats local ISO dates", () => {

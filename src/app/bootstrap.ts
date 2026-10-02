@@ -15,11 +15,12 @@ export async function bootstrap(): Promise<void> {
     const settings = await loadSettings();
     setState({ settings });
     document.documentElement.dataset.theme = settings.theme;
+    document.documentElement.lang = settings.language;
     persistSettingsOnChange();
 
     await vaultApi.onChanged((paths) => void handleDiskChanges(paths));
     const path = settings.vaultPath ?? (await vaultApi.defaultPath());
-    loadNotes(await vaultApi.open(path));
+    await loadNotes(await vaultApi.open(path));
     setState({ vault: { kind: "ready", path } });
 
     window.addEventListener("blur", () => void flushAll());

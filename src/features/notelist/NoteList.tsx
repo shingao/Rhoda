@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { ArrowDownWideNarrow, Trash2 } from "lucide-react";
-import { listedNotes, updateSettings, useApp } from "../../app/store";
+import { useT } from "../../app/i18n";
 import { selectNote, trashNote } from "../../app/notes";
+import { matchShortcut, shortcutLabel } from "../../app/shortcuts";
+import { listedNotes, updateSettings, useApp } from "../../app/store";
 import { useNow } from "../../app/useNow";
 import type { SortKey } from "../../core/note/sort";
 import { focusEditor } from "../../editor/session";
@@ -11,19 +13,18 @@ import { useAutoHideScrollbar } from "../../components/useAutoHideScrollbar";
 import { NoteCard } from "./NoteCard";
 import s from "./NoteList.module.css";
 
-const SORT_LABELS: Record<SortKey, string> = {
-  modified: "Date modified",
-  created: "Date created",
-  title: "Title",
-};
+const SORT_KEYS: SortKey[] = ["modified", "created", "title"];
+const cardDomId = (noteId: string | null) => `note-card-${noteId ?? ""}`;
 
-type MenuState = { kind: "sort"; at: { x: number; y: number } } | { kind: "note"; uid: string; at: { x: number; y: number } };
+type Point = { x: number; y: number };
+type MenuState = { kind: "sort"; at: Point } | { kind: "note"; id: string; at: Point };
 
 /** Middle column: the notes of the current section [DESIGN §2.4]. */
 export function NoteList() {
   const notes = useApp((st) => st.notes);
   const sort = useApp((st) => st.settings.sort);
-  const selectedUid = useApp((st) => st.selectedUid);
+  const selectedId = useApp((st) => st.selectedId);
+  const t = useT();
   const list = useMemo(() => listedNotes(notes, sort), [notes, sort]);
   const now = useNow();
   const scroller = useRef<HTMLDivElement>(null);
@@ -32,20 +33,30 @@ export function NoteList() {
   useAutoHideScrollbar(scroller);
 
   useEffect(() => {
-    if (selectedUid) cards.current.get(selectedUid)?.scrollIntoView({ block: "nearest" });
-  }, [selectedUid]);
+    if (selectedId) cards.current.get(selectedId)?.scrollIntoView({ block: "nearest" });
+  }, [selectedId]);
 
-  const focusUid = selectedUid && list.some((n) => n.uid === selectedUid) ? selectedUid : list[0]?.uid;
+  const focusId = selectedId && list.some((n) => n.id === selectedId) ? selectedId : list[0]?.id;
 
   const moveTo = (index: number) => {
     const target = list[Math.max(0, Math.min(list.length - 1, index))];
     if (!target) return;
-    selectNote(target.uid);
-    cards.current.get(target.uid)?.focus();
+    selectNote(target.id);
+    cards.current.get(target.id)?.focus();
   };
 
+  /** After trashing, keyboard focus moves to the newly selected card. */
+  const trashAndRefocus = (id: string) =>
+    void trashNote(id).then(() => document.getElementById(cardDomId(useApp.getState().selectedId))?.focus());
+
   const onKeyDown = (e: KeyboardEvent) => {
-    const index = list.findIndex((n) => n.uid === focusUid);
+    if (matchShortcut(e.nativeEvent, "list") === "note.trash") {
+      if (focusId) trashAndRefocus(focusId);
+      e.preventDefault();
+      return;
+    }
+    // Listbox navigation keys (fixed by ARIA conventions, not customizable).
+    const index = list.findIndex((n) => n.id === focusId);
     switch (e.key) {
       case "ArrowDown":
         moveTo(index + 1);
@@ -60,13 +71,10 @@ export function NoteList() {
         moveTo(list.length - 1);
         break;
       case "Enter":
-        if (focusUid) {
-          selectNote(focusUid);
+        if (focusId) {
+          selectNote(focusId);
           focusEditor();
         }
-        break;
-      case "Delete":
-        if (focusUid) void trashNote(focusUid).then(() => cards.current.get(useApp.getState().selectedUid ?? "")?.focus());
         break;
       default:
         return;
@@ -76,21 +84,30 @@ export function NoteList() {
 
   const menuEntries = (m: MenuState): MenuEntry[] =>
     m.kind === "sort"
-      ? (Object.keys(SORT_LABELS) as SortKey[]).map((key) => ({
+      ? SORT_KEYS.map((key) => ({
           id: key,
-          label: SORT_LABELS[key],
+          label: t.list.sort[key],
           checked: key === sort,
           onSelect: () => updateSettings((st) => ({ ...st, sort: key })),
         }))
-      : [{ id: "trash", label: "Move to Trash", icon: Trash2, shortcut: "Del", danger: true, onSelect: () => void trashNote(m.uid) }];
+      : [
+          {
+            id: "trash",
+            label: t.list.moveToTrash,
+            icon: Trash2,
+            shortcut: shortcutLabel("note.trash", t),
+            danger: true,
+            onSelect: () => trashAndRefocus(m.id),
+          },
+        ];
 
   return (
-    <section className={s.panel} aria-label="Notes">
+    <section className={s.panel} aria-label={t.list.title}>
       <header className={s.header}>
-        <h2 className={s.title}>Notes</h2>
+        <h2 className={s.title}>{t.list.title}</h2>
         <IconButton
           icon={ArrowDownWideNarrow}
-          label={`Sort: ${SORT_LABELS[sort]}`}
+          label={t.list.sortBy(t.list.sort[sort])}
           aria-haspopup="menu"
           onClick={(e) => {
             const r = e.currentTarget.getBoundingClientRect();
@@ -100,33 +117,41 @@ export function NoteList() {
       </header>
       <div ref={scroller} className={s.scroller}>
         {list.length === 0 ? (
-          <p className={s.empty}>No notes yet</p>
+          <p className={s.empty}>{t.list.empty}</p>
         ) : (
-          <div role="listbox" aria-label="Notes" className={s.cards} onKeyDown={onKeyDown}>
+          <div role="listbox" aria-label={t.list.title} className={s.cards} onKeyDown={onKeyDown}>
             {list.map((note) => (
               <NoteCard
-                key={note.uid}
+                key={note.id}
                 ref={(el) => {
-                  if (el) cards.current.set(note.uid, el);
-                  else cards.current.delete(note.uid);
+                  if (el) cards.current.set(note.id, el);
+                  else cards.current.delete(note.id);
                 }}
+                domId={cardDomId(note.id)}
                 note={note}
                 now={now}
                 dateKind={sort === "created" ? "created" : "modified"}
-                selected={note.uid === selectedUid}
-                focusable={note.uid === focusUid}
-                onSelect={() => selectNote(note.uid)}
+                selected={note.id === selectedId}
+                focusable={note.id === focusId}
+                onSelect={() => selectNote(note.id)}
                 onContextMenu={(e) => {
                   e.preventDefault();
-                  selectNote(note.uid);
-                  setMenu({ kind: "note", uid: note.uid, at: { x: e.clientX, y: e.clientY } });
+                  selectNote(note.id);
+                  setMenu({ kind: "note", id: note.id, at: { x: e.clientX, y: e.clientY } });
                 }}
               />
             ))}
           </div>
         )}
       </div>
-      {menu && <Menu at={menu.at} label={menu.kind === "sort" ? "Sort notes" : "Note actions"} entries={menuEntries(menu)} onClose={() => setMenu(null)} />}
+      {menu && (
+        <Menu
+          at={menu.at}
+          label={menu.kind === "sort" ? t.list.sortMenu : t.list.noteActions}
+          entries={menuEntries(menu)}
+          onClose={() => setMenu(null)}
+        />
+      )}
     </section>
   );
 }

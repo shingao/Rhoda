@@ -1,0 +1,4 @@
+.error {
+  padding: var(--sp-6);
+  color: var(--chrome-text);
+}

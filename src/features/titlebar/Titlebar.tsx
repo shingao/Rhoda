@@ -1,4 +1,6 @@
 import { PanelLeft, Plus } from "lucide-react";
+import { useT } from "../../app/i18n";
+import { shortcutLabel } from "../../app/shortcuts";
 import { useApp } from "../../app/store";
 import { defaultWidth, toggleColumn } from "../../app/layout";
 import { createNote } from "../../app/notes";
@@ -14,6 +16,7 @@ export function Titlebar() {
   const collapsed = useApp((st) => st.settings.layout.sidebarCollapsed);
   const width = useApp((st) => st.settings.layout.sidebarWidth) ?? defaultWidth("sidebar");
   const resizing = useApp((st) => st.resizing);
+  const t = useT();
 
   return (
     <header className={s.titlebar} data-tauri-drag-region>
@@ -25,8 +28,8 @@ export function Titlebar() {
         <IconButton
           icon={PanelLeft}
           tone="chrome"
-          label={collapsed ? "Show sidebar" : "Hide sidebar"}
-          shortcut="Ctrl \"
+          label={collapsed ? t.titlebar.showSidebar : t.titlebar.hideSidebar}
+          shortcut={shortcutLabel("layout.toggleSidebar", t)}
           onClick={() => toggleColumn("sidebar")}
         />
         <span className={s.appName} data-tauri-drag-region>
@@ -37,9 +40,9 @@ export function Titlebar() {
         <SearchField />
       </div>
       <div className={s.right} data-tauri-drag-region>
-        <Tooltip label="New note" shortcut="Ctrl N">
+        <Tooltip label={t.titlebar.newNote} shortcut={shortcutLabel("note.new", t)}>
           <Button variant="primary" size="titlebar" icon={Plus} className={s.newNote} onClick={() => void createNote()}>
-            New note
+            {t.titlebar.newNote}
           </Button>
         </Tooltip>
         <WindowControls />

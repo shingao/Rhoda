@@ -1,0 +1,57 @@
+import { useEffect } from "react";
+import { formatChord, matchesChord, parseChord, type KeyChord, type KeyEventLike } from "../core/keys";
+import type { Messages } from "../i18n";
+
+/**
+ * Every keyboard shortcut of the app, in one place. Phase 10 will let users
+ * override `keys` from the settings; components only refer to shortcut ids.
+ *
+ * Not listed on purpose: navigation keys fixed by accessibility conventions
+ * (arrows, Home/End, Enter, Escape, Tab inside lists and menus) and the
+ * editor's own text-editing keys (CodeMirror defaults).
+ */
+export const SHORTCUTS = {
+  "note.new": { keys: "Ctrl+N", scope: "global" },
+  "search.focus": { keys: "Ctrl+K", scope: "global" },
+  "layout.toggleSidebar": { keys: "Ctrl+Backslash", scope: "global" },
+  "layout.toggleList": { keys: "Ctrl+Shift+Backslash", scope: "global" },
+  "note.trash": { keys: "Delete", scope: "list" },
+} as const satisfies Record<string, { keys: string; scope: ShortcutScope }>;
+
+export type ShortcutScope = "global" | "list";
+export type ShortcutId = keyof typeof SHORTCUTS;
+
+const chords = Object.fromEntries(
+  Object.entries(SHORTCUTS).map(([id, def]) => [id, parseChord(def.keys)]),
+) as Record<ShortcutId, KeyChord>;
+
+/** The shortcut of `scope` triggered by this key event, if any. */
+export function matchShortcut(e: KeyEventLike, scope: ShortcutScope): ShortcutId | null {
+  for (const id of Object.keys(SHORTCUTS) as ShortcutId[]) {
+    if (SHORTCUTS[id].scope === scope && matchesChord(chords[id], e)) return id;
+  }
+  return null;
+}
+
+/** Label shown in tooltips and menus, e.g. "Ctrl Maj \". */
+export function shortcutLabel(id: ShortcutId, messages: Messages): string {
+  return formatChord(chords[id], messages.keys);
+}
+
+export type ShortcutHandlers = Partial<Record<ShortcutId, () => void>>;
+
+/** Runs the global shortcuts (capture phase, so they work from inside the editor too). */
+export function useGlobalShortcuts(handlers: ShortcutHandlers): void {
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const id = matchShortcut(e, "global");
+      const run = id && handlers[id];
+      if (!run) return;
+      e.preventDefault();
+      e.stopPropagation();
+      run();
+    };
+    window.addEventListener("keydown", onKeyDown, true);
+    return () => window.removeEventListener("keydown", onKeyDown, true);
+  }, [handlers]);
+}

@@ -2,24 +2,24 @@ import { Annotation, EditorSelection, EditorState, type Extension } from "@codem
 import { EditorView } from "@codemirror/view";
 
 /**
- * Owns the single EditorView and one EditorState per note, so undo history and
- * cursor position survive switching notes.
+ * Owns the single EditorView and one EditorState per note (keyed by note id),
+ * so undo history and cursor position survive switching notes.
  */
 
 /** Marks transactions that come from disk, not from typing: they must not trigger a save. */
 const fromDisk = Annotation.define<boolean>();
 
 let view: EditorView | null = null;
-let currentUid: string | null = null;
+let currentId: string | null = null;
 let extensions: Extension = [];
 const states = new Map<string, EditorState>();
 
-export function mountEditor(parent: HTMLElement, ext: Extension, onEdit: (uid: string, body: string) => void): EditorView {
+export function mountEditor(parent: HTMLElement, ext: Extension, onEdit: (id: string, body: string) => void): EditorView {
   extensions = [
     ext,
     EditorView.updateListener.of((u) => {
-      if (u.docChanged && currentUid && !u.transactions.some((t) => t.annotation(fromDisk))) {
-        onEdit(currentUid, u.state.doc.toString());
+      if (u.docChanged && currentId && !u.transactions.some((t) => t.annotation(fromDisk))) {
+        onEdit(currentId, u.state.doc.toString());
       }
     }),
   ];
@@ -28,24 +28,24 @@ export function mountEditor(parent: HTMLElement, ext: Extension, onEdit: (uid: s
 }
 
 export function unmountEditor(): void {
-  if (view && currentUid) states.set(currentUid, view.state);
+  if (view && currentId) states.set(currentId, view.state);
   view?.destroy();
   view = null;
-  currentUid = null;
+  currentId = null;
 }
 
 /** Shows a note instantly (no animation, DESIGN §4). */
-export function showNote(uid: string | null, body: string): void {
-  if (!view || uid === currentUid) return;
-  if (currentUid) states.set(currentUid, view.state);
-  currentUid = uid;
-  view.setState(states.get(uid ?? "") ?? EditorState.create({ doc: uid ? body : "", extensions }));
+export function showNote(id: string | null, body: string): void {
+  if (!view || id === currentId) return;
+  if (currentId) states.set(currentId, view.state);
+  currentId = id;
+  view.setState(states.get(id ?? "") ?? EditorState.create({ doc: id ? body : "", extensions }));
 }
 
 /** Applies a change made outside Ursa, keeping the cursor where it can. */
-export function replaceFromDisk(uid: string, body: string): void {
-  if (uid !== currentUid || !view) {
-    states.delete(uid);
+export function replaceFromDisk(id: string, body: string): void {
+  if (id !== currentId || !view) {
+    states.delete(id);
     return;
   }
   const { state } = view;
@@ -58,8 +58,8 @@ export function replaceFromDisk(uid: string, body: string): void {
   });
 }
 
-export function forgetNote(uid: string): void {
-  states.delete(uid);
+export function forgetNote(id: string): void {
+  states.delete(id);
 }
 
 export function focusEditor(atEnd = false): void {

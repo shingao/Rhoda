@@ -3,6 +3,7 @@ import { markdown } from "@codemirror/lang-markdown";
 import type { Extension } from "@codemirror/state";
 import { drawSelection, EditorView, keymap, placeholder } from "@codemirror/view";
 import { cssMs } from "../app/cssTokens";
+import { currentMessages } from "../app/i18n";
 
 /**
  * Editor look, driven by design tokens only. Phase 1 renders raw Markdown;
@@ -47,8 +48,18 @@ export function editorExtensions(): Extension {
     EditorView.lineWrapping,
     markdown(),
     keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
-    placeholder("Start writing…"),
-    EditorView.contentAttributes.of({ spellcheck: "true", autocapitalize: "sentences", "aria-label": "Note text" }),
+    // Functions, so the texts follow the language setting.
+    placeholder(() => {
+      const el = document.createElement("span");
+      el.textContent = currentMessages().editor.placeholder;
+      return el;
+    }),
+    EditorView.contentAttributes.of(() => ({
+      spellcheck: "true",
+      autocapitalize: "sentences",
+      lang: document.documentElement.lang,
+      "aria-label": currentMessages().editor.textLabel,
+    })),
     ursaTheme,
   ];
 }

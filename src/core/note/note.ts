@@ -12,12 +12,15 @@ export interface NoteFile {
 }
 
 export interface Note {
-  /** Runtime identity, stable across renames; never persisted. */
-  uid: string;
-  /** Relative to the vault, `/`-separated. */
+  /**
+   * Identity of the note and key of the index: the frontmatter `id`. A note
+   * created outside Ursa gets a provisional id, written to its frontmatter the
+   * first time Ursa writes the file (`idStored` tells which).
+   */
+  id: string;
+  idStored: boolean;
+  /** Relative to the vault, `/`-separated. Changes on rename; never used as identity. */
   path: string;
-  /** Persistent id from the frontmatter (absent on notes created outside Ursa). */
-  id: string | null;
   frontmatter: string | null;
   /** Body with `\n` line endings, as edited. */
   body: string;
@@ -40,10 +43,18 @@ function parseDate(value: unknown): number | null {
   return Number.isNaN(t) ? null : t;
 }
 
+/** The frontmatter id, if usable (strings, or numbers some tools write). */
+function readStoredId(data: FrontmatterData): string | null {
+  const id = data.id;
+  if (typeof id === "string" && id.trim()) return id.trim();
+  if (typeof id === "number") return String(id);
+  return null;
+}
+
 function deriveFromFrontmatter(frontmatter: string | null, file: { created: number; mtime: number }) {
   const data = parseFrontmatter(frontmatter);
   return {
-    id: typeof data.id === "string" ? data.id : null,
+    storedId: readStoredId(data),
     created: parseDate(data.created) ?? (file.created || file.mtime),
     pinned: data.pinned === true,
     archived: data.archived === true,
@@ -51,11 +62,14 @@ function deriveFromFrontmatter(frontmatter: string | null, file: { created: numb
   };
 }
 
-export function noteFromFile(file: NoteFile, uid: string): Note {
+/** Builds a note from a file. `provisionalId` is used only when the file has no id. */
+export function noteFromFile(file: NoteFile, provisionalId: string = uuidv7()): Note {
   const eol = detectEol(file.content);
   const { frontmatter, body } = splitFrontmatter(normalizeEol(file.content));
+  const { storedId: id, ...flags } = deriveFromFrontmatter(frontmatter, file);
   return {
-    uid,
+    id: id ?? provisionalId,
+    idStored: id !== null,
     path: file.path,
     frontmatter,
     body,
@@ -64,7 +78,7 @@ export function noteFromFile(file: NoteFile, uid: string): Note {
     mtime: file.mtime,
     title: titleFromBody(body),
     preview: previewFromBody(body),
-    ...deriveFromFrontmatter(frontmatter, file),
+    ...flags,
   };
 }
 
@@ -77,15 +91,26 @@ export function withBody(note: Note, body: string): Note {
   return { ...note, body, title: titleFromBody(body), preview: previewFromBody(body) };
 }
 
+/** Patches frontmatter flags. The note keeps its identity (use `withNewId` to change it). */
 export function withFrontmatter(note: Note, patch: FrontmatterData): Note {
   const frontmatter = patchFrontmatter(note.frontmatter, patch);
   if (frontmatter === note.frontmatter) return note;
-  return { ...note, frontmatter, ...deriveFromFrontmatter(frontmatter, note) };
+  const { storedId, ...flags } = deriveFromFrontmatter(frontmatter, note);
+  return { ...note, frontmatter, ...flags };
 }
 
-/** Ensures the note carries a persistent id (added on first write by Ursa). */
-export function withId(note: Note): Note {
-  return note.id ? note : withFrontmatter(note, { id: uuidv7() });
+/** Writes the (possibly provisional) id into the frontmatter so it survives restarts and renames. */
+export function withStoredId(note: Note): Note {
+  if (note.idStored) return note;
+  const block = note.frontmatter?.trim() ?? "";
+  // Put the id first, as in notes created by Ursa (flow-style YAML goes through the patcher).
+  if (block.startsWith("{")) return { ...withFrontmatter(note, { id: note.id }), idStored: true };
+  return { ...note, frontmatter: `id: ${note.id}\n${note.frontmatter ?? ""}`, idStored: true };
+}
+
+/** Gives the note a fresh id (a copied file carrying another note's id). */
+export function withNewId(note: Note, id: string = uuidv7()): Note {
+  return { ...withFrontmatter(note, { id }), id, idStored: true };
 }
 
 /** Content of a brand new note: id + creation date, empty H1 ready for a title. */

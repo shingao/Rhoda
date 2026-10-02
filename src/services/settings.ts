@@ -1,9 +1,12 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { SortKey } from "../core/note/sort";
+import { DEFAULT_LANGUAGE, isLanguage, type Language } from "../i18n";
 
 export interface Settings {
   /** Absolute path of the notes folder; null = default (Documents/Ursa). */
   vaultPath: string | null;
+  /** UI language (French by default). */
+  language: Language;
   theme: "coral";
   sort: SortKey;
   layout: {
@@ -17,6 +20,7 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
   vaultPath: null,
+  language: DEFAULT_LANGUAGE,
   theme: "coral",
   sort: "modified",
   layout: { sidebarWidth: null, listWidth: null, sidebarCollapsed: false, listCollapsed: false },
@@ -41,7 +45,8 @@ function merge<T>(defaults: T, stored: unknown): T {
 
 export async function loadSettings(): Promise<Settings> {
   try {
-    return merge(DEFAULT_SETTINGS, await invoke<unknown>("load_settings"));
+    const settings = merge(DEFAULT_SETTINGS, await invoke<unknown>("load_settings"));
+    return isLanguage(settings.language) ? settings : { ...settings, language: DEFAULT_LANGUAGE };
   } catch {
     return DEFAULT_SETTINGS;
   }

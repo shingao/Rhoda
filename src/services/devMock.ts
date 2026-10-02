@@ -38,10 +38,13 @@ export function installDevMock(): void {
   for (const [path, content, mtime] of seed(now)) files.set(path, { content, mtime, created: mtime });
 
   const toFile = (path: string): NoteFile => ({ path, ...files.get(path)! });
+  // Same naming rules as the Rust backend: case-insensitive collisions, " 2" suffix.
+  const taken = (name: string, except?: string) =>
+    [...files.keys()].some((p) => p.toLowerCase() === name.toLowerCase() && p.toLowerCase() !== except?.toLowerCase());
   const unique = (stem: string, except?: string) => {
     for (let n = 1; ; n++) {
-      const path = n === 1 ? `${stem}.md` : `${stem} (${n}).md`;
-      if (!files.has(path) || path === except) return path;
+      const path = n === 1 ? `${stem}.md` : `${stem} ${n}.md`;
+      if (!taken(path, except)) return path;
     }
   };
 

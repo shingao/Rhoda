@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useT } from "../../app/i18n";
 import { clampWidth, defaultWidth, setColumnWidth } from "../../app/layout";
 import { setState, useApp } from "../../app/store";
 import { Resizer } from "../../components/Resizer";
@@ -14,6 +15,7 @@ type Column = "sidebar" | "list";
 export function AppLayout() {
   const layout = useApp((st) => st.settings.layout);
   const resizing = useApp((st) => st.resizing);
+  const t = useT();
   const sidebarWidth = layout.sidebarWidth ?? defaultWidth("sidebar");
   const listWidth = layout.listWidth ?? defaultWidth("list");
 
@@ -32,12 +34,12 @@ export function AppLayout() {
         <Column collapsed={layout.sidebarCollapsed} width={sidebarWidth}>
           <Sidebar />
         </Column>
-        {!layout.sidebarCollapsed && <Resizer label="Resize sidebar" {...resizerProps("sidebar", sidebarWidth)} />}
+        {!layout.sidebarCollapsed && <Resizer label={t.layout.resizeSidebar} {...resizerProps("sidebar", sidebarWidth)} />}
         <div className={s.sheet}>
           <Column collapsed={layout.listCollapsed} width={listWidth}>
             <NoteList />
           </Column>
-          {!layout.listCollapsed && <Resizer label="Resize note list" {...resizerProps("list", listWidth)} />}
+          {!layout.listCollapsed && <Resizer label={t.layout.resizeList} {...resizerProps("list", listWidth)} />}
           <div className={s.editor}>
             <EditorPane />
           </div>

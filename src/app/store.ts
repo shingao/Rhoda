@@ -7,8 +7,9 @@ export type VaultStatus = { kind: "loading" } | { kind: "ready"; path: string } 
 
 interface AppState {
   vault: VaultStatus;
+  /** The note index, keyed by note id (frontmatter `id`), never by path. */
   notes: Record<string, Note>;
-  selectedUid: string | null;
+  selectedId: string | null;
   settings: Settings;
   /** True while a column is being resized: disables width transitions. */
   resizing: boolean;
@@ -17,7 +18,7 @@ interface AppState {
 export const useApp = create<AppState>()(() => ({
   vault: { kind: "loading" },
   notes: {},
-  selectedUid: null,
+  selectedId: null,
   settings: DEFAULT_SETTINGS,
   resizing: false,
 }));
@@ -26,15 +27,15 @@ export const getState = useApp.getState;
 export const setState = useApp.setState;
 
 export function putNote(note: Note): void {
-  setState((s) => ({ notes: { ...s.notes, [note.uid]: note } }));
+  setState((s) => ({ notes: { ...s.notes, [note.id]: note } }));
 }
 
-export function removeNotes(uids: string[]): void {
-  if (uids.length === 0) return;
+export function removeNotes(ids: string[]): void {
+  if (ids.length === 0) return;
   setState((s) => {
     const notes = { ...s.notes };
-    for (const uid of uids) delete notes[uid];
-    return { notes, selectedUid: s.selectedUid && uids.includes(s.selectedUid) ? null : s.selectedUid };
+    for (const id of ids) delete notes[id];
+    return { notes, selectedId: s.selectedId && ids.includes(s.selectedId) ? null : s.selectedId };
   });
 }
 

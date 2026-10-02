@@ -1,18 +1,34 @@
 import { isoLocal } from "../core/dates";
-import { sanitizeStem, stemMatches, stemOf, UNTITLED } from "../core/note/filename";
-import { newNoteContent, noteFromFile, serializeNote, withBody, withFrontmatter, withId, type Note, type NoteFile } from "../core/note/note";
+import { sanitizeStem, stemOf } from "../core/note/filename";
+import {
+  newNoteContent,
+  noteFromFile,
+  serializeNote,
+  withBody,
+  withFrontmatter,
+  withNewId,
+  withStoredId,
+  type Note,
+  type NoteFile,
+} from "../core/note/note";
 import { focusEditor, forgetNote, replaceFromDisk, showNote } from "../editor/session";
 import { vaultApi } from "../services/vault";
+import { currentMessages } from "./i18n";
 import { currentList, getState, putNote, removeNotes, setState } from "./store";
 
 /**
  * Note lifecycle: autosave, rename-from-title, create, trash and reconciliation
- * with external changes. Every disk mutation goes through one serial queue so
- * writes, renames and watcher reloads never interleave.
+ * with external changes. Every disk operation goes through one serial queue so
+ * writes, renames and watcher reloads never interleave. Failures (a file locked
+ * by another program) never lose anything: the text stays pending, the old
+ * name is kept, and the operation is retried later without bothering the user.
  */
 
 const SAVE_DELAY = 500;
 const RENAME_DELAY = 2000;
+const RETRY_DELAYS = [2_000, 5_000, 15_000, 30_000, 60_000];
+
+type Timer = ReturnType<typeof setTimeout>;
 
 let queue: Promise<unknown> = Promise.resolve();
 function enqueue<T>(op: () => Promise<T>): Promise<T> {
@@ -21,176 +37,236 @@ function enqueue<T>(op: () => Promise<T>): Promise<T> {
   return run;
 }
 
-/** Latest editor text per note, not yet written. */
+/** Latest editor text per note id, not yet written. */
 const pendingBodies = new Map<string, string>();
-const saveTimers = new Map<string, number>();
-const renameTimers = new Map<string, number>();
+const saveTimers = new Map<string, Timer>();
+const renameTimers = new Map<string, Timer>();
+/** Consecutive failures per operation, to space out retries. */
+const failures = new Map<string, number>();
 
-const newUid = () => crypto.randomUUID();
-const noteByUid = (uid: string): Note | undefined => getState().notes[uid];
+const noteById = (id: string): Note | undefined => getState().notes[id];
 const noteByPath = (path: string): Note | undefined => Object.values(getState().notes).find((n) => n.path === path);
 
-function schedule(timers: Map<string, number>, uid: string, delay: number, run: (uid: string) => void): void {
-  window.clearTimeout(timers.get(uid));
+function schedule(timers: Map<string, Timer>, id: string, delay: number, run: (id: string) => void): void {
+  clearTimeout(timers.get(id));
   timers.set(
-    uid,
-    window.setTimeout(() => {
-      timers.delete(uid);
-      run(uid);
+    id,
+    setTimeout(() => {
+      timers.delete(id);
+      run(id);
     }, delay),
   );
 }
 
-function cancel(timers: Map<string, number>, uid: string): boolean {
-  const had = timers.has(uid);
-  window.clearTimeout(timers.get(uid));
-  timers.delete(uid);
+function cancel(timers: Map<string, Timer>, id: string): boolean {
+  const had = timers.has(id);
+  clearTimeout(timers.get(id));
+  timers.delete(id);
   return had;
 }
 
-/** Writes a note if its serialized content differs from disk. Runs inside the queue. */
+function nextRetryDelay(key: string): number {
+  const count = failures.get(key) ?? 0;
+  failures.set(key, count + 1);
+  return RETRY_DELAYS[Math.min(count, RETRY_DELAYS.length - 1)]!;
+}
+
+/** Writes a note (adding its id to the frontmatter if needed). Runs inside the queue; may throw. */
 async function persist(note: Note): Promise<Note> {
-  if (serializeNote(note) === note.diskContent) {
-    putNote(note);
-    return note;
+  const toWrite = withStoredId(note);
+  const content = serializeNote(toWrite);
+  if (content === toWrite.diskContent) {
+    putNote(toWrite);
+    return toWrite;
   }
-  const withIdentity = withId(note);
-  const content = serializeNote(withIdentity);
-  const mtime = await vaultApi.write(withIdentity.path, content);
-  const saved = { ...withIdentity, diskContent: content, mtime };
+  const mtime = await vaultApi.write(toWrite.path, content);
+  const saved = { ...toWrite, diskContent: content, mtime };
   putNote(saved);
   return saved;
 }
 
-function save(uid: string): Promise<void> {
+function save(id: string): Promise<void> {
   return enqueue(async () => {
-    const body = pendingBodies.get(uid);
-    const note = noteByUid(uid);
+    const body = pendingBodies.get(id);
+    const note = noteById(id);
     if (body === undefined || !note) return;
-    pendingBodies.delete(uid);
-    await persist(withBody(note, body));
+    pendingBodies.delete(id);
+    try {
+      await persist(withBody(note, body));
+      failures.delete(`save:${id}`);
+    } catch (e) {
+      // Keep the text (unless newer text arrived meanwhile) and try again later.
+      if (!pendingBodies.has(id)) pendingBodies.set(id, body);
+      console.warn("[ursa] save failed, will retry", note.path, e);
+      schedule(saveTimers, id, nextRetryDelay(`save:${id}`), (i) => void save(i));
+    }
   });
 }
 
-function renameFromTitle(uid: string): Promise<void> {
+function renameFromTitle(id: string): Promise<void> {
   return enqueue(async () => {
-    const note = noteByUid(uid);
+    const note = noteById(id);
     if (!note) return;
-    const desired = sanitizeStem(note.title || UNTITLED);
-    if (stemMatches(stemOf(note.path), desired)) return;
-    const path = await vaultApi.rename(note.path, desired);
-    const current = noteByUid(uid);
-    if (current) putNote({ ...current, path });
+    const desired = sanitizeStem(note.title, currentMessages().untitled);
+    if (stemOf(note.path) === desired) return;
+    try {
+      // The backend picks the final name (collision suffix, MAX_PATH) or keeps the current one.
+      const path = await vaultApi.rename(note.path, desired);
+      failures.delete(`rename:${id}`);
+      const current = noteById(id);
+      if (current && current.path !== path) putNote({ ...current, path });
+    } catch (e) {
+      console.warn("[ursa] rename failed, keeping the old name for now", note.path, e);
+      schedule(renameTimers, id, nextRetryDelay(`rename:${id}`), (i) => void renameFromTitle(i));
+    }
   });
 }
 
 /** Called by the editor on every change. */
-export function editNote(uid: string, body: string): void {
-  pendingBodies.set(uid, body);
-  schedule(saveTimers, uid, SAVE_DELAY, (u) => void save(u));
-  schedule(renameTimers, uid, RENAME_DELAY, (u) => void renameFromTitle(u));
+export function editNote(id: string, body: string): void {
+  pendingBodies.set(id, body);
+  schedule(saveTimers, id, SAVE_DELAY, (i) => void save(i));
+  schedule(renameTimers, id, RENAME_DELAY, (i) => void renameFromTitle(i));
 }
 
-/** Saves now (and renames if the title changed) instead of waiting for the debounce. */
-export async function flushNote(uid: string): Promise<void> {
-  const needsSave = cancel(saveTimers, uid) || pendingBodies.has(uid);
-  const needsRename = cancel(renameTimers, uid);
-  if (needsSave) await save(uid);
-  if (needsRename || needsSave) await renameFromTitle(uid);
+/** Saves now (and renames if the title changed) instead of waiting. Never rejects. */
+export async function flushNote(id: string): Promise<void> {
+  const needsSave = cancel(saveTimers, id) || pendingBodies.has(id);
+  const needsRename = cancel(renameTimers, id);
+  if (needsSave) await save(id);
+  if (needsRename || needsSave) await renameFromTitle(id);
 }
 
 export async function flushAll(): Promise<void> {
-  const uids = new Set([...pendingBodies.keys(), ...saveTimers.keys(), ...renameTimers.keys()]);
-  await Promise.all([...uids].map(flushNote));
+  const ids = new Set([...pendingBodies.keys(), ...saveTimers.keys(), ...renameTimers.keys()]);
+  await Promise.all([...ids].map(flushNote));
 }
 
-export function selectNote(uid: string | null): void {
-  const previous = getState().selectedUid;
-  if (previous === uid) return;
+export function selectNote(id: string | null): void {
+  const previous = getState().selectedId;
+  if (previous === id) return;
   if (previous) void flushNote(previous);
-  setState({ selectedUid: uid });
-  showNote(uid, uid ? (noteByUid(uid)?.body ?? "") : "");
+  setState({ selectedId: id });
+  showNote(id, id ? (noteById(id)?.body ?? "") : "");
 }
 
 export async function createNote(): Promise<void> {
-  const file = await enqueue(() => vaultApi.create(UNTITLED, newNoteContent()));
-  const note = noteFromFile(file, newUid());
-  putNote(note);
-  selectNote(note.uid);
+  const note = await enqueue(async () => {
+    const file = await vaultApi.create(currentMessages().untitled, newNoteContent());
+    const created = noteFromFile(file);
+    putNote(created);
+    return created;
+  });
+  selectNote(note.id);
   focusEditor(true);
 }
 
-export async function trashNote(uid: string): Promise<void> {
+export async function trashNote(id: string): Promise<void> {
   const list = currentList();
-  const index = list.findIndex((n) => n.uid === uid);
-  await flushNote(uid);
+  const index = list.findIndex((n) => n.id === id);
+  await flushNote(id);
   await enqueue(async () => {
-    const note = noteByUid(uid);
+    const note = noteById(id);
     if (note) await persist(withFrontmatter(note, { trashed: isoLocal() }));
   });
-  if (getState().selectedUid === uid) {
+  if (getState().selectedId === id) {
     const next = list[index + 1] ?? list[index - 1];
-    selectNote(next && next.uid !== uid ? next.uid : null);
+    selectNote(next && next.id !== id ? next.id : null);
   }
 }
 
-/** Replaces the index with the vault's notes and selects the first one. */
-export function loadNotes(files: NoteFile[]): void {
-  const notes: Record<string, Note> = {};
-  for (const file of files) {
-    const note = noteFromFile(file, newUid());
-    notes[note.uid] = note;
+/** Gives a copied note (same frontmatter id as another file) its own identity. */
+async function reidentify(note: Note): Promise<void> {
+  const fresh = withNewId(note);
+  try {
+    await persist(fresh);
+  } catch (e) {
+    // Kept in memory under its new id; the id is written with the next save.
+    console.warn("[ursa] could not write the new id yet", note.path, e);
+    putNote(fresh);
   }
-  setState({ notes });
-  selectNote(currentList()[0]?.uid ?? null);
 }
 
 /**
- * Reconciles notes reported by the watcher. Our own writes come back too:
- * they match `diskContent` and are ignored. A renamed file shows up as one
- * removed path plus one new path carrying the same frontmatter id.
+ * Builds the index from the vault's files and selects the first note. If two
+ * files share an id (a note copied in Explorer), the older file keeps it.
+ */
+export function loadNotes(files: NoteFile[]): Promise<void> {
+  return enqueue(async () => {
+    const notes: Record<string, Note> = {};
+    const copies: Note[] = [];
+    const ordered = [...files].sort((a, b) => a.created - b.created || a.path.localeCompare(b.path));
+    for (const file of ordered) {
+      const note = noteFromFile(file);
+      if (notes[note.id]) copies.push(note);
+      else notes[note.id] = note;
+    }
+    setState({ notes });
+    for (const copy of copies) await reidentify(copy);
+  }).then(() => selectNote(currentList()[0]?.id ?? null));
+}
+
+/**
+ * Reconciles the paths reported by the watcher.
+ * - Our own writes and renames come back too: the file content equals
+ *   `diskContent` (or the old path is no longer in the index), so nothing
+ *   changes in the store — no duplicate, no flicker.
+ * - A note renamed or moved outside Ursa shows up as one vanished path plus
+ *   one new path carrying the same id: it stays the same note.
  */
 export function handleDiskChanges(paths: string[]): Promise<void> {
   return enqueue(async () => {
     const reads = await Promise.all(paths.map(async (path) => [path, await vaultApi.read(path)] as const));
-    const removed: Note[] = [];
+    const vanished = new Map<string, Note>();
     const added: NoteFile[] = [];
 
     for (const [path, file] of reads) {
       const existing = noteByPath(path);
       if (!file) {
-        if (existing) removed.push(existing);
+        if (existing) vanished.set(existing.id, existing);
       } else if (!existing) {
         added.push(file);
-      } else if (file.content !== existing.diskContent && !pendingBodies.has(existing.uid)) {
-        // External edit. A note with unsaved local edits keeps them: they are written next.
-        const updated = noteFromFile(file, existing.uid);
-        putNote(updated);
-        replaceFromDisk(existing.uid, updated.body);
+      } else if (file.content !== existing.diskContent && !pendingBodies.has(existing.id)) {
+        // Edited outside Ursa. A note with unsaved local edits keeps them: they are written next.
+        const updated = noteFromFile(file, existing.id);
+        if (updated.id === existing.id) {
+          putNote(updated);
+          replaceFromDisk(existing.id, updated.body);
+        } else {
+          // Its id was edited by hand: treat as a different note.
+          vanished.set(existing.id, existing);
+          added.push(file);
+        }
       }
     }
 
     for (const file of added) {
-      const note = noteFromFile(file, newUid());
-      const moved = note.id ? removed.findIndex((r) => r.id === note.id) : -1;
-      if (moved >= 0) {
-        const [previous] = removed.splice(moved, 1);
-        putNote({ ...note, uid: previous!.uid });
-        if (previous!.body !== note.body) replaceFromDisk(previous!.uid, note.body);
+      const note = noteFromFile(file);
+      const holder = noteById(note.id);
+      if (holder && vanished.has(note.id)) {
+        vanished.delete(note.id);
+        putNote(note);
+        if (holder.body !== note.body) replaceFromDisk(note.id, note.body);
+      } else if (holder && (await vaultApi.read(holder.path)) === null) {
+        // Moved outside Ursa, the old path being reported in another batch.
+        putNote(note);
+        if (holder.body !== note.body) replaceFromDisk(note.id, note.body);
+      } else if (holder) {
+        await reidentify(note);
       } else {
         putNote(note);
       }
     }
 
-    const wasSelected = removed.some((n) => n.uid === getState().selectedUid);
-    if (wasSelected) showNote(null, "");
-    for (const note of removed) {
-      forgetNote(note.uid);
-      cancel(saveTimers, note.uid);
-      cancel(renameTimers, note.uid);
-      pendingBodies.delete(note.uid);
+    const selectedVanished = vanished.has(getState().selectedId ?? "");
+    if (selectedVanished) showNote(null, "");
+    for (const id of vanished.keys()) {
+      forgetNote(id);
+      cancel(saveTimers, id);
+      cancel(renameTimers, id);
+      pendingBodies.delete(id);
     }
-    removeNotes(removed.map((n) => n.uid));
-    if (wasSelected) selectNote(currentList()[0]?.uid ?? null);
+    removeNotes([...vanished.keys()]);
+    if (selectedVanished) selectNote(currentList()[0]?.id ?? null);
   });
 }

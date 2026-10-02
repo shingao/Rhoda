@@ -1,6 +1,6 @@
 # Ursa — PROGRESS
 
-État : **Phase 1 terminée** — en attente de ton retour, puis du « go » pour la phase 2.
+État : **Phase 1 terminée, corrections du retour appliquées** — en attente du « go » pour la phase 2 (maquettes à déposer dans `design/` d'ici là).
 
 | Phase | Sujet | État |
 |---|---|---|
@@ -36,17 +36,47 @@
 ### Fait
 - **Scaffold** Tauri 2 + React 19 + TypeScript strict + Vite 8 ; ESLint (0 warning) + Stylelint (garde-fou tokens : hex/rgb/hsl/`ms` interdits hors fichiers de tokens, `font-size`/`font-weight`/`border-radius` uniquement via variables) + Vitest ; clippy `-D warnings`.
 - **Tokens** : `src/styles/tokens.css` (copie verbatim), `src/styles/tokens.components.css` (valeurs des specs DESIGN.md, section citée pour chacune, + réduction de mouvement). Polices Hanken Grotesk et JetBrains Mono embarquées (`@fontsource`). Palette `coral` par défaut.
-- **Fenêtre** sans décorations Windows, ombre native, taille/position mémorisées (plugin `window-state`). **Titlebar** : bouton sidebar + « Ursa », champ de recherche (visuel ; Ctrl+K y met le focus), bouton « New note », contrôles fenêtre (Fermer rouge au survol, icônes estompées si fenêtre inactive). Zones vides = déplacement, double-clic = agrandir.
+- **Fenêtre** sans décorations Windows, ombre native, taille/position mémorisées (plugin `window-state`). **Titlebar** : bouton sidebar + « Ursa », champ de recherche (visuel ; Ctrl+K y met le focus), bouton « Nouvelle note », contrôles fenêtre (Fermer rouge au survol, icônes estompées si fenêtre inactive). Zones vides = déplacement, double-clic = agrandir.
 - **Layout** : sidebar (`--bg-0`) + « feuille » arrondie (liste `--bg-1` + éditeur `--bg-2`, `--shadow-sheet`). Colonnes redimensionnables (poignée 6 px, ligne accent pendant le drag, double-clic = défaut, bornes des tokens, éditeur ≥ 420 px), repliables (animation 240 ms), largeurs et repli persistés.
-- **Fichiers** (Rust) : scan récursif (ignore dossiers cachés, `.ursa/`, `assets/`), lecture UTF-8, écriture atomique (temp + rename, retry si verrou Windows), création avec nom unique, renommage (suffixe ` (2)` en cas de collision, changement de casse autorisé), chemins validés (impossible de sortir du coffre), `.ursa/version`. Watcher `notify` (debounce 250 ms).
+- **Fichiers** (Rust) : scan récursif (ignore dossiers cachés, `.ursa/`, `assets/`), lecture UTF-8, écriture atomique (temp + rename, retry si verrou Windows), création et renommage sans jamais écraser un fichier (voir « Corrections »), chemins validés (impossible de sortir du coffre), `.ursa/version`. Watcher `notify` (debounce 250 ms).
 - **Cycle de vie des notes** (TS) : sauvegarde auto 500 ms après la dernière frappe ; renommage d'après le titre 2 s après la dernière frappe, et immédiatement au changement de note, à la perte de focus de la fenêtre et à la fermeture ; toutes les écritures passent par une file sérielle. Fins de ligne CRLF/LF préservées. `id` UUID v7 + `created` à la création ; `id` ajouté à la 1re écriture d'une note externe.
 - **Watcher côté app** : nos propres écritures sont reconnues (contenu identique) et ignorées ; modif externe → liste et éditeur mis à jour en direct (curseur conservé) ; ajout/suppression externes ; renommage externe d'une note avec `id` → même note conservée. Une note avec des modifications locales non sauvegardées garde la version locale.
-- **Corbeille** : Suppr (liste), clic droit › Move to Trash ou menu `…` de l'éditeur → `trashed: <date>` dans le frontmatter, la note disparaît de la liste (la vue Trash et la restauration arrivent en phase 3).
+- **Corbeille** : Suppr (liste), clic droit › Placer dans la corbeille ou menu `…` de l'éditeur → `trashed: <date>` dans le frontmatter, la note disparaît de la liste (la vue Trash et la restauration arrivent en phase 3).
 - **Liste** : cartes (date relative, titre, aperçu 2 lignes sans Markdown, icône épingle), épinglées en tête, tri modifié/créé/titre (menu, mémorisé), navigation clavier (flèches, Home/End, Entrée → éditeur, Suppr), roving tabindex, `listbox`/`option`.
 - **Éditeur** : CodeMirror 6 en Markdown brut, colonne centrée `--editor-max`, police/taille/interligne des tokens, curseur 2 px accent (sans clignotement si mouvement réduit), historique d'annulation conservé par note.
 - **Composants** : Button, IconButton, Tooltip (500 ms, enchaînement instantané < 800 ms), Menu (clavier, items danger, radio), Resizer, scrollbar overlay auto-masquée.
-- **Tests** : 14 tests Vitest (frontmatter, titre/aperçu, noms de fichiers, CRLF, tri, dates), 4 tests Rust (chemins, noms uniques, validation).
-- **Vérifications faites ici** : typecheck, lint, tests, `vite build`, `cargo clippy`, et lancement réel du binaire Tauri sous Linux/Xvfb (coffre créé, notes chargées, ajout + modification externes répercutés en direct). Rendu WebView2 Windows non vérifiable ici.
+- **Tests** : 41 tests Vitest (frontmatter, titre/aperçu, noms de fichiers Windows, CRLF, tri, dates fr/en, raccourcis, cycle de vie des notes avec faux système de fichiers + écho du watcher), 9 tests Rust (chemins, validation, MAX_PATH, collisions, renommage, écriture atomique).
+- **Vérifications faites ici** : typecheck, lint, tests, `vite build`, `cargo clippy`, et lancement réel du binaire Tauri sous Linux/Xvfb : coffre créé, notes chargées, ajout + modification externes répercutés en direct, puis (après corrections) création, renommage d'après le titre (`Réunion: équipe / Q4?` → `Réunion équipe Q4.md`) et collision insensible à la casse (`PLANPLAN 2.md` à côté de `Planplan.md`). Rendu WebView2 Windows non vérifiable ici.
+
+### Corrections après le retour sur la phase 1
+
+**1. Noms de fichiers Windows** (`src/core/note/filename.ts` + `src-tauri/src/vault.rs`)
+- Titre → nom : `< > : " / \ | ? *` et caractères de contrôle (U+0000–U+001F, U+007F) remplacés par une espace, espaces multiples fusionnées, points de tête retirés, points et espaces de fin retirés, normalisation Unicode NFC, titre vide → « Sans titre ».
+- Noms réservés (`CON`, `PRN`, `AUX`, `NUL`, `CONIN$`, `CONOUT$`, `COM0-9`, `LPT0-9`, y compris `COM¹²³`), **même suivis d'une extension** (`CON.txt`) : suffixe `_` (`CON_`, `CON_.txt`).
+- Longueur : 120 caractères max côté interface ; le backend raccourcit encore si besoin pour que `dossier\nom 999.md` reste sous **MAX_PATH (259 unités UTF-16)**, sans couper un caractère.
+- Collisions **insensibles à la casse** (comme NTFS) : suffixe ` 2`, ` 3`… Un changement de casse seul renomme bien le fichier. Une note qui porte déjà le bon nom (avec ou sans suffixe) n'est pas renommée.
+- **Jamais d'écrasement** : `rename` de Rust remplace silencieusement la cible sous Windows ; on passe par un lien physique + suppression de la source (ou un `rename` après vérification sur les systèmes de fichiers sans liens physiques). Création : fichier temporaire puis déplacement sans écrasement.
+- **Fichier verrouillé** : nouvelles tentatives côté Rust (accès refusé, violation de partage), puis côté app : l'ancien nom est conservé et le renommage est retenté plus tard (2 s, 5 s, 15 s, 30 s puis toutes les 60 s), sans message bloquant. Même logique pour une sauvegarde qui échoue : le texte reste en attente et rien n'est perdu.
+- Le backend revalide le nom reçu (caractères, noms réservés, points finaux) par sécurité.
+
+**2. Watcher et écritures de l'app** — vérifié par tests (`src/app/notes.test.ts`) : les chemins touchés par nos sauvegardes, créations et renommages sont renvoyés au réconciliateur comme le ferait le watcher, et le store ne reçoit **aucune** mise à jour (0 doublon, 0 clignotement). Mécanisme : toutes les opérations disque et la réconciliation passent par la même file sérielle ; une écriture de l'app revient avec un contenu identique à `diskContent` → ignorée ; après un renommage, l'ancien chemin n'est plus dans l'index et le nouveau a un contenu identique → ignorés.
+
+**3. Identité des notes** — l'index (`useApp().notes`) est désormais **indexé par l'`id` du frontmatter**, jamais par le chemin (auparavant : par un identifiant d'exécution). Détails :
+- Note externe sans `id` : `id` provisoire en mémoire, écrit **en tête** du frontmatter à la première écriture par l'app.
+- Note renommée ou déplacée hors de l'app : reconnue par son `id`, elle reste la même note (sélection, historique d'annulation conservés).
+- Fichier copié dans l'Explorateur (même `id` que l'original) : la copie reçoit un nouvel `id`, écrit dans son frontmatter ; au démarrage, c'est le fichier le plus ancien qui garde l'`id`.
+- `id` numérique écrit par un autre outil (`id: 42`) : accepté tel quel (converti en texte), jamais écrasé.
+
+**4. Langue** — interface en **français par défaut**, anglais disponible (`language: "fr" | "en"` dans `settings.json` ; sélecteur dans l'écran Réglages en ph. 6). Toutes les chaînes sont dans `src/i18n/fr.ts` (catalogue de référence, typé) et `src/i18n/en.ts` (mêmes clés, vérifié par le compilateur). Dates relatives localisées : « à l'instant », « il y a 12 min », « il y a 2 h », « hier », « lun. », « 28 août », « 28 sept. 2025 ». Noms de touches localisés (« Maj », « Suppr »).
+
+**5. Raccourcis** — tous déclarés dans `src/app/shortcuts.ts` (`SHORTCUTS` : id → touches + portée `global` | `list`) ; les composants n'y font référence que par id, et les libellés des tooltips/menus en sont dérivés. Analyse/correspondance/affichage dans `src/core/keys.ts` (testé) : lettres comparées par caractère (fonctionne en AZERTY), ponctuation par touche physique. Restent hors config, volontairement : touches de navigation imposées par les conventions ARIA (flèches, Début/Fin, Entrée, Échap, Tab) et touches d'édition de CodeMirror. Phase 10 : surcharges utilisateur dans `settings.shortcuts` appliquées sur `SHORTCUTS`.
+
+### Stratégie prévue (phase 3) : mise à jour automatique des [[wiki-links]] au changement de titre
+- **Déclencheur** : le même point de contrôle que le renommage du fichier (2 s d'inactivité, changement de note, perte de focus, fermeture), jamais à chaque frappe, pour ne pas réécrire les liens sur des titres intermédiaires (« Jap », « Japo »…). L'ancien titre est celui du dernier point de contrôle.
+- **Ciblage par `id`** : l'index des backlinks (construit avec le parseur Lezer partagé, donc les liens dans du code sont ignorés) associe chaque `[[…]]` résolu à l'`id` de la note cible. On ne réécrit que les liens résolus vers *cette* note ; si l'ancien titre était ambigu (plusieurs notes du même titre), on ne touche à rien.
+- **Réécriture** : `[[Ancien]]` → `[[Nouveau]]`, en conservant alias et ancre (`[[Ancien|texte]]`, `[[Ancien#Section]]`) ; comparaison insensible à la casse comme la résolution des liens. Titre devenu vide → aucun changement.
+- **Écriture** : via la file sérielle et `persist` ; une note ouverte dans l'éditeur est modifiée par une transaction CodeMirror (le curseur est préservé et Ctrl+Z l'annule), une note avec des modifications en attente est d'abord sauvegardée. Indication discrète non bloquante (« 3 liens mis à jour »).
+- **Robustesse** : si un fichier est verrouillé, même politique de nouvelles tentatives que les sauvegardes.
 
 ### Reste à faire (phases suivantes)
 - Rendu Markdown live (ph. 2) ; sections Untagged/Todo/Today/Pinned/Archive/Trash, épingler/archiver/restaurer (ph. 3) ; recherche (ph. 5) ; écran Réglages, dont le choix du dossier (ph. 6) ; virtualisation de la liste et F6 entre zones (ph. 10).
@@ -58,8 +88,8 @@
 | P1-2 | Sidebar | Seule la section « Notes » (avec compteur) est affichée ; les autres sont en phase 3. |
 | P1-3 | Barre de l'éditeur | DESIGN la cite sans la spécifier : 44 px, bouton de repli de la liste à gauche, menu `…` à droite. |
 | P1-4 | En-tête de liste | 52 px : titre de panneau « Notes » 17/700 + bouton de tri (menu radio). La date des cartes suit le tri (date de création si tri par création). |
-| P1-5 | Raccourcis colonnes | Ctrl+\ sidebar (DESIGN), **Ctrl+Shift+\ liste** (ajout). Touche physique : sur AZERTY, c'est la touche `*` / `µ` à gauche d'Entrée. |
-| P1-6 | Note sans titre | Fichier `Untitled.md`, titre affiché « Untitled » en `--text-3`. Nouvelle note = `# ` prêt à recevoir le titre. |
+| P1-5 | Raccourcis colonnes | Ctrl+\ sidebar (DESIGN), **Ctrl+Maj+\ liste** (ajout). Touche physique : sur AZERTY, c'est la touche `*` / `µ` à gauche d'Entrée. |
+| P1-6 | Note sans titre | Fichier `Sans titre.md` (`Untitled.md` en anglais), titre affiché « Sans titre » en `--text-3`. Nouvelle note = `# ` prêt à recevoir le titre. |
 | P1-7 | Encodage | Fichiers non UTF-8 ignorés (log) ; BOM UTF-8 retiré à la lecture et non réécrit. |
 | P1-8 | Sous-dossiers | Lus et surveillés ; les nouvelles notes sont créées à la racine du coffre. |
 | P1-9 | Notes archivées | Lues (`archived: true`) et exclues de « Notes », comme chez Bear. |
@@ -70,12 +100,25 @@
 | P1-14 | Icône | Originale : la Grande Ourse (Ursa Major) sur fond graphite, étoiles de pointage en corail (`design/app-icon.svg`). |
 | P1-15 | Fermeture de la recherche | Bouton effacer 22 px (DESIGN), icône 14 px (non spécifiée). |
 
+### Checklist de test manuel (phase 1, mise à jour)
+1. `npm install` puis `npm run tauri dev` : fenêtre sans barre Windows, **interface en français** ; déplacement, double-clic, Réduire/Agrandir/Fermer.
+2. Ctrl+N → `Sans titre.md` dans `Documents\Ursa` ; tape un titre, 2 s plus tard le fichier porte ce titre.
+3. **Caractères interdits** : titre `Réunion: équipe / Q4?` → `Réunion équipe Q4.md`.
+4. **Noms réservés** : titre `CON` → `CON_.md` ; titre `aux.txt` → `aux_.txt.md`.
+5. **Collision insensible à la casse** : deux notes intitulées `Plan` puis `PLAN` → `Plan.md` et `PLAN 2.md`. Change le 2e titre en `plan` → `plan 2.md` (simple changement de casse). Supprime `Plan.md` dans l'Explorateur puis modifie la 2e note → elle devient `plan.md`.
+6. **Points/espaces finaux et titre vide** : titre `Fin...` → `Fin.md` ; titre `...` → `Sans titre.md`. **Titre très long** (300 caractères) : nom tronqué, fichier créé sans erreur.
+7. **Fichier verrouillé** : ouvre une note dans Word (ou un autre programme qui verrouille), change son titre dans Ursa : aucune erreur affichée, le texte est sauvegardé, l'ancien nom est gardé ; ferme Word, modifie la note : le fichier est renommé.
+8. Modifie une note dans le Bloc-notes : mise à jour en direct. **Renomme un fichier dans l'Explorateur** : la note reste sélectionnée, pas de doublon. **Copie un fichier** dans l'Explorateur : 2 notes, la copie reçoit un nouvel `id`.
+9. Pendant que tu tapes, la liste ne clignote pas et aucune note n'apparaît en double lors des sauvegardes/renommages.
+10. Suppr sur une carte (ou clic droit › Placer dans la corbeille) : la note disparaît, le fichier contient `trashed:`. Tri, largeurs et repli des colonnes conservés après redémarrage.
+
 ### Écarts avec le design (phase 1)
 - **Pas de maquettes PNG** : comparaison faite uniquement avec DESIGN.md, via captures du frontend dans Chromium. À refaire quand les maquettes seront dans `design/`.
 - Titlebar en `--chrome-*` au lieu de `--text` / `--bg-sunken` (D10).
 - Scrollbar : le pouce s'élargit à 8 px au survol du pouce lui-même, pas de toute la zone de 10 px (limite de `::-webkit-scrollbar`).
 - Snap Layouts de Windows 11 absents au survol de « Agrandir » (limite Tauri, cf. risque 6).
 - Markdown brut dans l'éditeur (attendu : live preview en phase 2).
+- Libellés en français (« Nouvelle note », « Rechercher »…) au lieu de l'anglais de DESIGN.md, à ta demande ; la largeur du bouton principal varie donc avec la langue.
 
 ---
 
@@ -135,10 +178,10 @@ Idées en vrac #voyages/japon-2026
 ```
 
 - Frontmatter **minimal** : seules les clés non-défaut sont écrites (`pinned`, `archived`, `trashed`, `paper`, `margin`, puis `stickers` en ph. 8). `id` (UUID v7, triable) et `created` sont toujours présents dans les notes créées par l'app.
-- Une note externe sans frontmatter est lue telle quelle (identité = chemin) ; l'`id` n'est ajouté qu'à la première écriture par l'app.
+- Une note externe sans frontmatter est lue telle quelle, avec un `id` provisoire en mémoire ; cet `id` est écrit (en tête du frontmatter) à la première écriture par l'app. L'index est toujours indexé par `id`, jamais par chemin.
 - Clés inconnues **préservées** ; si aucune clé gérée ne change, le bloc frontmatter est réécrit à l'octet près.
 - **Modifié** = mtime du fichier (pas de clé `updated`, évite le bruit à chaque frappe).
-- **Titre** = 1re ligne non vide du corps, sans `#`. **Nom de fichier** = titre assaini pour Windows (`<>:"/\|?*`, noms réservés `CON`…, points/espaces finaux, ≤ 120 caractères), collision → ` (2)`. Renommage lors de la sauvegarde, au plus une fois toutes les ~2 s et au changement de note.
+- **Titre** = 1re ligne non vide du corps, sans `#`. **Nom de fichier** = titre assaini pour Windows (`<>:"/\|?*`, noms réservés `CON`…, points/espaces finaux, ≤ 120 caractères), collision insensible à la casse → ` 2`, ` 3`…, chemin < MAX_PATH. Renommage 2 s après la dernière frappe et au changement de note ; fichier verrouillé → ancien nom gardé, nouvelle tentative plus tard.
 - **Tags, liens, todos** : extraits du corps (style Bear), jamais stockés en frontmatter.
 - **Corbeille** : `trashed: <date>` dans le frontmatter (le fichier reste en place → liens et restauration triviaux). « Vider la corbeille » envoie les fichiers à la corbeille Windows (crate `trash`), jamais de suppression définitive directe.
 - Écriture **atomique** (fichier temporaire + rename) avec retry (verrous antivirus/indexeur Windows).

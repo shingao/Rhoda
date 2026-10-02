@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Copy, Minus, Square, X } from "lucide-react";
+import { useT } from "../../app/i18n";
 import { appWindow } from "../../services/appWindow";
 import s from "./WindowControls.module.css";
 
@@ -7,6 +8,7 @@ import s from "./WindowControls.module.css";
 export function WindowControls() {
   const [maximized, setMaximized] = useState(false);
   const [focused, setFocused] = useState(true);
+  const t = useT();
 
   useEffect(() => {
     let alive = true;
@@ -23,19 +25,19 @@ export function WindowControls() {
 
   return (
     <div className={[s.controls, !focused && s.inactive].filter(Boolean).join(" ")}>
-      <button type="button" className={s.button} aria-label="Minimize" tabIndex={-1} onClick={() => void appWindow.minimize()}>
+      <button type="button" className={s.button} aria-label={t.titlebar.minimize} tabIndex={-1} onClick={() => void appWindow.minimize()}>
         <Minus className={s.icon} aria-hidden />
       </button>
       <button
         type="button"
         className={s.button}
-        aria-label={maximized ? "Restore" : "Maximize"}
+        aria-label={maximized ? t.titlebar.restore : t.titlebar.maximize}
         tabIndex={-1}
         onClick={() => void appWindow.toggleMaximize()}
       >
         {maximized ? <Copy className={s.icon} aria-hidden /> : <Square className={s.icon} aria-hidden />}
       </button>
-      <button type="button" className={`${s.button} ${s.close}`} aria-label="Close" tabIndex={-1} onClick={() => void appWindow.close()}>
+      <button type="button" className={`${s.button} ${s.close}`} aria-label={t.titlebar.close} tabIndex={-1} onClick={() => void appWindow.close()}>
         <X className={s.icon} aria-hidden />
       </button>
     </div>
