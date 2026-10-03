@@ -20,6 +20,8 @@ export interface BackupInfo {
 export interface BackupContent {
   /** `manifest.json`; null for backups made before it existed. */
   manifest: string | null;
+  /** `tags.json` before a tag rename or removal. */
+  tags: string | null;
   files: NoteFile[];
 }
 
@@ -41,7 +43,8 @@ export const vaultApi = {
   restore: (name: string, items: RestoreItem[]) => invoke<NoteFile[]>("restore_backup", { name, items }),
   listBackups: () => invoke<BackupInfo[]>("list_backups"),
   readBackup: (name: string) => invoke<BackupContent>("read_backup", { name }),
-  writeBackupManifest: (name: string, content: string) => invoke<void>("write_backup_manifest", { name, content }),
+  /** `manifest.json` or `tags.json` next to the copies. */
+  writeBackupFile: (name: string, file: "manifest.json" | "tags.json", content: string) => invoke<void>("write_backup_file", { name, file, content }),
   /** Native folder picker; null if cancelled. */
   pickFolder: (title: string, current: string | null) => invoke<string | null>("pick_vault_folder", { title, current }),
   /** Removes backups whose name sorts before `before` (a file stamp). */

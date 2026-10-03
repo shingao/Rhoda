@@ -1,4 +1,5 @@
 import { useT } from "../../app/i18n";
+import { shortcutLabel } from "../../app/shortcuts";
 import { updateSettings, useApp } from "../../app/store";
 import { Select } from "../../components/Select";
 import { Slider } from "../../components/Slider";
@@ -54,6 +55,8 @@ export function EditorPage() {
       </Field>
 
       <Toggle checked={e.headingMarkers} onChange={(headingMarkers) => setEditor({ headingMarkers })} label={t.settings.headingMarkers} hint={t.settings.headingMarkersHint} />
+
+      <Toggle checked={e.focusDim} onChange={(focusDim) => setEditor({ focusDim })} label={t.settings.focusDim} hint={t.settings.focusDimHint(shortcutLabel("focus.toggle", t))} />
 
       <Field label={t.settings.paper} hint={t.settings.paperHint}>
         <div className={s.paperRow}>

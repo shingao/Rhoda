@@ -33,33 +33,29 @@ function moveConfig(oldKey: string, newKey: string | null): void {
 
 /**
  * Renames `#old` (and `#old/…`) to `newName` in every note, after a safety copy
- * (rejects with BackupFailedError if it fails). Undo also moves the settings back.
+ * (rejects with BackupFailedError if it fails). Undo (toast or Settings › Backups)
+ * also puts the tag settings back, from the backup's tags.json.
  */
 export async function renameTag(oldKey: string, newName: string): Promise<BulkResult> {
   const name = cleanTagName(newName);
   if (!name) return { count: 0, backup: null };
   const newKey = tagKey(name);
-  const result = await rewriteNotes(
-    "rename-tag",
-    hasTag(oldKey),
-    (text) => tagRenameChanges(text, oldKey, name),
-    () => moveConfig(newKey, oldKey),
-  );
+  const result = await rewriteNotes("rename-tag", hasTag(oldKey), (text) => tagRenameChanges(text, oldKey, name), {
+    scopes: [oldKey, newKey],
+    snapshot: getState().tagConfig,
+  });
   moveConfig(oldKey, newKey);
   const { filter } = getState();
   if (filter.kind === "tag" && isTagWithin(filter.key, oldKey)) setFilter({ kind: "tag", key: newKey + filter.key.slice(oldKey.length) });
   return result;
 }
 
-/** Removes `#tag` (and `#tag/…`) from every note; the text around it stays. Undo restores its settings. */
+/** Removes `#tag` (and `#tag/…`) from every note; the text around it stays. Undo restores its settings too. */
 export async function deleteTag(key: string): Promise<BulkResult> {
-  const saved = Object.fromEntries(Object.entries(getState().tagConfig).filter(([k]) => isTagWithin(k, key)));
-  const result = await rewriteNotes(
-    "delete-tag",
-    hasTag(key),
-    (text) => tagRemoveChanges(text, key),
-    () => setState((s) => ({ tagConfig: { ...s.tagConfig, ...saved } })),
-  );
+  const result = await rewriteNotes("delete-tag", hasTag(key), (text) => tagRemoveChanges(text, key), {
+    scopes: [key],
+    snapshot: getState().tagConfig,
+  });
   moveConfig(key, null);
   const { filter } = getState();
   if (filter.kind === "tag" && isTagWithin(filter.key, key)) setFilter({ kind: "section", section: "notes" });

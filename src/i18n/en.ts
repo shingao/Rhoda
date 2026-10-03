@@ -266,6 +266,8 @@ export const en: Messages = {
     wide: (n: number) => `Wide · ${n}`,
     headingMarkers: "Heading markers in margin",
     headingMarkersHint: "Shows H1–H6 next to titles.",
+    focusDim: "Fade other paragraphs in focus mode",
+    focusDimHint: (key: string) => `Only the current paragraph stays in full ink (focus mode: ${key}).`,
     paper: "Default page background",
     paperHint: "For notes without their own. Each note can change it from the editor's … menu.",
   },

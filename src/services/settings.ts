@@ -48,6 +48,8 @@ export interface EditorSettings {
   /** Default page background of notes without their own [DESIGN §7]. */
   paper: Paper;
   margin: boolean;
+  /** Focus mode fades the paragraphs other than the current one (maquette 03). */
+  focusDim: boolean;
   /** Link preview cards (phase 7): the only network request of the app. */
   linkPreviews: boolean;
 }
@@ -68,6 +70,7 @@ export const DEFAULT_SETTINGS: Settings = {
     headingMarkers: true,
     paper: "plain",
     margin: false,
+    focusDim: true,
     linkPreviews: true,
   },
   layout: { sidebarWidth: null, listWidth: null, sidebarCollapsed: false, listCollapsed: false, outlineOpen: false },

@@ -12,7 +12,7 @@ const fake = vi.hoisted(() => {
   const state = { clock: 1000, touched: [] as string[], lockWrites: false, lockRenames: false, failBackups: false };
   /** `.ursa/backups/<name>/`: path → content at backup time. */
   const backups = new Map<string, Map<string, string>>();
-  /** `manifest.json` of each backup. */
+  /** `manifest.json` / `tags.json` of each backup, keyed `<name>/<file>`. */
   const manifests = new Map<string, string>();
   const file = (path: string) => ({ path, ...files.get(path)! });
   const taken = (name: string, except?: string) =>
@@ -65,10 +65,11 @@ const fake = vi.hoisted(() => {
     },
     listBackups: async () => [...backups].map(([name, copies]) => ({ name, notes: copies.size })).sort((a, b) => b.name.localeCompare(a.name)),
     readBackup: async (name: string) => ({
-      manifest: manifests.get(name) ?? null,
+      manifest: manifests.get(`${name}/manifest.json`) ?? null,
+      tags: manifests.get(`${name}/tags.json`) ?? null,
       files: [...backups.get(name)!].map(([path, content]) => ({ path, content, mtime: 0, created: 0 })),
     }),
-    writeBackupManifest: async (name: string, content: string) => void manifests.set(name, content),
+    writeBackupFile: async (name: string, file: string, content: string) => void manifests.set(`${name}/${file}`, content),
     readInternal: async () => null,
     writeInternal: async () => undefined,
     rename: async (from: string, stem: string) => {
@@ -121,7 +122,7 @@ const {
   undoBulk,
   unsavedNotes,
 } = await import("./notes");
-const { deleteTag, notesWithTag, renameTag } = await import("./tagOps");
+const { deleteTag, notesWithTag, renameTag, updateTagSettings } = await import("./tagOps");
 const { getState, setState, useApp } = await import("./store");
 const session = await import("../editor/session");
 
@@ -543,10 +544,24 @@ describe("safety backups before bulk operations", () => {
     // As after a restart: only the files and their manifest are left.
     const copy = "2026-10-02_09-00-00-rename-tag";
     fake.backups.set(copy, fake.backups.get(backup!)!);
-    fake.manifests.set(copy, fake.manifests.get(backup!)!);
+    fake.manifests.set(`${copy}/manifest.json`, fake.manifests.get(`${backup!}/manifest.json`)!);
     expect(await restoreBackup(copy, false)).toEqual({ kind: "restored", count: 2, backup: expect.stringMatching(/-restore$/) });
     expect([content("1.md"), content("2.md")]).toEqual(before);
     expect(getState().notes.n1!.syntax!.tags.map((t) => t.name)).toContain("voyages/japon");
+  });
+
+  it("restores tag settings from Settings exactly like Undo, after a restart too", async () => {
+    setState({ tagConfig: { voyages: { icon: "plane" }, "voyages/japon": { color: 3 }, maison: { icon: "house" } } });
+    const { backup } = await renameTag("voyages", "trips");
+    expect(getState().tagConfig.trips?.icon).toBe("plane");
+    // As after a restart: the copies, manifest.json and tags.json only.
+    const copy = "2026-10-02_09-00-00-rename-tag";
+    fake.backups.set(copy, fake.backups.get(backup!)!);
+    for (const f of ["manifest.json", "tags.json"]) fake.manifests.set(`${copy}/${f}`, fake.manifests.get(`${backup!}/${f}`)!);
+    expect(JSON.parse(fake.manifests.get(`${copy}/tags.json`)!).tags.voyages.icon).toBe("plane");
+    updateTagSettings("maison", { icon: "home" });
+    expect(await restoreBackup(copy, false)).toMatchObject({ kind: "restored" });
+    expect(getState().tagConfig).toEqual({ voyages: { icon: "plane" }, "voyages/japon": { color: 3 }, maison: { icon: "home" } });
   });
 
   it("asks before restoring over notes edited since, and keeps a copy of them", async () => {
@@ -566,7 +581,7 @@ describe("safety backups before bulk operations", () => {
 
   it("restores a deleted note and an old backup without manifest (after confirmation)", async () => {
     const { backup } = await deleteNotes(["n3"]);
-    fake.manifests.delete(backup!);
+    fake.manifests.delete(`${backup!}/manifest.json`);
     const copy = "2026-09-01_09-00-00-delete-notes";
     fake.backups.set(copy, fake.backups.get(backup!)!);
     // Without manifest nothing can be checked: always ask.

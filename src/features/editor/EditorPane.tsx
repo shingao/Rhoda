@@ -67,7 +67,8 @@ export function EditorPane() {
   }, []);
 
   useEffect(() => setEditorOption(typewriterCompartment, typewriter(typewriterOn)), [typewriterOn]);
-  useEffect(() => setEditorOption(focusDimCompartment, focusDim(focusMode)), [focusMode]);
+  const dimOn = focusMode && defaults.focusDim;
+  useEffect(() => setEditorOption(focusDimCompartment, focusDim(dimOn)), [dimOn]);
 
   const edited = mtime !== undefined ? relativeDate(mtime, now, t.dates) : null;
 

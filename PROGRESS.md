@@ -10,7 +10,7 @@
 | 3 | Tags, liens, todos, sections | ✅ validée |
 | 4 | Sommaire, folding, focus de section | ✅ validée |
 | 5 | Recherche | ✅ validée |
-| 6 | Thèmes, fonds de page, rythme, réglages | ✅ fait (à valider sur Windows) |
+| 6 | Thèmes, fonds de page, rythme, réglages | ✅ validée |
 | 7 | Images, aperçus de liens, PDF | — |
 | 8 | Stickers et post-it | — |
 | 9 | OCR local | — |
@@ -486,12 +486,16 @@ Livrée en sous-étapes : 6a thèmes, 6b rythme vertical, 6c fonds de page, 6d r
 | P6-8 | Vignettes du sélecteur | Motifs dessinés à 40 % et marge rouge visible quand elle est active (la maquette n'en montre pas). |
 | P6-9 | Mode machine à écrire | Espace haut et bas arrondi à un multiple de 28 pour que les lignes restent sur les réglures. |
 | P6-10 | Accès aux réglages | Ctrl+, (titre de la maquette 09) et … › Réglages… ; pages Général, Éditeur, Sauvegardes ; Raccourcis, Import et À propos de la maquette arrivent en phase 10. |
-| P6-11 | Restauration d'une sauvegarde | Vérification par `manifest.json` (empreinte non cryptographique du texte, pas le texte). Sauvegardes de la phase 4 sans manifeste : impossible de vérifier, donc toujours une confirmation. Une note recréée par une restauration reste si on annule celle-ci ; les réglages de tag (icône, couleur) ne sont rétablis que par l'« Annuler » du toast, pas depuis les réglages. |
+| P6-11 | Restauration d'une sauvegarde | Vérification par `manifest.json` (empreinte non cryptographique du texte, pas le texte). Sauvegardes de la phase 4 sans manifeste : impossible de vérifier, donc toujours une confirmation. Une note recréée par une restauration reste si on annule celle-ci. ~~Les réglages de tag ne sont rétablis que par « Annuler »~~ → corrigé à la validation (voir ci-dessous). |
 | P6-12 | Changement de dossier | Les sauvegardes et l'historique d'annulation sont propres à chaque dossier. Aucun changement si une note n'a pas pu être enregistrée. |
-| P6-13 | Mode focus | F11 en plus de Ctrl+Maj+F (maquette) ; non mémorisé au redémarrage ; paragraphes non courants à 40 % d'opacité, titres et paragraphe en cours en pleine encre. |
+| P6-13 | Mode focus | F11 en plus de Ctrl+Maj+F (maquette) ; non mémorisé au redémarrage ; paragraphes non courants à 40 % d'opacité, titres et paragraphe en cours en pleine encre — réglable (voir ci-dessous). |
 | P6-14 | Comptages | Calculés sur le texte enregistré : en mode focus, le compteur se met à jour à chaque sauvegarde automatique (0,5 s après une pause de frappe). |
 | P6-15 | Dialogues | L'app est inerte derrière une modale ; le toast est rendu au-dessus, pour que « Annuler » reste cliquable pendant que les réglages sont ouverts. |
 | P6-16 | Aperçus de liens | Réglage enregistré dès maintenant, utilisé en phase 7. |
+
+### Ajustements après validation
+- **« Restaurer » = « Annuler »** : les sauvegardes de renommage et de suppression de tag contiennent `tags.json` (réglages avant l'opération) et le manifeste liste les tags concernés (ancien et nouveau nom). Le toast et Réglages › Sauvegardes rétablissent l'icône, la couleur, l'épingle et le repli de ces tags de la même façon (`restoreTagScopes`, testé), y compris après un redémarrage ; les réglages des autres tags ne bougent pas.
+- **Estompage en mode focus** : option Réglages › Éditeur « Estomper les autres paragraphes en mode focus », activée par défaut.
 
 ### Comparaison avec les maquettes
 - **Réglages (09)** — conforme : fenêtre 860×660, navigation 200 px sur `--bg-1` (item actif blanc + ombre, icône accent), champ du dossier en mono + « Changer… » et nombre de notes, cartes de palette avec miniature et double anneau, police (select) et taille (stepper) côte à côte, curseur de largeur avec « Étroite · 560 / Large · 860 » et la valeur, interrupteur des marqueurs. Écarts : P6-1 (mode + deux rangées), P6-10 (pages), pages et réglages en plus (Sauvegardes, aperçus de liens, fond par défaut).

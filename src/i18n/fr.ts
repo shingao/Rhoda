@@ -275,6 +275,8 @@ export const fr = {
     wide: (n: number) => `Large · ${n}`,
     headingMarkers: "Marqueurs de titre dans la marge",
     headingMarkersHint: "Affiche H1–H6 à côté des titres.",
+    focusDim: "Estomper les autres paragraphes en mode focus",
+    focusDimHint: (key: string) => `Seul le paragraphe en cours reste en pleine encre (mode focus : ${key}).`,
     paper: "Fond de page par défaut",
     paperHint: "Pour les notes sans fond choisi. Chaque note peut changer le sien depuis le menu … de l'éditeur.",
   },

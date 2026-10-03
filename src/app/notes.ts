@@ -16,12 +16,13 @@ import {
   type Paper,
 } from "../core/note/note";
 import { applyChanges, wikiLinkRenameChanges, type TextChange } from "../core/rewrite";
+import { restoreTagScopes } from "../core/tags";
 import { editorText, focusEditor, forgetNote, replaceFromDisk, rewriteInEditor, showNote } from "../editor/session";
 import { errorKind } from "../services/errors";
 import { vaultApi } from "../services/vault";
 import { currentMessages } from "./i18n";
 import type { ListFilter } from "./sections";
-import { currentList, getState, putNote, removeNotes, setSaveError, setState, showToast, type ToastAction } from "./store";
+import { currentList, getState, putNote, removeNotes, setSaveError, setState, showToast, type TagSettings, type ToastAction } from "./store";
 
 /**
  * Note lifecycle: autosave, rename-from-title, create, trash and reconciliation
@@ -149,13 +150,22 @@ interface UndoItem {
    */
   expected?: string | null;
 }
+/**
+ * Tag settings an operation changes (rename, removal): their state before it,
+ * saved as the backup's `tags.json`, and the tags affected (old and new names).
+ */
+export interface TagUndo {
+  scopes: string[];
+  snapshot: Record<string, TagSettings>;
+}
 interface UndoRecord {
   items: UndoItem[];
-  onUndone?: () => void;
+  tags?: TagUndo;
 }
 interface Manifest {
   version: 1;
   items: UndoItem[];
+  tagScopes?: string[];
 }
 const undoRecords = new Map<string, UndoRecord>();
 
@@ -196,8 +206,17 @@ function remember(name: string, record: UndoRecord): void {
     if (undoRecords.size <= UNDO_LIMIT) break;
     undoRecords.delete(key);
   }
-  const manifest: Manifest = { version: 1, items: record.items };
-  void vaultApi.writeBackupManifest(name, JSON.stringify(manifest)).catch((e: unknown) => console.warn("[ursa] backup manifest not written", name, e));
+  const manifest: Manifest = { version: 1, items: record.items, ...(record.tags && { tagScopes: record.tags.scopes }) };
+  const write = (file: "manifest.json" | "tags.json", content: unknown) =>
+    vaultApi.writeBackupFile(name, file, JSON.stringify(content)).catch((e: unknown) => console.warn("[ursa] backup file not written", name, file, e));
+  void write("manifest.json", manifest);
+  if (record.tags) void write("tags.json", { version: 1, tags: record.tags.snapshot });
+}
+
+/** Tag settings back as they were before the operation (Undo and Settings › Restore alike). */
+function restoreTags(tags: TagUndo | undefined): void {
+  if (!tags) return;
+  setState((s) => ({ tagConfig: restoreTagScopes(s.tagConfig, tags.snapshot, tags.scopes) }));
 }
 
 /** Expected state of a note after the operation, for `UndoItem.expected`. */
@@ -226,18 +245,30 @@ function parseManifest(text: string | null): UndoItem[] | null {
   }
 }
 
-/** The notes of a backup: from memory, its manifest, or (older backups) the ids inside the copies. */
-async function backupItems(name: string): Promise<UndoItem[]> {
+function parseTagUndo(manifest: string | null, tags: string | null): TagUndo | undefined {
+  try {
+    const scopes = manifest ? (JSON.parse(manifest) as Partial<Manifest>).tagScopes : undefined;
+    const snapshot = tags ? (JSON.parse(tags) as { tags?: unknown }).tags : undefined;
+    if (!Array.isArray(scopes) || !scopes.every((s) => typeof s === "string")) return undefined;
+    if (!snapshot || typeof snapshot !== "object") return undefined;
+    return { scopes, snapshot: snapshot as Record<string, TagSettings> };
+  } catch {
+    return undefined;
+  }
+}
+
+/** What a backup restores: from memory, its manifest (+ tags.json), or (older backups) the ids inside the copies. */
+async function backupRecord(name: string): Promise<UndoRecord> {
   const kept = undoRecords.get(name);
-  if (kept) return kept.items;
-  const { manifest, files } = await vaultApi.readBackup(name);
-  return (
+  if (kept) return kept;
+  const { manifest, tags, files } = await vaultApi.readBackup(name);
+  const items =
     parseManifest(manifest) ??
     files.map((file) => {
       const note = noteFromFile(file);
       return { id: note.id, from: file.path, title: note.title };
-    })
-  );
+    });
+  return { items, tags: parseTagUndo(manifest, tags) };
 }
 
 /** Writes the copies back and updates the index and the editor. Runs inside the queue. */
@@ -277,7 +308,7 @@ export function undoBulk(name: string): Promise<UndoResult> {
       return "failed";
     }
     undoRecords.delete(name);
-    record.onUndone?.();
+    restoreTags(record.tags);
     return "undone";
   });
 }
@@ -326,13 +357,14 @@ export type RestoreResult =
  */
 export function restoreBackup(name: string, force: boolean): Promise<RestoreResult> {
   return enqueue(async (): Promise<RestoreResult> => {
-    let items: UndoItem[];
+    let record: UndoRecord;
     try {
-      items = await backupItems(name);
+      record = await backupRecord(name);
     } catch (e) {
       console.warn("[ursa] backup unreadable", name, e);
       return { kind: "failed" };
     }
+    const { items } = record;
     const changed = items.filter((item) => !untouchedSince(item));
     if (changed.length && !force) {
       return { kind: "changed", titles: changed.map((item) => noteById(item.id)?.title ?? item.title ?? stemOf(item.from)) };
@@ -340,6 +372,7 @@ export function restoreBackup(name: string, force: boolean): Promise<RestoreResu
     const existing = items.filter((item) => noteById(item.id)).map((item) => item.id);
     const safety = existing.length ? await backupBefore("restore", existing) : null;
     const before = new Map(existing.map((id) => [id, noteById(id)!.path]));
+    const tagsBefore = record.tags && { scopes: record.tags.scopes, snapshot: getState().tagConfig };
     let restored: Note[];
     try {
       restored = await restoreItems(name, items);
@@ -347,9 +380,10 @@ export function restoreBackup(name: string, force: boolean): Promise<RestoreResu
       console.warn("[ursa] restore failed", name, e);
       return { kind: "failed" };
     }
+    restoreTags(record.tags);
     if (safety) {
       const undo = restored.filter((n) => before.has(n.id)).map((n) => ({ id: n.id, from: before.get(n.id)!, title: n.title, expected: afterOperation(n.body) }));
-      remember(safety, { items: undo });
+      remember(safety, { items: undo, tags: tagsBefore });
     }
     undoRecords.delete(name);
     return { kind: "restored", count: restored.length, backup: safety };
@@ -381,7 +415,7 @@ export interface BulkResult {
  * The open note is changed through an editor transaction, so Ctrl+Z undoes it;
  * other notes are written directly. Runs inside the queue.
  */
-async function applyRewrites(op: BulkOperation, changesById: Map<string, TextChange[]>, onUndone?: () => void): Promise<BulkResult> {
+async function applyRewrites(op: BulkOperation, changesById: Map<string, TextChange[]>, tags?: TagUndo): Promise<BulkResult> {
   const ids = [...changesById].filter(([id, c]) => c.length > 0 && noteById(id)).map(([id]) => id);
   if (ids.length === 0) return { count: 0, backup: null };
   const backup = await backupBefore(op, ids);
@@ -403,7 +437,7 @@ async function applyRewrites(op: BulkOperation, changesById: Map<string, TextCha
       console.warn("[ursa] rewrite saved later", note.path, e);
     }
   }
-  remember(backup, { items, onUndone });
+  remember(backup, { items, tags });
   return { count: ids.length, backup };
 }
 
@@ -419,7 +453,7 @@ export function rewriteNotes(
   op: BulkOperation,
   indexed: (note: Note) => boolean,
   compute: (text: string) => TextChange[],
-  onUndone?: () => void,
+  tags?: TagUndo,
 ): Promise<BulkResult> {
   return enqueue(async () => {
     const changes = new Map<string, TextChange[]>();
@@ -427,7 +461,7 @@ export function rewriteNotes(
       const c = compute(currentText(note.id));
       if (c.length) changes.set(note.id, c);
     }
-    return applyRewrites(op, changes, onUndone);
+    return applyRewrites(op, changes, tags);
   });
 }
 

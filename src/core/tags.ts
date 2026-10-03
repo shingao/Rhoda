@@ -69,6 +69,20 @@ export function isTagWithin(key: string, ancestor: string): boolean {
   return key === ancestor || key.startsWith(`${ancestor}/`);
 }
 
+/**
+ * Puts the settings of the tags within `scopes` (and their sub-tags) back to
+ * what they were in `snapshot`; other tags keep their current settings.
+ * Undoing a rename uses the old and new names as scopes: the old settings come
+ * back, the new name loses its own.
+ */
+export function restoreTagScopes<T>(current: Record<string, T>, snapshot: Record<string, T>, scopes: readonly string[]): Record<string, T> {
+  const affected = (key: string) => scopes.some((scope) => isTagWithin(key, scope));
+  const next: Record<string, T> = {};
+  for (const [key, value] of Object.entries(current)) if (!affected(key)) next[key] = value;
+  for (const [key, value] of Object.entries(snapshot)) if (affected(key)) next[key] = value;
+  return next;
+}
+
 /** Text of a tag as it must be written: `#name`, or `#name with spaces#`. */
 export function formatTag(name: string): string {
   return /\s/.test(name) ? `#${name}#` : `#${name}`;

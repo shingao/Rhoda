@@ -123,12 +123,13 @@ export function installDevMock(): void {
         const copies = backups.get(args.name!);
         if (!copies) throw { kind: "notFound", message: `No backup named ${args.name}` };
         return {
-          manifest: manifests.get(`${vaultPath}|${args.name}`) ?? null,
+          manifest: manifests.get(`${vaultPath}|${args.name}/manifest.json`) ?? null,
+          tags: manifests.get(`${vaultPath}|${args.name}/tags.json`) ?? null,
           files: [...copies].map(([path, content]) => ({ path, content, mtime: 0, created: 0 })),
         };
       }
-      case "write_backup_manifest":
-        manifests.set(`${vaultPath}|${args.name}`, args.content!);
+      case "write_backup_file":
+        manifests.set(`${vaultPath}|${args.name}/${args.file}`, args.content!);
         return null;
       case "read_note":
         return files.has(args.path!) ? toFile(args.path!) : null;

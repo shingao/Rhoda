@@ -53,7 +53,7 @@ pub fn run() {
             snapshots::purge_backups,
             snapshots::list_backups,
             snapshots::read_backup,
-            snapshots::write_backup_manifest,
+            snapshots::write_backup_file,
             vault::pick_vault_folder,
         ])
         .run(tauri::generate_context!())

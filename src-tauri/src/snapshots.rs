@@ -18,6 +18,8 @@ use crate::vault::{atomic_write, current_root, read_note_file, resolve, scan_dir
 
 const BACKUPS_DIR: &str = "backups";
 const MANIFEST: &str = "manifest.json";
+/// Tag settings at backup time, for operations that change them.
+const TAGS: &str = "tags.json";
 
 fn backups_root(root: &Path) -> PathBuf {
     root.join(INTERNAL_DIR).join(BACKUPS_DIR)
@@ -138,6 +140,8 @@ pub(crate) fn list(root: &Path) -> io::Result<Vec<BackupInfo>> {
 pub struct BackupContent {
     /// `manifest.json`, absent for backups made before it existed.
     pub manifest: Option<String>,
+    /// `tags.json` as it was before a tag rename or removal.
+    pub tags: Option<String>,
     /// The copies, with paths relative to the backup folder (= vault paths at backup time).
     pub files: Vec<NoteFile>,
 }
@@ -148,23 +152,29 @@ pub(crate) fn read(root: &Path, name: &str) -> CmdResult<BackupContent> {
     if !dir.is_dir() {
         return Err(CmdError::new(ErrorKind::NotFound, format!("No backup named {name}")));
     }
-    let manifest = match fs::read_to_string(dir.join(MANIFEST)) {
-        Ok(text) => Some(text),
-        Err(e) if e.kind() == io::ErrorKind::NotFound => None,
-        Err(e) => return Err(e.into()),
+    let optional = |file: &str| -> CmdResult<Option<String>> {
+        match fs::read_to_string(dir.join(file)) {
+            Ok(text) => Ok(Some(text)),
+            Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(None),
+            Err(e) => Err(e.into()),
+        }
     };
     let mut files = Vec::new();
     scan_dir(&dir, &dir, &mut files);
-    Ok(BackupContent { manifest, files })
+    Ok(BackupContent { manifest: optional(MANIFEST)?, tags: optional(TAGS)?, files })
 }
 
-pub(crate) fn write_manifest(root: &Path, name: &str, content: &str) -> CmdResult<()> {
+/// Writes `manifest.json` or `tags.json` next to the copies (no other name is accepted).
+pub(crate) fn write_file(root: &Path, name: &str, file: &str, content: &str) -> CmdResult<()> {
     validate_name(name)?;
+    if file != MANIFEST && file != TAGS {
+        return Err(CmdError::new(ErrorKind::InvalidName, format!("Invalid backup file: {file}")));
+    }
     let dir = backups_root(root).join(name);
     if !dir.is_dir() {
         return Err(CmdError::new(ErrorKind::NotFound, format!("No backup named {name}")));
     }
-    Ok(atomic_write(&dir.join(MANIFEST), content)?)
+    Ok(atomic_write(&dir.join(file), content)?)
 }
 
 #[tauri::command]
@@ -178,8 +188,8 @@ pub async fn read_backup(state: State<'_, VaultState>, name: String) -> CmdResul
 }
 
 #[tauri::command]
-pub async fn write_backup_manifest(state: State<'_, VaultState>, name: String, content: String) -> CmdResult<()> {
-    write_manifest(&current_root(&state)?, &name, &content)
+pub async fn write_backup_file(state: State<'_, VaultState>, name: String, file: String, content: String) -> CmdResult<()> {
+    write_file(&current_root(&state)?, &name, &file, &content)
 }
 
 #[tauri::command]
@@ -257,7 +267,10 @@ mod tests {
         let v = vault();
         let old = backup_files(v.path(), "2026-09-01_10-00-00-delete-tag", &["a.md".into()]).unwrap();
         let new = backup_files(v.path(), "2026-10-01_10-00-00-rename-tag", &["a.md".into(), "sub/b.md".into()]).unwrap();
-        write_manifest(v.path(), &new, r#"{"version":1}"#).unwrap();
+        write_file(v.path(), &new, "manifest.json", r#"{"version":1}"#).unwrap();
+        write_file(v.path(), &new, "tags.json", r#"{"voyages":{}}"#).unwrap();
+        assert!(write_file(v.path(), &new, "a.md", "x").is_err());
+        assert!(write_file(v.path(), &new, "../x.json", "x").is_err());
         fs::create_dir_all(backups_root(v.path()).join(".hidden")).unwrap();
 
         let listed: Vec<(String, usize)> = list(v.path()).unwrap().into_iter().map(|b| (b.name, b.notes)).collect();
@@ -265,12 +278,13 @@ mod tests {
 
         let content = read(v.path(), &new).unwrap();
         assert_eq!(content.manifest.as_deref(), Some(r#"{"version":1}"#));
+        assert_eq!(content.tags.as_deref(), Some(r#"{"voyages":{}}"#));
         let mut paths: Vec<&str> = content.files.iter().map(|f| f.path.as_str()).collect();
         paths.sort();
         assert_eq!(paths, ["a.md", "sub/b.md"]);
         assert!(read(v.path(), &old).unwrap().manifest.is_none());
         assert!(read(v.path(), "missing").is_err());
-        assert!(write_manifest(v.path(), "missing", "{}").is_err());
+        assert!(write_file(v.path(), "missing", "manifest.json", "{}").is_err());
     }
 
     #[test]
