@@ -9,8 +9,8 @@
 | 2 | Éditeur Markdown live | ✅ validée |
 | 3 | Tags, liens, todos, sections | ✅ validée |
 | 4 | Sommaire, folding, focus de section | ✅ validée |
-| 5 | Recherche | ✅ fait (à valider sur Windows) |
-| 6 | Thèmes, fonds de page, rythme, réglages | ⏳ en attente du go (+ section « Sauvegardes », voir phase 5) |
+| 5 | Recherche | ✅ validée |
+| 6 | Thèmes, fonds de page, rythme, réglages | ✅ fait (à valider sur Windows) |
 | 7 | Images, aperçus de liens, PDF | — |
 | 8 | Stickers et post-it | — |
 | 9 | OCR local | — |
@@ -432,7 +432,7 @@ Livrée en sous-étapes : 5a moteur (cœur testé, banc de 1 000 notes), 5b inte
 - Les jetons apparaissent au moment où on tape l'espace qui suit l'opérateur ; un opérateur tapé au milieu du texte puis complété devient aussi un jeton, en fin de liste des jetons.
 
 ### À faire en phase 6 (demandé à la validation de la phase 4)
-- Réglages › **Sauvegardes** : liste des dossiers de `.ursa/backups/` (date, opération, nombre de notes) avec un bouton « Restaurer » : même vérification qu'« Annuler », et confirmation si des notes ont été modifiées depuis.
+- ~~Réglages › **Sauvegardes**~~ : fait en phase 6 (6d).
 
 ### Checklist de test manuel (phase 5)
 1. Ctrl+K, tape `kyoto` : la liste devient « Résultats », les cartes montrent un extrait avec « Kyoto » surligné ; les notes dont le titre contient le mot sont en tête.
@@ -445,6 +445,71 @@ Livrée en sous-étapes : 5a moteur (cœur testé, banc de 1 000 notes), 5b inte
 8. Cherche `zzzz` : message clair et bouton « Créer la note « zzzz » ».
 9. Dans une note : Ctrl+F, tape `KYOTO` → « 1 / 4 », Entrée / Maj+Entrée ; Ctrl+H, remplace une occurrence, puis « Tout remplacer » ; un seul Ctrl+Z dans l'éditeur annule tout le remplacement.
 10. Performances : copie 1 000 notes dans le dossier (ou plus), tape dans la recherche : la saisie reste fluide.
+
+## Phase 6 — Thèmes, fonds de page, rythme vertical, réglages
+
+Livrée en sous-étapes : 6a thèmes, 6b rythme vertical, 6c fonds de page, 6d réglages (dossier, sauvegardes), 6e mode focus et infos.
+
+### Fait
+- **Thèmes** (6a) : 4 palettes claires (coral, sage, ink, kraft) et 2 sombres (graphite, blue), tokens repris tels quels. Réglage du **mode Clair / Sombre / Système** + **palette claire** + **palette sombre** ; en mode Système, l'app suit Windows en direct (`prefers-color-scheme`).
+  - **Pas de flash au démarrage** : `public/theme-boot.js` s'exécute avant les styles et pose le thème mis en cache (`localStorage` `ursa-theme`) ; la fenêtre Tauri est créée cachée et affichée par l'interface une fois le thème appliqué (filet de sécurité côté Rust à 3 s) ; la couleur de fond de la fenêtre et de la WebView suit `--bg-0` du thème.
+  - Police d'édition (sans / serif), taille (14 à 20 px par 0,5), largeur de colonne (560 à 860 par 20), marqueurs de titre : appliqués en direct par variables CSS.
+- **Rythme vertical** (6b) : sur fond ligné, le haut de chaque ligne de texte tombe sur un multiple de `--rhythm` (28 px), pour les **deux polices** et **toutes les tailles** de 14 à 20 px :
+  - blocs de code (lignes mono de 22 px) : hauteur totale, padding compris, **arrondie au multiple de 28 supérieur** (hauteurs mesurées dans le navigateur, la ligne de clôture prend le complément) ;
+  - citations (cadre = lignes de texte), séparateurs, listes imbriquées, pastilles de tag (22 px centrées dans la ligne), panneau des rétroliens (en unités de rythme), titres H1–H6 et Setext ; les éléments en ligne (gras, code, liens, emoji) ne changent plus la hauteur de ligne ; les images (phase 7) suivront la même règle ;
+  - note de test **`samples/Rythme vertical.md`** (tous les types de blocs, fond ligné + marge) ;
+  - **test automatique** `npm run test:rhythm` (`scripts/check-rhythm.mjs`, Playwright) : 2 polices × 13 tailles = 26 passes ; vérifie que chaque ligne commence sur un multiple de 28 **à partir de l'origine du fond de page** (donc sur les réglures), que chaque ligne mesure un multiple de 28 et que chaque bloc (code, citation) a une hauteur multiple de 28. 26/26 (64 lignes, 5 blocs, rétroliens). Un décalage volontaire de 1 px est bien détecté.
+- **Fonds de page** (6c) : **uni / lignes / quadrillage / pointillés + marge rouge**, par note dans le frontmatter (`paper: lined`, `margin: true`) et **par défaut dans les réglages** pour les notes sans réglage propre. Changement depuis **… › Fond de page…** (popover de 4 vignettes + interrupteur « Marge rouge », DESIGN §7). Le motif défile avec le texte ; la **marge rouge suit la colonne** (36 px à gauche du texte) quand on change sa largeur ou que le sommaire décale la colonne.
+- **Réglages** (6d), Ctrl+, ou … › Réglages… (maquette 09) :
+  - **Général** : dossier des notes (chemin, nombre de notes, « Changer… »), thème, palettes claire et sombre (cartes d'aperçu dessinées avec les couleurs de chaque palette), aperçus de liens on/off ;
+  - **Éditeur** : police, taille, largeur de colonne (curseur), marqueurs de titre, fond de page par défaut et marge rouge ;
+  - **Sauvegardes** : liste de `.ursa/backups/` (opération, date, nombre de notes) avec « Restaurer » ;
+  - tout s'applique **en direct, sans redémarrage** ; nouveaux composants : Dialog, Segmented, Stepper, Slider, Select, Toggle.
+- **Changement de dossier des notes** : sélecteur de dossier natif, puis **rechargement propre** : tout est enregistré d'abord (si une note ne peut pas l'être, le dossier ne change pas), les réglages de tags et les replis en attente sont écrits dans l'ancien dossier, l'éditeur oublie les notes, l'index, les tags, les replis et la recherche repartent de zéro. Si le nouveau dossier ne s'ouvre pas, l'ancien est rouvert. L'écran d'erreur « Impossible d'ouvrir le dossier des notes » propose maintenant « Choisir un autre dossier… ».
+- **Sauvegardes, restauration** : chaque sauvegarde reçoit un `manifest.json` (id, chemin et titre de chaque note, empreinte du texte juste après l'opération). « Restaurer » fait **la même vérification qu'« Annuler »**, même après un redémarrage ; si des notes ont changé depuis, une **confirmation** les nomme ; les versions actuelles sont alors copiées avant (sauvegarde « Avant une restauration »), et le toast propose « Annuler ».
+- **Mode focus** (6e), **Ctrl+Maj+F** ou F11 (maquette 03) : barre latérale, liste, barre de titre et barre de l'éditeur s'effacent (240 ms), « Échap pour quitter le mode focus » en haut, nombre de mots et temps de lecture en bas, les paragraphes autres que celui en cours s'estompent. **Échap** quitte (sauf si Échap sert d'abord à fermer un menu, la recherche dans la note…), comme Ctrl+K et l'affichage d'une colonne.
+- **Infos de la note** (clic sur « Modifié … » ou … › Infos sur la note) : mots, caractères (avec et sans espaces), temps de lecture (230 mots/min, arrondi à la minute supérieure), dates de création et de modification. Comptage sur le texte tel qu'on le lit (sans marqueurs Markdown, cibles de liens ni URL ; « l'été », « porte-monnaie » = 1 mot).
+- **Vérifié dans la vraie app** (Linux/Xvfb) : démarrage, réglages (Ctrl+,), mode focus (Ctrl+Maj+F, Échap).
+- Tests : **142 Vitest** (dont restauration depuis les réglages après redémarrage, avec confirmation, sans manifeste, liste des sauvegardes, comptages, empreinte, frontmatter `paper`/`margin`), **15 Rust** (liste / lecture / manifeste des sauvegardes), **26 passes de rythme**.
+- Captures : `docs/captures/phase-6/` — 6 thèmes (01–06), 4 fonds de page (07–10), lignes + marge en sombre (11), sélecteur de fond (12), réglages Général / Éditeur / Sauvegardes (13–15), mode focus (16), infos (17), app réelle (18–19).
+
+### Décisions (phase 6)
+| # | Sujet | Décision |
+|---|---|---|
+| P6-1 | Choix du thème | Mode **Clair / Sombre / Système** (segmented) + rangée « Palette claire » (4 cartes) + rangée « Palette sombre » (2 cartes), comme demandé, au lieu de la grille unique de la maquette 09 + case « Suivre Windows ». |
+| P6-2 | Démarrage sans flash | Thème mis en cache dans `localStorage` et appliqué par `theme-boot.js` avant le premier rendu ; fenêtre cachée jusqu'à ce que l'interface soit thémée ; fond de fenêtre = `--bg-0`. |
+| P6-3 | Taille de police | 14 à 20 px par 0,5 (demande) ; DESIGN §2.17 indique 14 à 22. |
+| P6-4 | Cadre des citations | Le fond des citations couvre exactement leurs lignes de texte, sans padding vertical (DESIGN §2.9 : padding 14), sinon le texte ne peut pas rester sur les réglures. |
+| P6-5 | Blocs de code | Hauteurs mesurées (la hauteur d'une ligne mono varie avec la taille) ; la ligne de clôture complète jusqu'au multiple de 28. |
+| P6-6 | Clés du fond de page | `paper` + `margin` (D1) ; la clé `page:` de DESIGN est aussi lue (`ruled` → lignes, `ruled-margin` → lignes + marge), puis réécrite en `paper`/`margin` au prochain changement. |
+| P6-7 | Marqueurs H avec la marge rouge | Placés entre la ligne rouge et le texte (sinon ils la chevauchent). |
+| P6-8 | Vignettes du sélecteur | Motifs dessinés à 40 % et marge rouge visible quand elle est active (la maquette n'en montre pas). |
+| P6-9 | Mode machine à écrire | Espace haut et bas arrondi à un multiple de 28 pour que les lignes restent sur les réglures. |
+| P6-10 | Accès aux réglages | Ctrl+, (titre de la maquette 09) et … › Réglages… ; pages Général, Éditeur, Sauvegardes ; Raccourcis, Import et À propos de la maquette arrivent en phase 10. |
+| P6-11 | Restauration d'une sauvegarde | Vérification par `manifest.json` (empreinte non cryptographique du texte, pas le texte). Sauvegardes de la phase 4 sans manifeste : impossible de vérifier, donc toujours une confirmation. Une note recréée par une restauration reste si on annule celle-ci ; les réglages de tag (icône, couleur) ne sont rétablis que par l'« Annuler » du toast, pas depuis les réglages. |
+| P6-12 | Changement de dossier | Les sauvegardes et l'historique d'annulation sont propres à chaque dossier. Aucun changement si une note n'a pas pu être enregistrée. |
+| P6-13 | Mode focus | F11 en plus de Ctrl+Maj+F (maquette) ; non mémorisé au redémarrage ; paragraphes non courants à 40 % d'opacité, titres et paragraphe en cours en pleine encre. |
+| P6-14 | Comptages | Calculés sur le texte enregistré : en mode focus, le compteur se met à jour à chaque sauvegarde automatique (0,5 s après une pause de frappe). |
+| P6-15 | Dialogues | L'app est inerte derrière une modale ; le toast est rendu au-dessus, pour que « Annuler » reste cliquable pendant que les réglages sont ouverts. |
+| P6-16 | Aperçus de liens | Réglage enregistré dès maintenant, utilisé en phase 7. |
+
+### Comparaison avec les maquettes
+- **Réglages (09)** — conforme : fenêtre 860×660, navigation 200 px sur `--bg-1` (item actif blanc + ombre, icône accent), champ du dossier en mono + « Changer… » et nombre de notes, cartes de palette avec miniature et double anneau, police (select) et taille (stepper) côte à côte, curseur de largeur avec « Étroite · 560 / Large · 860 » et la valeur, interrupteur des marqueurs. Écarts : P6-1 (mode + deux rangées), P6-10 (pages), pages et réglages en plus (Sauvegardes, aperçus de liens, fond par défaut).
+- **Papier A1–A4** — conforme : réglures à 24 px dans chaque unité de 28, quadrillage de 14, points, marge rouge à 36 px, couleurs dérivées du thème ; popover 288 px, vignettes 52 px, sélection en double anneau, interrupteur, mention en mono. Écarts : P6-8 ; la mention affiche `paper: lined, margin: true` au lieu de `page: ruled-margin` (D1).
+- **Mode focus (03)** — conforme : seule la page reste, « Échap pour quitter le mode focus » en haut, « N mots · N min de lecture » en bas, paragraphes non courants estompés, contrôles de fenêtre seuls. Écart : P6-14.
+- **Thèmes** : tokens verbatim (`check:tokens` : 6 thèmes, 40 couleurs chacun).
+
+### Checklist de test manuel (phase 6, Windows)
+1. Réglages (Ctrl+,) › Thème **Sombre**, ferme puis relance Ursa : aucun éclair blanc, la fenêtre apparaît directement en sombre. Passe en **Système**, puis change le mode de Windows (Paramètres › Personnalisation › Couleurs) : Ursa suit sans redémarrer.
+2. Change les palettes claire et sombre, la police (serif), la taille (14 puis 20), la largeur de colonne, les marqueurs de titre : tout s'applique immédiatement.
+3. Ouvre « Rythme vertical » (fond ligné + marge) : à 14 px, 16,5 px et 20 px, en sans et en serif, le texte de tous les blocs (code, citations, listes imbriquées, pastilles, séparateurs, rétroliens) reste sur les lignes.
+4. … › Fond de page… : essaie les 4 fonds et la marge rouge ; ouvre le `.md` dans le Bloc-notes : `paper:` et `margin:` sont dans le frontmatter. Déplace le curseur de largeur de colonne : la marge rouge suit le texte.
+5. Réglages › Éditeur › Fond de page par défaut « Pointillés » : les notes sans fond propre changent, celles qui en ont un le gardent.
+6. Réglages › Général › Changer… : choisis un dossier vide, puis reviens au dossier d'origine : notes, icônes de tags et sections repliées sont intactes. Essaie un dossier protégé (ex. `C:\Windows`) : message d'erreur et retour au dossier précédent.
+7. Renomme un tag, modifie une des notes concernées, puis Réglages › Sauvegardes › Restaurer : la confirmation nomme la note modifiée ; confirme, puis « Annuler » dans le toast rétablit ta modification. Relance Ursa : la sauvegarde est toujours listée et restaurable.
+8. Mode focus (Ctrl+Maj+F ou F11) : tout s'efface sauf la page, le paragraphe en cours reste net, mots et temps de lecture en bas ; Échap quitte. Avec la recherche dans la note ouverte (Ctrl+F), Échap ferme d'abord la recherche.
+9. Clique sur « Modifié il y a… » : mots, caractères, temps de lecture et dates ; compare le nombre de mots avec Word sur un texte collé.
+10. Mode machine à écrire + fond ligné : en tapant, les lignes restent alignées sur les réglures.
 
 ---
 
@@ -520,6 +585,7 @@ Idées en vrac #voyages/japon-2026
 |---|---|---|
 | `version` | 1 | version de schéma |
 | `tags.json` | 3 | `{ "voyages/japon": { icon, color, pinned, order } }` |
+| `backups/<date-heure>-<opération>/` | 4, 6 | copies avant opération en masse + `manifest.json` (purge à 30 jours) |
 | `folds.json` | 4 | par `id` de note : titres repliés (clé = texte du titre + rang d'occurrence, robuste aux éditions) |
 | `cache/index.json` | 10 si besoin | méta parsées indexées par `chemin + mtime + taille`, seulement si le démarrage à 1000+ notes dépasse ~500 ms |
 | `previews/` | 7 | `<sha1(url)>.json` + images |
@@ -570,7 +636,7 @@ Contradictions entre le brief et DESIGN.md, ou silences de DESIGN.md. Propositio
 | D4 | Stickers importés | `assets/stickers/` | `.ursa/stickers/` | **[Brief]** `assets/stickers/` : ce sont des données utilisateur, pas un cache. |
 | D5 | Rotation à la pose | ±8° | stickers ±8°, post-it ±3° | **[DESIGN]** ±8° stickers, ±3° post-it. |
 | D6 | Sommaire | colonne décalée sur grand écran, overlay sur petit | toujours overlay, colonne immobile (§2.15) | **[Brief]** : décalage si la place le permet, overlay sinon (fait en phase 4, P4-5). |
-| D7 | Palettes sombres | 4 palettes en clair **et** sombre | 4 claires + 2 sombres (`graphite`, `blue`) | coral→`graphite`, ink→`blue` ; je proposerai en ph. 6 des tokens sombres pour sage et kraft, à valider. |
+| D7 | Palettes sombres | 4 palettes en clair **et** sombre | 4 claires + 2 sombres (`graphite`, `blue`) | Tranché à la validation de la phase 5 : mode Clair / Sombre / Système + palette claire (4) + palette sombre (2) (P6-1). |
 | D8 | Opérateurs de recherche | + `@pinned` | + `@pdf` | Union des deux. |
 | D9 | Raccourcis de folding | Ctrl+K = recherche | « tout replier » = Ctrl K Ctrl 0 / J ; section = Ctrl Shift [ / ] | Remplacé en phase 4 (P4-3) : `[ ] \` demandent AltGr sur AZERTY et Ctrl+Alt = AltGr. Section : Ctrl+Maj+↑ / ↓ ; tout : Ctrl+Maj+Pg préc / Pg suiv ; isoler : Ctrl+Maj+Entrée ; sommaire : Ctrl+Maj+O. |
 | D10 | Contrôles fenêtre et recherche de la titlebar | — | icônes en `--text`, recherche en `--bg-sunken` (§2.1, 2.3) | Sur `--bg-0` foncé (coral, ink), `--text` est illisible → `--chrome-text` et `--chrome-sunken`, comme l'indique la famille `--chrome-*` (§1). |

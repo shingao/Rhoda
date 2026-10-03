@@ -71,6 +71,7 @@ npm run lint             # eslint + stylelint (0 warning toléré : --max-warnin
 npm run test             # vitest (logique core/)
 npm run check            # typecheck + lint + tokens + test
 npm run check:tokens     # tokens.css == design/ursa-tokens.css, 6 thèmes, aucune var() indéfinie
+npm run test:rhythm      # Playwright : chaque ligne de « Rythme vertical » sur un multiple de 28 (2 polices × 14–20 px)
 npm run build            # build frontend
 npm run tauri build      # packaging (.msi en phase 10)
 cd src-tauri && cargo clippy --all-targets -- -D warnings && cargo test
@@ -83,8 +84,13 @@ cd src-tauri && cargo clippy --all-targets -- -D warnings && cargo test
 - L'éditeur ne lit jamais le store : `src/editor/hooks.ts` déclare ce dont il a besoin (liens, tags, rétroliens, autocomplétion), `src/app/editorBridge.ts` le branche. Confirmations via `confirmAction()` (`src/app/confirm.ts`), messages courts via `showToast()`.
 - Réglages des tags (icône, couleur, épingle, repli) : `.ursa/tags.json`, gérés par `src/app/tagOps.ts`.
 - Sections de note (`src/editor/sections/`) : titres via la grammaire partagée (`headings.ts`), replis (`fold.ts`, état attaché à la ligne du titre), isolement (`focus.ts`), sommaire (`outline.ts`). Ce qui est caché : `visibility.ts` (`hiddenRanges`, `isHidden`, `revealPosition`) — à utiliser par la recherche et les stickers. Replis mémorisés dans `.ursa/folds.json` (`src/app/folds.ts`).
-- Opérations en masse (tags, liens, suppression définitive) : copie préalable dans `.ursa/backups/<date-heure>-<opération>/`, « Annuler » dans le toast (`undoAction`), purge à 30 jours.
+- Opérations en masse (tags, liens, suppression définitive, restauration) : copie préalable dans `.ursa/backups/<date-heure>-<opération>/` + `manifest.json` (id, chemin, titre, empreinte `textHash` du texte après l'opération), « Annuler » dans le toast (`undoAction`), Réglages › Sauvegardes (`listBackups`, `restoreBackup`, même vérification), purge à 30 jours.
 - Recherche : moteur pur dans `src/core/search/` (`fold.ts` casse/accents, `query.ts` syntaxe, `search.ts` index incrémental, classement, extraits, `registerTextSource` pour l'OCR) ; état dans le store (`search`, `find`), logique dans `src/app/search.ts` ; occurrences dans l'éditeur via `src/editor/find/find.ts`. Banc : `src/core/search/bench.test.ts` (1 000 notes, < 50 ms par frappe) ; `localStorage` `ursa-dev-notes` = nombre de notes générées dans le coffre factice ; `VITE_URSA_MOCK=1` pour un build de production mesurable.
+- Apparence : `src/app/theme.ts` applique mode / palettes (`data-theme`) et réglages d'éditeur (variables `--editor-fs`, `--editor-max`, `--editor-font-active`) ; `public/theme-boot.js` pose le thème mis en cache avant le premier rendu ; la fenêtre est affichée par `bootstrap` une fois thémée.
+- Fond de page : frontmatter `paper` / `margin` (sinon réglage par défaut), classes de `src/features/editor/paper.module.css` sur le corps de l'éditeur ; motifs dans `tokens.components.css` alignés sur `--paper-rule-y`. Tout nouveau bloc de l'éditeur doit garder le rythme (vérifier avec `npm run test:rhythm`).
+- Dossier des notes : `src/app/vault.ts` (`openVault`, `switchVault`) ; tout état propre à un coffre doit pouvoir être vidé (`closeVault`, `closeTagConfig`, `closeFolds`, `resetEditor`).
+- Modales : `components/Dialog.tsx` (scrim, focus piégé, app inerte derrière) ; popovers et toast rendus dans `document.body`. Réglages : `src/features/settings/`, ouverts via `settingsPage` du store.
+- Mode focus : `focusMode` du store (non persisté), `src/app/layout.ts` ; estompage des paragraphes `src/editor/focusDim.ts`. Comptages (mots, caractères, lecture) : `src/core/markdown/stats.ts`.
 - Identité d'une note : l'`id` du frontmatter (provisoire en mémoire pour une note externe, écrit à la 1re écriture). L'index est indexé par `id`, jamais par chemin.
 - Échecs disque (fichier verrouillé) : jamais bloquants ni destructeurs ; texte gardé en attente, ancien nom conservé, nouvelle tentative plus tard.
 - **Textes d'interface** : uniquement via `src/i18n/` (`fr.ts` = référence, `en.ts` mêmes clés) et `useT()` / `currentMessages()`. Aucune chaîne visible en dur dans les composants.

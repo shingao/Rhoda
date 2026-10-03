@@ -25,7 +25,10 @@ export function GeneralPage() {
         <div className={s.folderRow}>
           <div className={s.path} title={vault.kind === "ready" ? vault.path : undefined}>
             <Folder className={s.pathIcon} aria-hidden />
-            <span className={s.pathText}>{vault.kind === "ready" ? vault.path : "…"}</span>
+            {/* rtl puts the ellipsis at the start (the end of the path stays visible); the path itself reads ltr */}
+            <span className={s.pathText}>
+              <span dir="ltr">{vault.kind === "ready" ? vault.path : "…"}</span>
+            </span>
           </div>
           <Button onClick={() => void changeVaultFolder()}>{t.settings.change}</Button>
         </div>
