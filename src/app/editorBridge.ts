@@ -5,6 +5,7 @@ import { focusEditor, refreshEditor } from "../editor/session";
 import { assetUrl, attachFiles, pasteClipboardImage, wantSize } from "./attachments";
 import { confirmAction } from "./confirm";
 import { openCrop } from "./crops";
+import { openCardMenu, urlCard } from "./previews";
 import { rememberFolds, savedFolds } from "./folds";
 import { currentMessages } from "./i18n";
 import { noteIndex, resolveTitle } from "./noteIndex";
@@ -48,6 +49,8 @@ export function connectEditor(): void {
     wantSize,
     pasteClipboardImage,
     cropImage: openCrop,
+    urlCard,
+    openCardMenu,
     linkExists: (target) => resolve(target) !== null,
     openWikiLink: (target) => {
       const id = resolve(target);

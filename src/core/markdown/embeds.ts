@@ -22,7 +22,8 @@ const DEST = String.raw`(<[^>\n]+>|[^\s()<>]+(?:\([^\s()]*\)[^\s()<>]*)*)`;
 const TITLE = String.raw`(?:\s+"[^"\n]*")?`;
 const IMAGE = new RegExp(String.raw`^(\s*!\[([^\]\n]*)\]\(${DEST}${TITLE}\))(\{\s*width\s*=\s*(\d+)\s*\})?\s*$`);
 const LINK = new RegExp(String.raw`^\s*\[([^\]\n]+)\]\(${DEST}${TITLE}\)\s*$`);
-const URL_LINE = /^\s*<?((?:https?:\/\/)[^\s<>]+?)>?\s*$/i;
+/** A bare URL; written `<https://…>` it is a plain link on purpose (card menu › Plain link). */
+const URL_LINE = /^\s*((?:https?:\/\/)[^\s<>]+)\s*$/i;
 
 const unwrap = (dest: string) => (dest.startsWith("<") && dest.endsWith(">") ? dest.slice(1, -1) : dest);
 

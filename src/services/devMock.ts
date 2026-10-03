@@ -75,6 +75,11 @@ function seed(now: number): Array<[string, string, number]> {
     ["Rythme vertical.md", rhythmNote, now - 20_000],
     ["Lien vers le rythme.md", "# Lien vers le rythme\n\nVoir [[Rythme vertical]] pour le panneau des rétroliens.\n", now - 25_000],
     ["Note longue (5000 lignes).md", longNote, now - 30 * DAY],
+    [
+      "Aperçus de liens.md",
+      "# Aperçus de liens\n\nUne URL seule sur sa ligne devient une carte :\n\nhttps://example.com/articles/rythme-vertical\n\nUne adresse de l'intranet reste un lien simple, sans aucune requête :\n\nhttp://wiki.corp/accueil\n\nUn lien simple voulu :\n\n<https://example.com/articles/rythme-vertical>\n",
+      now - 10_000,
+    ],
   ];
 }
 
@@ -102,6 +107,7 @@ export function installDevMock(): void {
     return assets.get(vault)!;
   };
   for (const [file, url] of Object.entries(SAMPLE_ASSETS)) assetsOf(DEFAULT_VAULT).set(`assets/${file.split("/").pop()}`, { url });
+  assetsOf(DEFAULT_VAULT).set(".ursa/previews/demo/image.png", assetsOf(DEFAULT_VAULT).get("assets/paysage.png")!);
   let vaultPath = DEFAULT_VAULT;
   setMockAssetUrl((path) => assetsOf(vaultPath).get(path.replace(/^_thumb\//, ""))?.url ?? null);
   let files = vaultOf(DEFAULT_VAULT).files;
@@ -155,6 +161,22 @@ export function installDevMock(): void {
         const type = kind.format === "svg" ? "image/svg+xml" : kind.format === "pdf" ? "application/pdf" : `image/${kind.format}`;
         store.set(path, { url: URL.createObjectURL(new Blob([bytes.slice()], { type })), bytes: bytes.slice() });
         return { status: "ok", path, format: kind.format, width: null, height: null, reused: false };
+      }
+      case "link_preview": {
+        // Browser only: a fake card for example.com, everything else stays a plain link.
+        const url = (payload as { url: string }).url;
+        if (!/^https:\/\/example\.com\//.test(url)) throw { kind: "other", message: "blocked" };
+        return {
+          url,
+          domain: "example.com",
+          title: "Le rythme vertical en typographie",
+          description: "Pourquoi aligner chaque ligne sur une grille de 28 px rend une page plus calme à lire, et comment le faire avec des blocs de hauteurs variées.",
+          site: "Example",
+          image: ".ursa/previews/demo/image.png",
+          icon: null,
+          fetchedAt: Date.now(),
+          stale: false,
+        };
       }
       case "asset_info":
         return ((payload as { paths: string[] }).paths ?? []).map(() => null);

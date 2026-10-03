@@ -309,7 +309,8 @@ pub async fn open_vault(app: AppHandle, state: State<'_, VaultState>, path: Stri
     *state.watcher.lock()? = None;
     let w = watcher::start(app, root.clone()).map_err(CmdError::other)?;
     *state.watcher.lock()? = Some(w);
-    *state.root.lock()? = Some(root);
+    *state.root.lock()? = Some(root.clone());
+    std::thread::spawn(move || crate::preview::purge_previews(&root));
     Ok(notes)
 }
 

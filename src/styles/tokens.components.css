@@ -219,6 +219,18 @@
   --image-min-w: 48px;                     /* (decision) smallest resize
 
 
+  /* Link preview card [§2.10]: padding 14, gap 16, --r-lg, --bg-1; 4 rhythm units high [§6] */
+  --link-card-h: calc(var(--rhythm) * 4);  /* (decision) */
+  --link-card-pad: 14px;
+  --link-card-gap: 16px;
+  --link-card-thumb-w: 120px;
+  --link-card-favicon: 14px;
+  --link-card-domain-fs: var(--fs-xs);
+  --link-card-title-fs: 14.5px;
+  --link-card-desc-fs: var(--fs-sm);
+  --link-card-desc-lh: 1.45;
+  --link-card-menu: 28px;                  /* (decision) */
+
   /* Focus mode [§4 « Mode focus » + maquette 03] */
   --focus-dim-opacity: .4;                 /* (decision) paragraphs other than the current one */
   --focus-hint-fs: var(--fs-2xs);          /* « Échap pour quitter », « 214 mots · 1 min » */

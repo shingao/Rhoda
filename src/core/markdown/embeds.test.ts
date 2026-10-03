@@ -16,7 +16,9 @@ describe("parseEmbedLine", () => {
     expect(parseEmbedLine("[Devis 2026.pdf](<assets/Devis 2026.pdf>)")).toEqual({ kind: "pdf", label: "Devis 2026.pdf", src: "assets/Devis 2026.pdf" });
     expect(parseEmbedLine("[notes](assets/notes.txt)")).toBeNull();
     expect(parseEmbedLine("https://example.com/article?id=3")).toEqual({ kind: "url", url: "https://example.com/article?id=3" });
-    expect(parseEmbedLine("  <https://example.com>  ")).toEqual({ kind: "url", url: "https://example.com" });
+    expect(parseEmbedLine("  https://example.com  ")).toEqual({ kind: "url", url: "https://example.com" });
+    // <url>: a plain link, never a card.
+    expect(parseEmbedLine("<https://example.com>")).toBeNull();
     expect(parseEmbedLine("Lire https://example.com")).toBeNull();
     expect(parseEmbedLine("ftp://example.com")).toBeNull();
   });

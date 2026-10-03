@@ -572,6 +572,135 @@
   display: flex;
 }
 
+/* Link preview card [§2.10] */
+.cm-editor .cm-link-card {
+  position: relative;
+  display: flow-root;
+  height: var(--link-card-h);
+}
+
+.cm-editor .cm-link-card-body {
+  position: relative;
+  display: flex;
+  gap: var(--link-card-gap);
+  box-sizing: border-box;
+  height: 100%;
+  padding: var(--link-card-pad);
+  overflow: hidden;
+  border-radius: var(--r-lg);
+  background: var(--bg-1);
+  font-family: var(--font-ui);
+  line-height: var(--lh-snug);
+  cursor: pointer;
+}
+
+.cm-editor .cm-link-card-body:hover {
+  background: linear-gradient(var(--hover), var(--hover)), var(--bg-1);
+}
+
+.cm-editor .cm-link-card-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+
+.cm-editor .cm-link-card-domain {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-size: var(--link-card-domain-fs);
+  color: var(--text-3);
+}
+
+.cm-editor .cm-link-card-domain img {
+  width: var(--link-card-favicon);
+  height: var(--link-card-favicon);
+  border-radius: var(--r-xs);
+}
+
+.cm-editor .cm-link-card-title {
+  overflow: hidden;
+  font-size: var(--link-card-title-fs);
+  font-weight: var(--fw-bold);
+  color: var(--text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cm-editor .cm-link-card-desc {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--link-card-desc-fs);
+  line-height: var(--link-card-desc-lh);
+  color: var(--text-2);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.cm-editor .cm-link-card-thumb {
+  width: var(--link-card-thumb-w);
+  flex: none;
+  margin: calc(-1 * var(--link-card-pad)) calc(-1 * var(--link-card-pad)) calc(-1 * var(--link-card-pad)) 0;
+  border-radius: 0 var(--r-lg) var(--r-lg) 0;
+  object-fit: cover;
+}
+
+/* Loading: still skeleton in --bg-sunken, no shimmer [§2.10] */
+.cm-editor .cm-link-card.is-loading .cm-link-card-body {
+  flex-direction: column;
+  gap: var(--sp-2);
+  cursor: default;
+}
+
+.cm-editor .cm-link-card-bone {
+  display: block;
+  width: 60%;
+  height: var(--sp-3);
+  border-radius: var(--r-pill);
+  background: var(--bg-sunken);
+}
+
+.cm-editor .cm-link-card-bone.short {
+  width: 25%;
+}
+
+.cm-editor .cm-link-card-bone.long {
+  width: 85%;
+}
+
+.cm-editor .cm-link-card-menu {
+  position: absolute;
+  top: var(--sp-2);
+  right: calc(var(--link-card-thumb-w) + var(--sp-2));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--link-card-menu);
+  height: var(--link-card-menu);
+  border-radius: var(--r-md);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-card);
+  color: var(--text-2);
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.cm-editor .cm-link-card-menu:focus-visible,
+.cm-editor .cm-link-card:hover .cm-link-card-menu {
+  opacity: 1;
+}
+
+.cm-editor .cm-link-card-icon {
+  width: var(--image-bar-icon);
+  height: var(--image-bar-icon);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
 .cm-editor .cm-image.is-missing {
   font-size: var(--image-missing-fs);
   line-height: var(--rhythm);

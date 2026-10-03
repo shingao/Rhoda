@@ -298,6 +298,13 @@ export const fr = {
       tooLarge: (name: string) => `« ${name} » est trop volumineux (200 Mo au plus).`,
     },
   },
+  cards: {
+    loading: "Aperçu du lien en cours de chargement",
+    menu: "Options de l'aperçu",
+    open: "Ouvrir dans le navigateur",
+    refresh: "Rafraîchir l'aperçu",
+    plain: "Revenir à un lien simple",
+  },
   crop: {
     title: "Recadrer l'image",
     subtitle: "L'original est conservé ; la version recadrée est enregistrée à côté, dans assets/.",

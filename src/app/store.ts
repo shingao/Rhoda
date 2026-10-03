@@ -39,6 +39,8 @@ interface AppState {
   focusMode: boolean;
   /** Settings dialog and its current page; null = closed. */
   settingsPage: SettingsPage | null;
+  /** Menu of a link card (Refresh, Plain link). */
+  cardMenu: { noteId: string; url: string; lineFrom: number; at: { x: number; y: number } } | null;
   /** Crop dialog of an image of the open note. */
   crop: CropRequest | null;
 }
@@ -84,6 +86,7 @@ export const useApp = create<AppState>()(() => ({
   find: { open: false, focusToken: 0, replace: false, query: "", count: 0, current: null },
   settingsPage: null,
   crop: null,
+  cardMenu: null,
   focusMode: false,
 }));
 

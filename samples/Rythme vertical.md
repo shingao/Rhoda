@@ -81,4 +81,8 @@ Un schéma SVG (affiché par une balise image, jamais injecté) :
 
 ![Schéma](assets/schema.svg){width=430}
 
+Une URL seule sur sa ligne (carte d'aperçu si le réglage est activé) :
+
+https://example.com/articles/rythme-vertical
+
 Fin de la note.

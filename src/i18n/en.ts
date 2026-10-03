@@ -288,6 +288,13 @@ export const en: Messages = {
       tooLarge: (name: string) => `“${name}” is too large (200 MB at most).`,
     },
   },
+  cards: {
+    loading: "Loading link preview",
+    menu: "Preview options",
+    open: "Open in browser",
+    refresh: "Refresh preview",
+    plain: "Back to a plain link",
+  },
   crop: {
     title: "Crop image",
     subtitle: "The original is kept; the cropped version is saved next to it, in assets/.",

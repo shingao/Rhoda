@@ -308,3 +308,11 @@ export function replaceImageSrc(noteId: string, lineFrom: number, src: string): 
   });
   return true;
 }
+
+/** Replaces the text of the line starting at `lineFrom` (link card › Plain link). Undoable. */
+export function setLineText(noteId: string, lineFrom: number, text: string): boolean {
+  if (!view || currentId !== noteId || lineFrom > view.state.doc.length) return false;
+  const line = view.state.doc.lineAt(lineFrom);
+  view.dispatch({ changes: { from: line.from, to: line.to, insert: text }, annotations: isolateHistory.of("full"), userEvent: "input" });
+  return true;
+}

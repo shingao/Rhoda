@@ -1,5 +1,6 @@
 import { StateEffect } from "@codemirror/state";
 import type { FoldKey } from "../core/folds";
+import type { CardState } from "./embeds/linkCard";
 import type { OutlineData } from "./sections/outline";
 
 /**
@@ -33,6 +34,10 @@ export interface EditorHooks {
   assetUrl(src: string): string | null;
   /** Size of an image not displayed yet is wanted (the app reads it from the file, then refreshes). */
   wantSize(src: string, url: string): void;
+  /** Card of a URL alone on its line; null when link previews are off. */
+  urlCard(url: string): CardState | null;
+  /** "…" of a link card. */
+  openCardMenu(url: string, lineFrom: number, at: { x: number; y: number }): void;
   /** "Crop" on a selected image: the app opens the crop dialog for the image line starting at `lineFrom`. */
   cropImage(src: string, lineFrom: number): void;
   /** A paste without text nor file: the image of the system clipboard, if any (screenshot). */
@@ -65,6 +70,8 @@ let hooks: EditorHooks = {
   attachFiles: () => false,
   pasteClipboardImage: () => undefined,
   cropImage: () => undefined,
+  urlCard: () => null,
+  openCardMenu: () => undefined,
 };
 
 export function setEditorHooks(next: Partial<EditorHooks>): void {

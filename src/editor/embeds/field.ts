@@ -5,6 +5,7 @@ import { cssPx } from "../../app/cssTokens";
 import { decodeSrc, embedLines, parseEmbedLine, type EmbedLine } from "../../core/markdown/embeds";
 import { editorHooks, refreshPreview } from "../hooks";
 import { ImageWidget, sizeOf, type ImageActions } from "./image";
+import { LinkCardWidget } from "./linkCard";
 
 /**
  * Images, link cards and PDF cards: lines holding only one of them become a
@@ -66,6 +67,11 @@ function revealed(state: EditorState, focused: boolean, from: number, to: number
 }
 
 function widgetFor(embed: EmbedLine, rhythm: number, selected = false) {
+  if (embed.kind === "url") {
+    const state = editorHooks().urlCard(embed.url);
+    // Off, or the link cannot be previewed: it stays a plain link.
+    return state && state.status !== "plain" ? new LinkCardWidget(embed.url, state) : null;
+  }
   if (embed.kind !== "image") return null;
   const url = editorHooks().assetUrl(embed.src);
   if (!url) return null;

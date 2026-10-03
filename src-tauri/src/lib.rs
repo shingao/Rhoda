@@ -1,5 +1,6 @@
 mod assets;
 mod backup;
+mod preview;
 mod error;
 mod settings;
 mod snapshots;
@@ -68,6 +69,7 @@ pub fn run() {
             assets::import_clipboard_image,
             assets::pick_attachments,
             assets::asset_info,
+            preview::link_preview,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Ursa");
