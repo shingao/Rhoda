@@ -2,6 +2,7 @@ import { titleKey } from "../core/markdown/extract";
 import { snippetAround } from "../core/note/text";
 import { setEditorHooks, type Backlink } from "../editor/hooks";
 import { focusEditor, refreshEditor } from "../editor/session";
+import { assetUrl, attachFiles, pasteClipboardImage, wantSize } from "./attachments";
 import { confirmAction } from "./confirm";
 import { rememberFolds, savedFolds } from "./folds";
 import { currentMessages } from "./i18n";
@@ -41,6 +42,10 @@ function signature(): string {
 /** Connects the editor to the notes: link resolution, navigation, completion, backlinks. */
 export function connectEditor(): void {
   setEditorHooks({
+    assetUrl,
+    attachFiles,
+    wantSize,
+    pasteClipboardImage,
     linkExists: (target) => resolve(target) !== null,
     openWikiLink: (target) => {
       const id = resolve(target);

@@ -29,6 +29,14 @@ export interface EditorHooks {
   outlineChanged(data: OutlineData): void;
   /** Occurrences of the search in the open note ("3 / 12"). */
   findChanged(info: { count: number; current: number | null }): void;
+  /** URL to display a file referenced by the open note (relative path), or null (remote, outside the vault). */
+  assetUrl(src: string): string | null;
+  /** Size of an image not displayed yet is wanted (the app reads it from the file, then refreshes). */
+  wantSize(src: string, url: string): void;
+  /** A paste without text nor file: the image of the system clipboard, if any (screenshot). */
+  pasteClipboardImage(pos: number): void;
+  /** Files pasted or dropped in the editor (images, PDF); true if taken care of. */
+  attachFiles(files: File[], pos: number): boolean;
 }
 
 export interface Backlink {
@@ -50,6 +58,10 @@ let hooks: EditorHooks = {
   foldsChanged: () => undefined,
   outlineChanged: () => undefined,
   findChanged: () => undefined,
+  assetUrl: () => null,
+  wantSize: () => undefined,
+  attachFiles: () => false,
+  pasteClipboardImage: () => undefined,
 };
 
 export function setEditorHooks(next: Partial<EditorHooks>): void {

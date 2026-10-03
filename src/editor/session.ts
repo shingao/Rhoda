@@ -260,3 +260,34 @@ export function editorSelectionText(): string {
   const r = view.state.selection.main;
   return view.state.sliceDoc(r.from, r.to);
 }
+
+/**
+ * Inserts block lines (images, PDF links) at the line of `pos` in the open
+ * note: on that line if it is empty, otherwise right after it. Undoable.
+ */
+export function insertBlockLines(noteId: string, lines: string[], pos?: number): boolean {
+  if (!view || currentId !== noteId || lines.length === 0) return false;
+  const { state } = view;
+  const line = state.doc.lineAt(Math.min(pos ?? state.selection.main.head, state.doc.length));
+  const blank = line.text.trim() === "";
+  // The cursor lands on the line after the blocks (one is added at the end of
+  // the note), so the new image is shown rather than its Markdown.
+  const last = line.number === state.doc.lines;
+  const text = lines.join("\n") + (last ? "\n" : "");
+  const insert = blank ? text : `\n${text}`;
+  const from = blank ? line.from : line.to;
+  const end = from + insert.length;
+  view.dispatch({
+    changes: { from, to: line.to, insert },
+    selection: { anchor: last ? end : end + 1 },
+    userEvent: "input.paste",
+    scrollIntoView: true,
+  });
+  view.focus();
+  return true;
+}
+
+/** Document position under a point of the window (CSS pixels), for drops. */
+export function editorPosAt(x: number, y: number): number | null {
+  return view?.posAtCoords({ x, y }) ?? null;
+}

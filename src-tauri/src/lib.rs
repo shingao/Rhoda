@@ -1,3 +1,4 @@
+mod assets;
 mod backup;
 mod error;
 mod settings;
@@ -24,6 +25,8 @@ pub fn run() {
                 .build(),
         )
         .manage(vault::VaultState::default())
+        // Attachments and caches of the open vault, for <img> and pdf.js.
+        .register_uri_scheme_protocol("vault", |ctx, request| assets::serve(ctx.app_handle(), &request))
         .setup(|app| {
             if let Some(window) = app.get_webview_window("main") {
                 std::thread::spawn(move || {
@@ -55,6 +58,11 @@ pub fn run() {
             snapshots::read_backup,
             snapshots::write_backup_file,
             vault::pick_vault_folder,
+            assets::import_files,
+            assets::import_bytes,
+            assets::import_clipboard_image,
+            assets::pick_attachments,
+            assets::asset_info,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Ursa");

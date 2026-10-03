@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { ChevronsDownUp, ChevronsUpDown, CircleAlert, Ellipsis, Expand, Focus, Info, ListTree, Notebook, PanelLeftClose, PanelLeftOpen, Settings } from "lucide-react";
+import { ChevronsDownUp, ChevronsUpDown, CircleAlert, Ellipsis, Expand, Focus, ImagePlus, Info, ListTree, Notebook, PanelLeftClose, PanelLeftOpen, Settings } from "lucide-react";
 import { useT } from "../../app/i18n";
 import { cssPx } from "../../app/cssTokens";
+import { insertFromDialog } from "../../app/attachments";
 import { toggleColumn, toggleFocusMode, toggleOutline } from "../../app/layout";
 import { editNote, trashNote } from "../../app/notes";
 import { shortcutLabel } from "../../app/shortcuts";
@@ -176,6 +177,12 @@ export function EditorPane() {
                     icon: Focus,
                     shortcut: shortcutLabel("section.isolate", t),
                     onSelect: () => runSectionCommand("toggleIsolation"),
+                  },
+                  {
+                    id: "attach",
+                    label: t.images.insert,
+                    icon: ImagePlus,
+                    onSelect: () => void insertFromDialog(),
                   },
                   {
                     id: "paper",

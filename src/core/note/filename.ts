@@ -37,6 +37,11 @@ export function sanitizeStem(title: string, fallback: string, maxLength = MAX_ST
   return stem;
 }
 
+/** Last segment of a `/`-separated path. */
+export function basename(path: string): string {
+  return path.slice(path.lastIndexOf("/") + 1);
+}
+
 export function stemOf(path: string): string {
   const name = path.slice(path.lastIndexOf("/") + 1);
   return name.replace(/\.md$/i, "");

@@ -271,6 +271,18 @@ export const en: Messages = {
     paper: "Default page background",
     paperHint: "For notes without their own. Each note can change it from the editor's … menu.",
   },
+  images: {
+    missing: (src: string) => `Image not found: ${src}`,
+    insert: "Insert image or PDF…",
+    pickTitle: "Choose images or PDFs",
+    noNote: "Open a note to add images to it.",
+    failed: (message: string) => `Could not add the file: ${message}`,
+    refused: {
+      heic: (name: string) => `“${name}” is a HEIC photo, which Windows cannot display here. Save it as JPG (Photos app › Save as) and add it again.`,
+      unsupported: (name: string) => `“${name}” is neither a supported image (PNG, JPG, GIF, WebP, SVG) nor a PDF.`,
+      tooLarge: (name: string) => `“${name}” is too large (200 MB at most).`,
+    },
+  },
   info: {
     title: "Info",
     menu: "Note info",

@@ -192,6 +192,11 @@
   --modal-scale-from: .98;
   --modal-top: 18vh;                       /* (decision) */
 
+  /* Images in the editor [§2.12, §6] */
+  --image-radius: var(--r-md);
+  --image-placeholder: var(--bg-sunken);   /* while loading: no shimmer [§2.10] */
+  --image-missing-fs: var(--fs-sm);
+
   /* Focus mode [§4 « Mode focus » + maquette 03] */
   --focus-dim-opacity: .4;                 /* (decision) paragraphs other than the current one */
   --focus-hint-fs: var(--fs-2xs);          /* « Échap pour quitter », « 214 mots · 1 min » */

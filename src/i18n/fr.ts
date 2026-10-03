@@ -280,6 +280,19 @@ export const fr = {
     paper: "Fond de page par défaut",
     paperHint: "Pour les notes sans fond choisi. Chaque note peut changer le sien depuis le menu … de l'éditeur.",
   },
+  images: {
+    missing: (src: string) => `Image introuvable : ${src}`,
+    insert: "Insérer une image ou un PDF…",
+    pickTitle: "Choisir des images ou des PDF",
+    noNote: "Ouvrez une note pour y ajouter des images.",
+    failed: (message: string) => `Impossible d'ajouter le fichier : ${message}`,
+    refused: {
+      heic: (name: string) =>
+        `« ${name} » est au format HEIC, que l'aperçu de Windows ne sait pas afficher. Enregistrez-la en JPG (application Photos › Enregistrer sous) puis ajoutez-la à nouveau.`,
+      unsupported: (name: string) => `« ${name} » n'est ni une image prise en charge (PNG, JPG, GIF, WebP, SVG) ni un PDF.`,
+      tooLarge: (name: string) => `« ${name} » est trop volumineux (200 Mo au plus).`,
+    },
+  },
   info: {
     title: "Infos",
     menu: "Infos sur la note",

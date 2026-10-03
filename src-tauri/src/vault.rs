@@ -19,7 +19,7 @@ use crate::error::{io_kind, CmdError, CmdResult, ErrorKind};
 use crate::watcher::{self, VaultWatcher};
 
 pub(crate) const INTERNAL_DIR: &str = ".ursa";
-const ASSETS_DIR: &str = "assets";
+pub(crate) const ASSETS_DIR: &str = "assets";
 const SCHEMA_VERSION: &str = "1";
 const TMP_SUFFIX: &str = ".ursa-tmp";
 pub(crate) const NOTE_EXT: &str = ".md";
@@ -49,6 +49,11 @@ fn to_ms(t: io::Result<SystemTime>) -> f64 {
         .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
         .map(|d| d.as_millis() as f64)
         .unwrap_or(0.0)
+}
+
+/// Root of the open vault, for code that has the state but no command context (protocol handler).
+pub(crate) fn root_of(state: &VaultState) -> Option<PathBuf> {
+    state.root.lock().ok()?.clone()
 }
 
 pub(crate) fn current_root(state: &State<'_, VaultState>) -> CmdResult<PathBuf> {
@@ -150,15 +155,19 @@ fn tmp_path_for(path: &Path) -> PathBuf {
     path.with_file_name(format!(".{name}{TMP_SUFFIX}"))
 }
 
-fn write_synced(path: &Path, content: &str) -> io::Result<()> {
+fn write_synced(path: &Path, content: &[u8]) -> io::Result<()> {
     let mut f = fs::File::create(path)?;
-    f.write_all(content.as_bytes())?;
+    f.write_all(content)?;
     f.sync_all()
 }
 
 /// Writes through a temporary sibling file then renames it over the target,
 /// so a crash never leaves a half-written note.
 pub fn atomic_write(path: &Path, content: &str) -> io::Result<()> {
+    atomic_write_bytes(path, content.as_bytes())
+}
+
+pub(crate) fn atomic_write_bytes(path: &Path, content: &[u8]) -> io::Result<()> {
     let tmp = tmp_path_for(path);
     write_synced(&tmp, content)?;
     with_retry(|| fs::rename(&tmp, path)).inspect_err(|_| {
@@ -339,7 +348,7 @@ pub(crate) fn create_in(dir: &Path, stem: &str, content: &str) -> CmdResult<Path
     let stem = fit_stem(dir, stem)?;
     let dst = unique_note_path(dir, &stem, None)?;
     let tmp = tmp_path_for(&dst);
-    write_synced(&tmp, content)?;
+    write_synced(&tmp, content.as_bytes())?;
     move_no_clobber(&tmp, &dst).inspect_err(|_| {
         let _ = fs::remove_file(&tmp);
     })?;

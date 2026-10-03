@@ -6,6 +6,23 @@ import mockupNote from "../../samples/Maquette éditeur.md?raw";
 import outlineNote from "../../samples/Maquette sommaire.md?raw";
 import rhythmNote from "../../samples/Rythme vertical.md?raw";
 import { generateNotes } from "../dev/generateNotes";
+import { setMockAssetUrl } from "./assets";
+
+/** Sample attachments of the demo vault (samples/assets), served by Vite. */
+const SAMPLE_ASSETS = import.meta.glob<string>("../../samples/assets/*", { query: "?url", import: "default", eager: true });
+
+/** Format from the first bytes, as the Rust side does (enough for the browser). */
+function sniff(b: Uint8Array): { ext: string; format: string } | "heic" | null {
+  const ascii = (from: number, to: number) => String.fromCharCode(...b.slice(from, to));
+  if (b[0] === 0x89 && ascii(1, 4) === "PNG") return { ext: "png", format: "png" };
+  if (b[0] === 0xff && b[1] === 0xd8) return { ext: "jpg", format: "jpeg" };
+  if (ascii(0, 4) === "GIF8") return { ext: "gif", format: "gif" };
+  if (ascii(0, 4) === "RIFF" && ascii(8, 12) === "WEBP") return { ext: "webp", format: "webp" };
+  if (ascii(0, 5) === "%PDF-") return { ext: "pdf", format: "pdf" };
+  if (ascii(4, 8) === "ftyp" && /^(hei|hev|mif1|msf1)/.test(ascii(8, 12))) return "heic";
+  if (new TextDecoder().decode(b.slice(0, 2048)).includes("<svg")) return { ext: "svg", format: "svg" };
+  return null;
+}
 
 /**
  * Development only: lets the frontend run in a plain browser (no Tauri) with
@@ -78,7 +95,15 @@ export function installDevMock(): void {
     if (!vaults.has(path)) vaults.set(path, { files: new Map(), backups: new Map() });
     return vaults.get(path)!;
   };
+  /** Attachments per vault: path → URL (+ bytes for imported ones, to find duplicates). */
+  const assets = new Map<string, Map<string, { url: string; bytes?: Uint8Array }>>();
+  const assetsOf = (vault: string) => {
+    if (!assets.has(vault)) assets.set(vault, new Map());
+    return assets.get(vault)!;
+  };
+  for (const [file, url] of Object.entries(SAMPLE_ASSETS)) assetsOf(DEFAULT_VAULT).set(`assets/${file.split("/").pop()}`, { url });
   let vaultPath = DEFAULT_VAULT;
+  setMockAssetUrl((path) => assetsOf(vaultPath).get(path)?.url ?? null);
   let files = vaultOf(DEFAULT_VAULT).files;
   let backups = vaultOf(DEFAULT_VAULT).backups;
   for (const [path, content, mtime] of seed(now)) files.set(path, { content, mtime, created: mtime });
@@ -117,6 +142,27 @@ export function installDevMock(): void {
         return [...files.keys()].map(toFile);
       case "pick_vault_folder":
         return localStorage.getItem("ursa-dev-pick") ?? "C:\\Users\\dev\\Documents\\Notes perso";
+      case "import_bytes": {
+        const bytes = payload as unknown as Uint8Array;
+        const kind = sniff(bytes);
+        if (kind === "heic") return { status: "refused", name: "image", reason: "heic" };
+        if (!kind) return { status: "refused", name: "fichier", reason: "unsupported" };
+        const store = assetsOf(vaultPath);
+        const same = [...store].find(([, a]) => a.bytes && a.bytes.length === bytes.length && a.bytes.every((v, i) => v === bytes[i]));
+        if (same) return { status: "ok", path: same[0], format: kind.format, width: null, height: null, reused: true };
+        let path = `assets/capture.${kind.ext}`;
+        for (let n = 2; store.has(path); n++) path = `assets/capture-${n}.${kind.ext}`;
+        const type = kind.format === "svg" ? "image/svg+xml" : kind.format === "pdf" ? "application/pdf" : `image/${kind.format}`;
+        store.set(path, { url: URL.createObjectURL(new Blob([bytes.slice()], { type })), bytes: bytes.slice() });
+        return { status: "ok", path, format: kind.format, width: null, height: null, reused: false };
+      }
+      case "asset_info":
+        return ((payload as { paths: string[] }).paths ?? []).map(() => null);
+      case "import_clipboard_image":
+        return null;
+      case "import_files":
+      case "pick_attachments":
+        return [];
       case "list_backups":
         return [...backups].map(([name, copies]) => ({ name, notes: copies.size })).sort((a, b) => b.name.localeCompare(a.name));
       case "read_backup": {

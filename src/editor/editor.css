@@ -417,6 +417,25 @@
   padding-bottom: var(--typewriter-pad);
 }
 
+/* Images [§2.12]: a block whose height is a whole number of rhythm units, the image never distorted [§6] */
+.cm-editor .cm-image {
+  display: block;
+  overflow: hidden;
+}
+
+.cm-editor .cm-image img {
+  display: block;
+  max-width: 100%;
+  border-radius: var(--image-radius);
+  background: var(--image-placeholder);
+}
+
+.cm-editor .cm-image.is-missing {
+  font-size: var(--image-missing-fs);
+  line-height: var(--rhythm);
+  color: var(--text-3);
+}
+
 /* Backlinks at the end of the note (decision P3): one unit of space, a title
    line, then two lines per note — all on the rhythm [§6]. */
 .cm-backlinks {

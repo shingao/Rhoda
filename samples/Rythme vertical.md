@@ -66,4 +66,19 @@ Texte après le séparateur.
 |---|---|
 | Tableau | brut |
 
+## Images
+
+Une image plus large que la colonne, ramenée à sa largeur :
+
+![Paysage au crépuscule](assets/paysage.png)
+
+Une image verticale à 220 px, puis une petite image à sa taille naturelle, collées l'une à l'autre :
+
+![Mer et sable](assets/portrait.png){width=220}
+![Petite](assets/petite.png)
+
+Un schéma SVG (affiché par une balise image, jamais injecté) :
+
+![Schéma](assets/schema.svg){width=430}
+
 Fin de la note.

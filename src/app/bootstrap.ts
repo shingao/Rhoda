@@ -7,6 +7,7 @@ import { connectTheme } from "./theme";
 import { connectSearch } from "./search";
 import { flushAll, handleDiskChanges, prepareClose } from "./notes";
 import { getState, setState, useApp } from "./store";
+import { connectAttachments } from "./attachments";
 import { connectTagConfig } from "./tagOps";
 import { openVault } from "./vault";
 
@@ -29,6 +30,7 @@ export async function bootstrap(): Promise<void> {
     connectEditor();
     connectSearch();
     connectTagConfig();
+    connectAttachments();
 
     await vaultApi.onChanged((paths) => void handleDiskChanges(paths));
     const path = settings.vaultPath ?? (await vaultApi.defaultPath());

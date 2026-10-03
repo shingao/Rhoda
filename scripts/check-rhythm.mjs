@@ -34,12 +34,15 @@ try {
 
   for (const font of FONTS) {
     for (const size of SIZES) {
-      const { out: problems, lines, blocks, backlinks } = await page.evaluate(
+      const { out: problems, lines, blocks, backlinks, images } = await page.evaluate(
         async ({ font, size, EPS }) => {
           const { updateSettings } = await import("/src/app/store.ts");
           updateSettings((s) => ({ ...s, editor: { ...s.editor, font, fontSize: size } }));
           const frame = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
           await document.fonts.ready;
+          await frame();
+          // Images must be loaded (their block height depends on their size).
+          for (let i = 0; i < 50 && document.querySelector(".cm-image:not(.is-loaded):not(.is-missing)"); i++) await new Promise((r) => setTimeout(r, 50));
           await frame();
           const v = window.__ursaView;
           const rhythm = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--rhythm"));
@@ -55,7 +58,7 @@ try {
           // Origin = where the page background starts (top of the scroller's content,
           // background-attachment: local): lines must sit on its rules.
           const paperTop = v.scrollDOM.getBoundingClientRect().top + v.scrollDOM.clientTop - v.scrollDOM.scrollTop;
-          for (const el of v.contentDOM.querySelectorAll(".cm-line, .cm-backlinks, .cm-isolation-bar")) {
+          for (const el of v.contentDOM.querySelectorAll(".cm-line, .cm-backlinks, .cm-isolation-bar, .cm-embed")) {
             const r = el.getBoundingClientRect();
             // Relative offsets are optical (H1 baseline on its rule), not layout.
             const cs = getComputedStyle(el);
@@ -93,7 +96,13 @@ try {
             if (off(top) > EPS) out.push(`${id} ${b.label}: block top ${top.toFixed(2)}`);
             if (off(bottom - top) > EPS) out.push(`${id} ${b.label}: block height ${(bottom - top).toFixed(2)}`);
           }
-          return { out, lines: v.contentDOM.querySelectorAll(".cm-line").length, blocks: blocks.size, backlinks: !!v.contentDOM.querySelector(".cm-backlinks") };
+          // Images keep their proportions (the rounding is space around them, never a stretch).
+          for (const img of v.contentDOM.querySelectorAll(".cm-image img")) {
+            const r = img.getBoundingClientRect();
+            const ratio = img.naturalWidth / img.naturalHeight;
+            if (Math.abs(r.width / r.height - ratio) > 0.01) out.push(`image ${img.alt}: distorted ${r.width}×${r.height} (natural ${img.naturalWidth}×${img.naturalHeight})`);
+          }
+          return { out, images: v.contentDOM.querySelectorAll(".cm-image.is-loaded").length, lines: v.contentDOM.querySelectorAll(".cm-line").length, blocks: blocks.size, backlinks: !!v.contentDOM.querySelector(".cm-backlinks") };
         },
         { font, size, EPS },
       );
@@ -101,7 +110,7 @@ try {
       if (problems.length) {
         failures += problems.length;
         console.error(`✗ ${tag}\n  ${problems.slice(0, 12).join("\n  ")}${problems.length > 12 ? `\n  … ${problems.length - 12} more` : ""}`);
-      } else console.log(`✓ ${tag} (${lines} lignes, ${blocks} blocs${backlinks ? ", rétroliens" : ""})`);
+      } else console.log(`✓ ${tag} (${lines} lignes, ${blocks} blocs, ${images} images${backlinks ? ", rétroliens" : ""})`);
     }
   }
 } finally {

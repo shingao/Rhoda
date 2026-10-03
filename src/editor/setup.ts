@@ -4,6 +4,7 @@ import { drawSelection, EditorView, keymap, placeholder } from "@codemirror/view
 import { cssMs } from "../app/cssTokens";
 import { currentMessages } from "../app/i18n";
 import { backlinks } from "./backlinks";
+import { embeds } from "./embeds/field";
 import { completions } from "./completion";
 import { markdownLanguage } from "./language";
 import { linkPreview } from "./linkPreview";
@@ -61,7 +62,7 @@ export function editorExtensions(): Extension {
     EditorView.lineWrapping,
     markdownLanguage(),
     rawMarkdown ? [] : livePreview,
-    rawMarkdown ? [] : [linkPreview(), backlinks],
+    rawMarkdown ? [] : [linkPreview(), backlinks, embeds],
     completions(),
     folding,
     isolationField,
