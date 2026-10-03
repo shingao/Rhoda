@@ -420,6 +420,7 @@
 /* Images [§2.12]: a block whose height is a whole number of rhythm units, the image never distorted [§6] */
 .cm-editor .cm-image {
   position: relative;
+
   /* Own formatting context: the frame's top margin must not leak out of the block */
   display: flow-root;
 }
