@@ -54,7 +54,7 @@ src/                     # frontend React
   styles/                # tokens.css, tokens.components.css, fonts.css, global.css
   assets/                # polices, stickers embarqués
 src-tauri/               # backend Rust
-  src/commands/          # commandes Tauri groupées par domaine (vault, watcher, preview, ocr)
+  src/                   # commandes Tauri par domaine : vault, watcher, snapshots, assets, preview (ocr en phase 9)
 design/                  # maquettes PNG + tokens source
 ```
 
@@ -71,7 +71,8 @@ npm run lint             # eslint + stylelint (0 warning toléré : --max-warnin
 npm run test             # vitest (logique core/)
 npm run check            # typecheck + lint + tokens + test
 npm run check:tokens     # tokens.css == design/ursa-tokens.css, 6 thèmes, aucune var() indéfinie
-npm run test:rhythm      # Playwright : chaque ligne de « Rythme vertical » sur un multiple de 28 (2 polices × 14–20 px)
+npm run test:rhythm      # Playwright : chaque ligne et bloc (images, cartes) de « Rythme vertical » sur un multiple de 28 (2 polices × 14–20 px)
+npm run sample:images    # régénère samples/assets (images et PDF d'exemple)
 npm run build            # build frontend
 npm run tauri build      # packaging (.msi en phase 10)
 cd src-tauri && cargo clippy --all-targets -- -D warnings && cargo test
@@ -91,6 +92,8 @@ cd src-tauri && cargo clippy --all-targets -- -D warnings && cargo test
 - Dossier des notes : `src/app/vault.ts` (`openVault`, `switchVault`) ; tout état propre à un coffre doit pouvoir être vidé (`closeVault`, `closeTagConfig`, `closeFolds`, `resetEditor`).
 - Modales : `components/Dialog.tsx` (scrim, focus piégé, app inerte derrière) ; popovers et toast rendus dans `document.body`. Réglages : `src/features/settings/`, ouverts via `settingsPage` du store.
 - Mode focus : `focusMode` du store (non persisté), `src/app/layout.ts` ; estompage des paragraphes `src/editor/focusDim.ts`. Comptages (mots, caractères, lecture) : `src/core/markdown/stats.ts`.
+- Pièces jointes : Rust `assets.rs` (import par chemins / octets / presse-papier système, format d'après le contenu, SHA-256, protocole `vault:` qui ne sert que `assets`, notes et caches `.ursa/thumbs|previews`, vignettes `_thumb/…`, PDF) ; côté app `src/app/attachments.ts`, `crops.ts`, `pdfs.ts`, `previews.ts` ; lignes d'image / PDF / URL dans `src/core/markdown/embeds.ts` ; blocs de l'éditeur dans `src/editor/embeds/` (champ d'état, widgets image / carte de lien / carte PDF ; hauteur de bloc = multiple de `--rhythm`). Les SVG ne passent que par `<img>`.
+- Aperçus de liens : uniquement `src-tauri/src/preview.rs` ; toute requête passe par `fetch()` (contrôle d'URL + IP après DNS + connexion épinglée + redirections vérifiées). Ne jamais ajouter d'autre accès réseau.
 - Identité d'une note : l'`id` du frontmatter (provisoire en mémoire pour une note externe, écrit à la 1re écriture). L'index est indexé par `id`, jamais par chemin.
 - Échecs disque (fichier verrouillé) : jamais bloquants ni destructeurs ; texte gardé en attente, ancien nom conservé, nouvelle tentative plus tard.
 - **Textes d'interface** : uniquement via `src/i18n/` (`fr.ts` = référence, `en.ts` mêmes clés) et `useT()` / `currentMessages()`. Aucune chaîne visible en dur dans les composants.

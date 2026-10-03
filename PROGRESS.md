@@ -11,7 +11,7 @@
 | 4 | Sommaire, folding, focus de section | ✅ validée |
 | 5 | Recherche | ✅ validée |
 | 6 | Thèmes, fonds de page, rythme, réglages | ✅ validée |
-| 7 | Images, aperçus de liens, PDF | — |
+| 7 | Images, aperçus de liens, PDF | ✅ fait (à valider sur Windows) |
 | 8 | Stickers et post-it | — |
 | 9 | OCR local | — |
 | 10 | Export, raccourcis, palette, packaging | — |
@@ -515,6 +515,128 @@ Livrée en sous-étapes : 6a thèmes, 6b rythme vertical, 6c fonds de page, 6d r
 9. Clique sur « Modifié il y a… » : mots, caractères, temps de lecture et dates ; compare le nombre de mots avec Word sur un texte collé.
 10. Mode machine à écrire + fond ligné : en tapant, les lignes restent alignées sur les réglures.
 
+## Phase 7 — Images, aperçus de liens, PDF
+
+Livrée en sous-étapes : 7a images (import, affichage, rythme), 7b sélection, redimensionnement et recadrage, 7c vignettes de la liste, images orphelines et sauvegardes, 7d aperçus de liens, 7e cartes PDF.
+
+### Fait
+- **Ajouter une image ou un PDF** :
+  - **coller** (capture Win+Maj+S incluse) : si le collage ne contient pas le fichier, Ursa lit l'image du presse-papier système (côté Rust) ;
+  - **glisser-déposer** depuis l'Explorateur : insertion à la ligne sous le pointeur ;
+  - **… › Insérer une image ou un PDF…** (sélecteur de fichiers).
+- **Copie dans `assets/`** :
+  - format reconnu d'après le contenu du fichier, pas son nom ;
+  - nom propre et unique (`photo-ete.png`, `capture-2026-10-03-143200.png`, puis `-2`…) ;
+  - même image ajoutée deux fois (même SHA-256) : le fichier existant est réutilisé.
+- **Markdown standard** et chemins relatifs : `![](assets/photo.png){width=420}`, `[devis.pdf](assets/devis.pdf)`, `<assets/mon image.png>` pour les espaces. Les notes restent lisibles ailleurs.
+- **Formats** :
+  - PNG, JPG, GIF (animé), WebP, SVG ;
+  - les SVG sont **toujours affichés par une balise image**, jamais injectés dans la page ; le protocole qui les sert ajoute en plus une politique de sécurité qui interdit les scripts ;
+  - HEIC/HEIF : refusé avec un message clair (enregistrer en JPG depuis Photos).
+- **Affichage** : une image seule sur sa ligne devient un bloc.
+  - Hauteur du **bloc** arrondie au multiple de 28 supérieur, avec l'espace réparti au-dessus et en dessous : l'image n'est **jamais déformée ni rognée**.
+  - Chargement paresseux ; tailles lues dans les en-têtes des fichiers pour éviter les sauts à l'ouverture.
+  - La ligne sous le curseur montre son Markdown au-dessus de l'image ; ↑ / ↓ y mènent.
+- **Sélection** (clic, DESIGN §2.12) :
+  - anneau, 4 poignées d'angle et 2 latérales, badge « 560 × 315 · 12 lignes », barre S / M / L / Pleine + Recadrer…
+  - **Redimensionnement proportionnel** écrit en `{width=…}`, en une seule transaction : un Ctrl+Z l'annule.
+  - Échap désélectionne, Suppr retire l'image, Entrée montre son Markdown.
+- **Recadrage non destructif** :
+  - dans une fenêtre (cadre à poignées, extérieur assombri) ;
+  - la version recadrée est enregistrée **à côté** de l'original (`paysage-recadre.png`) et la note pointe dessus ;
+  - `.ursa/crops.json` garde l'original et le cadre, donc un nouveau recadrage repart de l'original et « Rétablir l'original » est toujours possible (annulable).
+- **Vignettes de la liste** :
+  - première image de la note en 64×64 (DESIGN §2.4) ;
+  - générée une fois (128 px) par Rust, hors du fil principal, et gardée dans `.ursa/thumbs/` ;
+  - `@images` trouve les images ajoutées (testé).
+- **Images orphelines** : à la suppression définitive d'une note, ses fichiers de `assets/` qu'aucune autre note n'utilise (corbeille et archives comprises) :
+  - sont copiés dans la sauvegarde, puis envoyés dans la **Corbeille de Windows** ;
+  - « Annuler » et Réglages › Sauvegardes › Restaurer les remettent, octet pour octet.
+- **Aperçus de liens** : une URL **seule sur sa ligne**, si le réglage est activé, devient une carte (DESIGN §2.10, 4 lignes de rythme).
+  - Requêtes **uniquement côté Rust** :
+    - http/https sur les ports web ;
+    - jamais `localhost`, les noms sans point, `.local` / `.lan` / `.internal` / `.corp` (et `.home.arpa`, `.intranet`…) ;
+    - jamais une IP privée, de bouclage, lien-local, CGNAT, réservée, ni une IPv6 locale ou mappée, **vérifié aussi après résolution DNS**, la connexion étant ensuite épinglée sur l'adresse vérifiée ;
+    - redirections suivies à la main (3 au plus, chacune revérifiée) ;
+    - délai de 5 s, taille limitée (1 Mo de HTML, lecture arrêtée à `</head>` ; image 3 Mo ; favicon 256 Ko) ;
+    - sans cookies, sans proxy, sans référent.
+  - Titre, description, image OpenGraph et favicon téléchargés dans `.ursa/previews/` (frais 30 jours). Hors ligne : la carte du cache, sinon un lien simple.
+  - Menu « … » de la carte : ouvrir, rafraîchir, revenir à un lien simple (écrit `<url>`, qui ne redevient jamais une carte).
+- **Cartes PDF** (DESIGN §2.11, 3 lignes) :
+  - aperçu de la 1re page dessiné une fois par pdf.js (chargé à la demande) et gardé avec le nombre de pages dans `.ursa/thumbs/` ;
+  - « 2 pages · 1,2 Ko » ;
+  - un clic ouvre le PDF avec l'application par défaut de Windows.
+- **Rythme** : « Rythme vertical.md » contient maintenant des images (large, verticale à 220 px, petite, SVG), une carte de lien et une carte PDF. `test:rhythm` vérifie aussi ces blocs et que les images gardent leurs proportions : 26/26.
+- **Mesures** :
+  - note de 30 images : défilement par pas de 400 px en 2 images d'écran, aucun bloc hors de la grille ;
+  - photo de 24 Mpx (12,9 Mo) : import 83 ms, vignette 0,5 s une seule fois, hors du fil principal, puis 40 µs en cache.
+- **Vérifié dans la vraie app** (Linux/Xvfb) :
+  - images servies par le protocole `vault:` ;
+  - **collage d'une image du presse-papier système** → `assets/capture-…png` + ligne Markdown ;
+  - vignettes générées dans `.ursa/thumbs/` ;
+  - carte PDF avec sa 1re page ;
+  - adresses `http://wiki.corp/…` et `http://192.168.1.20/…` laissées en liens simples sans aucune requête.
+- **Pas vérifiable ici** :
+  - glisser-déposer depuis l'Explorateur ;
+  - ouverture avec l'application Windows ;
+  - aperçus de vrais sites : le proxy de ce conteneur bloque la plupart des domaines ; la première requête et la redirection de www.rust-lang.org passent, la cible est bloquée par le conteneur.
+  → checklist.
+- **Tests** :
+  - 154 Vitest (lignes d'image / PDF / URL, chemins, références, orphelins avec « Annuler », `@images`, tailles de fichiers) ;
+  - 26 Rust : formats, noms, déduplication, vignettes, protocole, garde-fous réseau dont un nom qui se résout en 127.0.0.1, lecture des métadonnées, restauration binaire ;
+  - plus un test réseau réel à lancer à la main.
+- Captures : `docs/captures/phase-7/`.
+
+### Décisions (phase 7)
+| # | Sujet | Décision |
+|---|---|---|
+| P7-1 | Où une image devient un bloc | Seule sur sa ligne (avec `{width=…}` éventuel). Une image au milieu d'un paragraphe reste du texte Markdown. Les images distantes (`https://…`) ne sont jamais chargées : la seule requête réseau d'Ursa reste l'aperçu de liens. |
+| P7-2 | Arrondi au rythme | Selon ta consigne : espace réparti autour de l'image, jamais de déformation ni de rognage (DESIGN §6 proposait un rognage `object-fit: cover` de 27 px au plus). |
+| P7-3 | Noms dans `assets/` | ASCII minuscule, accents repliés, tirets ; collage sans nom : `capture-AAAA-MM-JJ-HHMMSS` ; doublons détectés par SHA-256 parmi les fichiers de `assets/`. Taille maximale 200 Mo. |
+| P7-4 | HEIC | Refusé avec un message : aucune conversion simple côté Rust (pas de décodeur HEVC sans bibliothèque C). |
+| P7-5 | Collage | Les fichiers de l'événement de collage d'abord ; sinon (WebView sans image dans l'événement) l'image du presse-papier système, encodée en PNG par Rust (`arboard`). |
+| P7-6 | Sélection d'une image | Le clic sélectionne sans montrer le Markdown (curseur placé sur la ligne de l'image, pour que Ctrl+Z après un redimensionnement reste sur place). Redimensionnement toujours proportionnel (seule la largeur est stockée) : pas de mode « Maj = libre ». |
+| P7-7 | S / M / L / Pleine | Un tiers, la moitié, trois quarts de la colonne ; Pleine = pas de `{width}` (largeur naturelle, au plus la colonne). Badge : dimensions + nombre de lignes de rythme (DESIGN §6). |
+| P7-8 | Recadrage | Fenêtre de 760 px ; même format en sortie (PNG, JPG, WebP) ; GIF (animation) et SVG non recadrables ; fichier `<nom>-recadre.<ext>` ; `.ursa/crops.json`. La barre n'a pas encore le bouton OCR (phase 9). |
+| P7-9 | Images orphelines | Seulement les fichiers de `assets/`. Toute note (corbeille et archives comprises) qui y fait référence les garde. Un original de recadrage que seule `crops.json` référence n'est pas concerné. |
+| P7-10 | Caches | `.ursa/thumbs/` (vignettes et aperçus PDF, nommés d'après chemin + date + taille) n'est pas purgé automatiquement : il se reconstruit. `.ursa/previews/` : cartes non revues depuis 90 jours supprimées à l'ouverture du coffre. |
+| P7-11 | Aperçus de liens | Ports 80, 443, 8080, 8443. Proxy système ignoré (il résoudrait les noms lui-même). Carte haute de 4 lignes, chargement = squelette fixe. « Lien simple » = `<url>`. |
+| P7-12 | Cartes PDF | Un clic ouvre le PDF (ta consigne ; DESIGN §2.11 : double-clic). Hauteur 3 lignes. pdf.js 4.x chargé seulement quand une carte en a besoin, sans `eval`. |
+| P7-13 | Glisser-déposer | Pas d'indicateur pendant le survol : insertion à la ligne sous le pointeur au lâcher (sur sa ligne si elle est vide, sinon juste après). Le curseur se place sous les blocs insérés. |
+| P7-14 | Outils | `npm run sample:images` régénère les images et le PDF d'exemple ; coffre factice : notes « Pièces jointes » et « Aperçus de liens ». |
+
+### Comparaison avec la maquette 02 (éditeur)
+**Conforme** :
+- image : poignées d'angle et latérales, anneau accent, barre S / M / L / Full au-dessus, badge de taille en bas à droite ;
+- carte de lien : domaine + favicon, titre en gras, deux lignes de description, image à droite, fond `--bg-1` ;
+- carte PDF : aperçu de la 1re page avec pastille « PDF », nom, « N pages · taille », icône d'ouverture à droite.
+
+**Écarts** :
+- pas de bouton OCR dans la barre (phase 9), bouton Recadrer ajouté ;
+- le badge ajoute le nombre de lignes ;
+- la carte de lien a un menu « … » au survol (rafraîchir, lien simple), non dessiné sur la maquette.
+
+### Checklist de test manuel (phase 7, Windows)
+1. **Capture d'écran** : Win+Maj+S, puis Ctrl+V dans une note. L'image apparaît, `assets/capture-….png` est créé et la ligne `![](assets/capture-….png)` est lisible dans le Bloc-notes. Recolle la même capture : aucun nouveau fichier.
+2. Glisse depuis l'Explorateur une PNG, une JPG et un **GIF animé** : chacun s'insère à la ligne visée, le GIF s'anime. Glisse à nouveau la même image : le fichier existant est réutilisé.
+3. **Image de 20 Mo** : l'insertion est rapide, le défilement reste fluide, la vignette apparaît dans la liste.
+4. **SVG** : il s'affiche. Crée un SVG contenant `<script>alert(1)</script>` et glisse-le : aucune alerte ne s'ouvre.
+5. Une photo **HEIC** d'iPhone : message clair, rien n'est inséré.
+6. **Redimensionnement** sur fond ligné :
+   - aux poignées : proportions gardées, `{width=…}` écrit, un seul Ctrl+Z annule ;
+   - avec S / M / L / Pleine : le texte autour reste sur les lignes.
+7. **Recadrer…** : l'original reste dans `assets/` et `…-recadre.png` apparaît à côté. Recadrer à nouveau repart de l'original ; « Rétablir l'original » fonctionne.
+8. **Note de 30 images** : ouverture et défilement fluides, tout reste sur les lignes.
+9. **Suppression définitive** d'une note qui a une image à elle seule et une image partagée avec une autre note :
+   - l'image à elle seule part dans la Corbeille de Windows, la partagée reste ;
+   - « Annuler » ramène la note et son image.
+10. **Aperçus de liens** :
+    - colle `https://fr.wikipedia.org/wiki/Ours_brun` seul sur une ligne : une carte apparaît, avec un menu Rafraîchir / Revenir à un lien simple ;
+    - les **URL d'intranet** `http://intranet/`, `http://192.168.1.1/`, `http://nas.local/` restent des liens simples, et `.ursa/previews/` ne reçoit rien pour elles ;
+    - hors ligne, la carte s'affiche depuis le cache ;
+    - réglage désactivé : plus aucune carte.
+11. **PDF** : glisse un PDF : la carte montre sa 1re page et son nombre de pages, et un clic l'ouvre dans le lecteur par défaut.
+
 ---
 
 ## Proposition d'architecture
@@ -590,6 +712,9 @@ Idées en vrac #voyages/japon-2026
 | `version` | 1 | version de schéma |
 | `tags.json` | 3 | `{ "voyages/japon": { icon, color, pinned, order } }` |
 | `backups/<date-heure>-<opération>/` | 4, 6 | copies avant opération en masse + `manifest.json` (purge à 30 jours) |
+| `thumbs/` | 7 | vignettes 128 px des images et aperçus des PDF (reconstructibles) |
+| `previews/` | 7 | cartes d'aperçu de liens : `meta.json`, image, favicon (30 jours) |
+| `crops.json` | 7 | recadrages : original et cadre de chaque version recadrée |
 | `folds.json` | 4 | par `id` de note : titres repliés (clé = texte du titre + rang d'occurrence, robuste aux éditions) |
 | `cache/index.json` | 10 si besoin | méta parsées indexées par `chemin + mtime + taille`, seulement si le démarrage à 1000+ notes dépasse ~500 ms |
 | `previews/` | 7 | `<sha1(url)>.json` + images |
