@@ -28,6 +28,10 @@
   animation: modal-in var(--dur-base) var(--ease-out);
 }
 
+.wide {
+  width: var(--modal-w-wide);
+}
+
 .header {
   display: flex;
   align-items: flex-start;

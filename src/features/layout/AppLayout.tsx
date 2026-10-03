@@ -7,6 +7,7 @@ import { Resizer } from "../../components/Resizer";
 import { Toast } from "../../components/Toast";
 import { CloseDialog } from "../close/CloseDialog";
 import { SettingsDialog } from "../settings/SettingsDialog";
+import { CropDialog } from "../editor/CropDialog";
 import { EditorPane } from "../editor/EditorPane";
 import { NoteList } from "../notelist/NoteList";
 import { Sidebar } from "../sidebar/Sidebar";
@@ -51,6 +52,7 @@ export function AppLayout() {
         </div>
       </div>
       <SettingsDialog />
+      <CropDialog />
       <CloseDialog />
       <ConfirmHost />
       <Toast />

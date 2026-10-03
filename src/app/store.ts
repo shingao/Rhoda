@@ -1,4 +1,5 @@
 import type { OutlineData } from "../editor/sections/outline";
+import type { CropRequest } from "./crops";
 import { create } from "zustand";
 import type { Note } from "../core/note/note";
 import { sortNotes, type SortKey } from "../core/note/sort";
@@ -38,6 +39,8 @@ interface AppState {
   focusMode: boolean;
   /** Settings dialog and its current page; null = closed. */
   settingsPage: SettingsPage | null;
+  /** Crop dialog of an image of the open note. */
+  crop: CropRequest | null;
 }
 
 export type SettingsPage = "general" | "editor" | "backups";
@@ -80,6 +83,7 @@ export const useApp = create<AppState>()(() => ({
   search: { chips: [], text: "" },
   find: { open: false, focusToken: 0, replace: false, query: "", count: 0, current: null },
   settingsPage: null,
+  crop: null,
   focusMode: false,
 }));
 

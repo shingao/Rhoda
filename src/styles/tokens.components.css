@@ -191,11 +191,32 @@
   --modal-footer-mt: var(--sp-6);
   --modal-scale-from: .98;
   --modal-top: 18vh;                       /* (decision) */
+  --modal-w-wide: 760px;                   /* (decision) crop dialog */
+  --crop-stage-h: 440px;                   /* (decision) image area of the crop dialog */
+  --crop-shade-spread: 2000px;             /* (decision) dims everything around the frame */
+  --crop-handle: 12px;                     /* (decision) like the image handles [§2.12], a bit larger */
 
   /* Images in the editor [§2.12, §6] */
   --image-radius: var(--r-md);
   --image-placeholder: var(--bg-sunken);   /* while loading: no shimmer [§2.10] */
   --image-missing-fs: var(--fs-sm);
+  --image-ring: 2px;                       /* [§2.12] ring 0 0 0 2px accent, 3 px from the image */
+  --image-ring-offset: 3px;
+  --image-handle: 10px;                    /* [§2.12] corner handles 10×10, border 1.5, radius 2 */
+  --image-handle-border: 1.5px;
+  --image-handle-radius: 2px;
+  --image-side-handle-w: 6px;              /* [§2.12] side handles 6×28 */
+  --image-side-handle-h: 28px;
+  --image-badge-fs: 11px;                  /* [§2.12] mono 11 */
+  --image-badge-bg: rgba(20, 16, 12, .72); /* [§2.12] exception allowed by DESIGN */
+  --image-badge-fg: #FFFFFF;               /* [§2.12] exception allowed by DESIGN */
+  --image-badge-pad: 2px 6px;              /* (decision) */
+  --image-bar-h: 44px;                     /* [§2.12] floating bar 44 px above */
+  --image-bar-gap: var(--sp-2);            /* (decision) */
+  --image-bar-btn-h: 30px;                 /* (decision) */
+  --image-bar-icon: 15px;
+  --image-min-w: 48px;                     /* (decision) smallest resize
+
 
   /* Focus mode [§4 « Mode focus » + maquette 03] */
   --focus-dim-opacity: .4;                 /* (decision) paragraphs other than the current one */

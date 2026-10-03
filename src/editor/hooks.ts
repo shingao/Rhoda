@@ -33,6 +33,8 @@ export interface EditorHooks {
   assetUrl(src: string): string | null;
   /** Size of an image not displayed yet is wanted (the app reads it from the file, then refreshes). */
   wantSize(src: string, url: string): void;
+  /** "Crop" on a selected image: the app opens the crop dialog for the image line starting at `lineFrom`. */
+  cropImage(src: string, lineFrom: number): void;
   /** A paste without text nor file: the image of the system clipboard, if any (screenshot). */
   pasteClipboardImage(pos: number): void;
   /** Files pasted or dropped in the editor (images, PDF); true if taken care of. */
@@ -62,6 +64,7 @@ let hooks: EditorHooks = {
   wantSize: () => undefined,
   attachFiles: () => false,
   pasteClipboardImage: () => undefined,
+  cropImage: () => undefined,
 };
 
 export function setEditorHooks(next: Partial<EditorHooks>): void {

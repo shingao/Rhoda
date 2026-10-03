@@ -273,6 +273,11 @@ export const en: Messages = {
   },
   images: {
     missing: (src: string) => `Image not found: ${src}`,
+    toolbar: "Image size",
+    sizes: { s: "S", m: "M", l: "L", full: "Full" },
+    sizesHint: { s: "A third of the column", m: "Half the column", l: "Three quarters of the column", full: "The whole column (or the image's size)" },
+    badge: (w: number, h: number, units: number) => `${w} × ${h} · ${units} line${units === 1 ? "" : "s"}`,
+    crop: "Crop…",
     insert: "Insert image or PDF…",
     pickTitle: "Choose images or PDFs",
     noNote: "Open a note to add images to it.",
@@ -282,6 +287,15 @@ export const en: Messages = {
       unsupported: (name: string) => `“${name}” is neither a supported image (PNG, JPG, GIF, WebP, SVG) nor a PDF.`,
       tooLarge: (name: string) => `“${name}” is too large (200 MB at most).`,
     },
+  },
+  crop: {
+    title: "Crop image",
+    subtitle: "The original is kept; the cropped version is saved next to it, in assets/.",
+    apply: "Crop",
+    cancel: "Cancel",
+    restore: "Restore original",
+    unavailable: "This image cannot be cropped.",
+    failed: (message: string) => `Could not crop: ${message}`,
   },
   info: {
     title: "Info",

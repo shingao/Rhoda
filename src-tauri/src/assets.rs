@@ -375,6 +375,8 @@ pub fn serve(app: &AppHandle, request: &tauri::http::Request<Vec<u8>>) -> Respon
     Response::builder()
         .header(header::CONTENT_TYPE, content_type(&path))
         .header("X-Content-Type-Options", "nosniff")
+        // The crop dialog draws images on a canvas: readable pixels need CORS (local files only).
+        .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
         // Defence in depth: SVG is only ever shown through <img>, where scripts never run.
         .header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; img-src data:")
         .header(header::CACHE_CONTROL, "no-cache")

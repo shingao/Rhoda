@@ -1,0 +1,97 @@
+/* Crop (decision P7): the image fitted in the stage, outside of the frame dimmed with --scrim */
+.stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--crop-stage-h);
+  padding: var(--crop-handle);
+  margin-top: var(--sp-4);
+  overflow: hidden;
+  border-radius: var(--r-lg);
+  background: var(--bg-sunken);
+}
+
+.canvas {
+  position: relative;
+  touch-action: none;
+  cursor: crosshair;
+  user-select: none;
+}
+
+.canvas img {
+  display: block;
+}
+
+/* Outside of the frame dimmed, clipped to the image */
+.shade {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hole {
+  position: absolute;
+  box-shadow: 0 0 0 var(--crop-shade-spread) var(--scrim);
+}
+
+.rect {
+  position: absolute;
+  box-shadow: 0 0 0 var(--image-handle-border) var(--accent);
+  cursor: move;
+}
+
+.handle {
+  position: absolute;
+  width: var(--crop-handle);
+  height: var(--crop-handle);
+  border: var(--image-handle-border) solid var(--accent);
+  border-radius: var(--image-handle-radius);
+  background: var(--bg-2);
+}
+
+.nw {
+  top: calc(var(--crop-handle) / -2);
+  left: calc(var(--crop-handle) / -2);
+  cursor: nwse-resize;
+}
+
+.ne {
+  top: calc(var(--crop-handle) / -2);
+  right: calc(var(--crop-handle) / -2);
+  cursor: nesw-resize;
+}
+
+.sw {
+  bottom: calc(var(--crop-handle) / -2);
+  left: calc(var(--crop-handle) / -2);
+  cursor: nesw-resize;
+}
+
+.se {
+  right: calc(var(--crop-handle) / -2);
+  bottom: calc(var(--crop-handle) / -2);
+  cursor: nwse-resize;
+}
+
+.size {
+  position: absolute;
+  right: var(--sp-2);
+  bottom: var(--sp-2);
+  padding: var(--image-badge-pad);
+  border-radius: var(--r-sm);
+  background: var(--image-badge-bg);
+  color: var(--image-badge-fg);
+  font-family: var(--font-mono);
+  font-size: var(--image-badge-fs);
+  pointer-events: none;
+}
+
+.restore {
+  margin-right: auto;
+}
+
+.error {
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+}

@@ -12,13 +12,15 @@ interface ModalProps {
   footer: ReactNode;
   /** Control focused on open; defaults to the first control after the close button. */
   initialFocus?: RefObject<HTMLElement | null>;
+  /** Wider dialog (crop). */
+  wide?: boolean;
 }
 
 /** Modal dialog [DESIGN §2.17]: header with title and close button, content, footer of buttons. */
-export function Modal({ title, subtitle, closeLabel, onClose, children, footer, initialFocus }: ModalProps) {
+export function Modal({ title, subtitle, closeLabel, onClose, children, footer, initialFocus, wide }: ModalProps) {
   const titleId = useId();
   return (
-    <Dialog onClose={onClose} labelledBy={titleId} className={s.modal} initialFocus={initialFocus}>
+    <Dialog onClose={onClose} labelledBy={titleId} className={[s.modal, wide && s.wide].filter(Boolean).join(" ")} initialFocus={initialFocus}>
       <header className={s.header}>
         <div className={s.heading}>
           <h2 id={titleId} className={s.title}>

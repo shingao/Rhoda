@@ -282,6 +282,11 @@ export const fr = {
   },
   images: {
     missing: (src: string) => `Image introuvable : ${src}`,
+    toolbar: "Taille de l'image",
+    sizes: { s: "S", m: "M", l: "L", full: "Pleine" },
+    sizesHint: { s: "Un tiers de la colonne", m: "La moitié de la colonne", l: "Trois quarts de la colonne", full: "Toute la colonne (ou la taille de l'image)" },
+    badge: (w: number, h: number, units: number) => `${w} × ${h} · ${units} ligne${units > 1 ? "s" : ""}`,
+    crop: "Recadrer…",
     insert: "Insérer une image ou un PDF…",
     pickTitle: "Choisir des images ou des PDF",
     noNote: "Ouvrez une note pour y ajouter des images.",
@@ -292,6 +297,15 @@ export const fr = {
       unsupported: (name: string) => `« ${name} » n'est ni une image prise en charge (PNG, JPG, GIF, WebP, SVG) ni un PDF.`,
       tooLarge: (name: string) => `« ${name} » est trop volumineux (200 Mo au plus).`,
     },
+  },
+  crop: {
+    title: "Recadrer l'image",
+    subtitle: "L'original est conservé ; la version recadrée est enregistrée à côté, dans assets/.",
+    apply: "Recadrer",
+    cancel: "Annuler",
+    restore: "Rétablir l'original",
+    unavailable: "Cette image ne peut pas être recadrée.",
+    failed: (message: string) => `Recadrage impossible : ${message}`,
   },
   info: {
     title: "Infos",

@@ -1,3 +1,5 @@
+import { isolateHistory } from "@codemirror/commands";
+import { imageMarkdown, parseEmbedLine } from "../core/markdown/embeds";
 import type { Compartment} from "@codemirror/state";
 import { Annotation, EditorSelection, EditorState, type Extension, type StateEffect } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
@@ -290,4 +292,19 @@ export function insertBlockLines(noteId: string, lines: string[], pos?: number):
 /** Document position under a point of the window (CSS pixels), for drops. */
 export function editorPosAt(x: number, y: number): number | null {
   return view?.posAtCoords({ x, y }) ?? null;
+}
+
+/** Points the image of the line starting at `lineFrom` to another file (crop, original). Undoable. */
+export function replaceImageSrc(noteId: string, lineFrom: number, src: string): boolean {
+  if (!view || currentId !== noteId || lineFrom > view.state.doc.length) return false;
+  const line = view.state.doc.lineAt(lineFrom);
+  const embed = parseEmbedLine(line.text);
+  if (embed?.kind !== "image") return false;
+  const indent = /^\s*/.exec(line.text)![0];
+  view.dispatch({
+    changes: { from: line.from, to: line.to, insert: indent + imageMarkdown(embed.alt, src, embed.width) },
+    annotations: isolateHistory.of("full"),
+    userEvent: "input.crop",
+  });
+  return true;
 }

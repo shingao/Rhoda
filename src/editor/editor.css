@@ -419,8 +419,15 @@
 
 /* Images [§2.12]: a block whose height is a whole number of rhythm units, the image never distorted [§6] */
 .cm-editor .cm-image {
-  display: block;
-  overflow: hidden;
+  position: relative;
+  /* Own formatting context: the frame's top margin must not leak out of the block */
+  display: flow-root;
+}
+
+.cm-editor .cm-image-frame {
+  position: relative;
+  max-width: 100%;
+  cursor: default;
 }
 
 .cm-editor .cm-image img {
@@ -428,6 +435,140 @@
   max-width: 100%;
   border-radius: var(--image-radius);
   background: var(--image-placeholder);
+}
+
+/* Selected [§2.12]: ring, handles, size badge, floating bar */
+.cm-editor .cm-image.is-selected .cm-image-frame {
+  border-radius: var(--image-radius);
+  box-shadow:
+    0 0 0 var(--image-ring-offset) var(--bg-2),
+    0 0 0 calc(var(--image-ring-offset) + var(--image-ring)) var(--accent);
+}
+
+.cm-editor .cm-image-handle {
+  position: absolute;
+  display: none;
+  z-index: 2;
+  width: var(--image-handle);
+  height: var(--image-handle);
+  border: var(--image-handle-border) solid var(--accent);
+  border-radius: var(--image-handle-radius);
+  background: var(--bg-2);
+}
+
+.cm-editor .cm-image-handle-nw,
+.cm-editor .cm-image-handle-ne {
+  top: calc(var(--image-handle) / -2 - var(--image-ring-offset));
+}
+
+.cm-editor .cm-image-handle-sw,
+.cm-editor .cm-image-handle-se {
+  bottom: calc(var(--image-handle) / -2 - var(--image-ring-offset));
+}
+
+.cm-editor .cm-image-handle-nw,
+.cm-editor .cm-image-handle-sw {
+  left: calc(var(--image-handle) / -2 - var(--image-ring-offset));
+  cursor: nwse-resize;
+}
+
+.cm-editor .cm-image-handle-ne,
+.cm-editor .cm-image-handle-se {
+  right: calc(var(--image-handle) / -2 - var(--image-ring-offset));
+  cursor: nesw-resize;
+}
+
+.cm-editor .cm-image-handle-nw,
+.cm-editor .cm-image-handle-se {
+  cursor: nwse-resize;
+}
+
+.cm-editor .cm-image-handle-w,
+.cm-editor .cm-image-handle-e {
+  top: calc(50% - var(--image-side-handle-h) / 2);
+  width: var(--image-side-handle-w);
+  height: var(--image-side-handle-h);
+  border: 0;
+  background: var(--accent);
+  cursor: ew-resize;
+}
+
+.cm-editor .cm-image-handle-w {
+  left: calc(var(--image-side-handle-w) / -2 - var(--image-ring-offset) - var(--image-ring) / 2);
+}
+
+.cm-editor .cm-image-handle-e {
+  right: calc(var(--image-side-handle-w) / -2 - var(--image-ring-offset) - var(--image-ring) / 2);
+}
+
+.cm-editor .cm-image-badge {
+  position: absolute;
+  display: none;
+  right: var(--sp-2);
+  bottom: var(--sp-2);
+  padding: var(--image-badge-pad);
+  border-radius: var(--r-sm);
+  background: var(--image-badge-bg);
+  color: var(--image-badge-fg);
+  font-family: var(--font-mono);
+  font-size: var(--image-badge-fs);
+  line-height: var(--lh-tight);
+  pointer-events: none;
+}
+
+.cm-editor .cm-image-bar {
+  position: absolute;
+  display: none;
+  z-index: 3;
+  top: calc(-1 * var(--image-bar-h) - var(--image-bar-gap));
+  left: 0;
+  align-items: center;
+  gap: var(--sp-1);
+  height: var(--image-bar-h);
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-lg);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-pop);
+  font-family: var(--font-ui);
+  line-height: 1;
+}
+
+.cm-editor .cm-image-bar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--image-bar-btn-h);
+  height: var(--image-bar-btn-h);
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+}
+
+.cm-editor .cm-image-bar button:hover {
+  background: var(--hover);
+}
+
+.cm-editor .cm-image-bar button[aria-pressed="true"] {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.cm-editor .cm-image-icon {
+  width: var(--image-bar-icon);
+  height: var(--image-bar-icon);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cm-editor .cm-image.is-selected .cm-image-handle,
+.cm-editor .cm-image.is-selected .cm-image-badge,
+.cm-editor .cm-image.is-selected .cm-image-bar {
+  display: flex;
 }
 
 .cm-editor .cm-image.is-missing {

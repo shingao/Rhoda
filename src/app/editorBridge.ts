@@ -4,6 +4,7 @@ import { setEditorHooks, type Backlink } from "../editor/hooks";
 import { focusEditor, refreshEditor } from "../editor/session";
 import { assetUrl, attachFiles, pasteClipboardImage, wantSize } from "./attachments";
 import { confirmAction } from "./confirm";
+import { openCrop } from "./crops";
 import { rememberFolds, savedFolds } from "./folds";
 import { currentMessages } from "./i18n";
 import { noteIndex, resolveTitle } from "./noteIndex";
@@ -46,6 +47,7 @@ export function connectEditor(): void {
     attachFiles,
     wantSize,
     pasteClipboardImage,
+    cropImage: openCrop,
     linkExists: (target) => resolve(target) !== null,
     openWikiLink: (target) => {
       const id = resolve(target);
