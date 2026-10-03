@@ -309,6 +309,18 @@ export const fr = {
     pdfMissing: (name: string) => `PDF introuvable : ${name}`,
     units: ["o", "Ko", "Mo", "Go"] as readonly [string, string, string, string],
   },
+  remote: {
+    title: "Image distante",
+    download: "Télécharger localement",
+    downloading: "Téléchargement…",
+    failed: (reason: string) => `Téléchargement impossible : ${reason}`,
+    reasons: {
+      blocked: "adresse interne ou non autorisée",
+      tooLarge: "image trop volumineuse",
+      notImage: "ce n'est pas une image prise en charge",
+      network: "site injoignable",
+    },
+  },
   crop: {
     title: "Recadrer l'image",
     subtitle: "L'original est conservé ; la version recadrée est enregistrée à côté, dans assets/.",

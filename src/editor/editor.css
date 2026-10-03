@@ -804,6 +804,82 @@
   stroke-linejoin: round;
 }
 
+.cm-editor .cm-pdf-card.is-selected .cm-pdf-card-body {
+  box-shadow:
+    0 0 0 var(--image-ring-offset) var(--bg-2),
+    0 0 0 calc(var(--image-ring-offset) + var(--image-ring)) var(--accent);
+}
+
+/* Remote image: never loaded by itself; "Download locally" (decision P7-15) */
+.cm-editor .cm-remote-image {
+  display: flow-root;
+  height: var(--remote-card-h);
+}
+
+.cm-editor .cm-remote-image-body {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  box-sizing: border-box;
+  height: 100%;
+  padding: 0 var(--sp-3);
+  border-radius: var(--r-lg);
+  background: var(--bg-1);
+  font-family: var(--font-ui);
+  line-height: var(--lh-snug);
+}
+
+.cm-editor .cm-remote-image-icon {
+  width: var(--remote-card-icon);
+  height: var(--remote-card-icon);
+  flex: none;
+  fill: none;
+  stroke: var(--text-3);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cm-editor .cm-remote-image-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cm-editor .cm-remote-image-title {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--text);
+}
+
+.cm-editor .cm-remote-image-meta {
+  overflow: hidden;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cm-editor .cm-remote-image-download {
+  height: var(--btn-h-small);
+  flex: none;
+  padding: 0 var(--btn-px-small);
+  border-radius: var(--r-md);
+  background: var(--bg-sunken);
+  color: var(--text);
+  font-size: var(--btn-fs-small);
+  font-weight: var(--fw-semibold);
+}
+
+.cm-editor .cm-remote-image-download:disabled {
+  opacity: var(--disabled-opacity);
+}
+
+.cm-editor .cm-remote-image-download:hover:not(:disabled) {
+  background: linear-gradient(var(--hover), var(--hover)), var(--bg-sunken);
+}
+
 .cm-editor .cm-pdf-card.is-missing .cm-pdf-card-body {
   cursor: default;
 }

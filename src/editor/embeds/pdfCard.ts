@@ -1,4 +1,4 @@
-import { WidgetType } from "@codemirror/view";
+import { WidgetType, type EditorView } from "@codemirror/view";
 import { currentMessages } from "../../app/i18n";
 import { editorHooks } from "../hooks";
 
@@ -12,23 +12,29 @@ const OPEN_ICON = ["M15 3h6v6", "M10 14 21 3", "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0
 
 /**
  * PDF card [DESIGN §2.11]: first page with a "PDF" badge, name, "12 pages ·
- * 1,4 Mo", open button. Three rhythm units high [§6]. A click opens the file
- * with the default app.
+ * 1,4 Mo", open button. Three rhythm units high [§6]. A click selects the
+ * card; Ctrl+click (as for links), a double-click or the button opens the
+ * file with the default app.
  */
 export class PdfCardWidget extends WidgetType {
-  constructor(readonly state: PdfState) {
+  constructor(
+    readonly state: PdfState,
+    readonly selected: boolean,
+    readonly select: (view: EditorView, dom: HTMLElement) => void,
+  ) {
     super();
   }
 
   eq(other: WidgetType): boolean {
-    return other instanceof PdfCardWidget && JSON.stringify(other.state) === JSON.stringify(this.state);
+    return other instanceof PdfCardWidget && other.selected === this.selected && JSON.stringify(other.state) === JSON.stringify(this.state);
   }
 
-  toDOM(): HTMLElement {
+  toDOM(view: EditorView): HTMLElement {
     const t = currentMessages().cards;
     const s = this.state;
     const wrap = document.createElement("div");
     wrap.className = "cm-embed cm-pdf-card";
+    wrap.classList.toggle("is-selected", this.selected);
     const card = document.createElement("div");
     card.className = "cm-pdf-card-body";
     const preview = document.createElement("div");
@@ -70,9 +76,16 @@ export class PdfCardWidget extends WidgetType {
       }
       open.append(svg);
       card.append(open);
-      card.addEventListener("mousedown", (e) => e.preventDefault());
-      card.addEventListener("click", () => editorHooks().openAttachment(s.path));
+      open.addEventListener("mousedown", (e) => e.stopPropagation());
+      open.addEventListener("click", () => editorHooks().openAttachment(s.path));
+      card.addEventListener("dblclick", () => editorHooks().openAttachment(s.path));
     } else wrap.classList.add(s.status === "missing" ? "is-missing" : "is-loading");
+    card.addEventListener("mousedown", (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      if ((e.ctrlKey || e.metaKey) && s.status === "ready") editorHooks().openAttachment(s.path);
+      else this.select(view, wrap);
+    });
     wrap.append(card);
     return wrap;
   }

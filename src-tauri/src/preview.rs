@@ -37,6 +37,9 @@ const FRESH_FOR: u64 = 30 * 24 * 3600 * 1000;
 /// Cached cards not seen for this long are deleted when a vault opens.
 const KEEP_FOR: u64 = 90 * 24 * 3600 * 1000;
 const PORTS: [u16; 4] = [80, 443, 8080, 8443];
+/// "Download locally" of a remote image: bigger and slower than a preview.
+const DOWNLOAD_TIMEOUT: Duration = Duration::from_secs(30);
+const MAX_DOWNLOAD: usize = 20 * 1024 * 1024;
 const BLOCKED_SUFFIXES: [&str; 13] = [
     ".local", ".lan", ".internal", ".corp", ".localhost", ".localdomain", ".home", ".home.arpa", ".intranet", ".private", ".test", ".invalid", ".onion",
 ];
@@ -141,7 +144,7 @@ fn err(message: impl std::fmt::Display) -> CmdError {
 }
 
 /// GET with the rules above; returns the final URL, content type and (bounded) body.
-async fn fetch(start: Url, max: usize, accept: &str, html: bool) -> CmdResult<(Url, String, Vec<u8>)> {
+async fn fetch(start: Url, max: usize, accept: &str, html: bool, timeout: Duration) -> CmdResult<(Url, String, Vec<u8>)> {
     let mut url = start;
     for _ in 0..=MAX_REDIRECTS {
         let (host, port) = check_url(&url).map_err(|b| err(format!("blocked: {b:?}")))?;
@@ -158,7 +161,7 @@ async fn fetch(start: Url, max: usize, accept: &str, html: bool) -> CmdResult<(U
         }
         let client = builder
             .redirect(Policy::none())
-            .timeout(TIMEOUT)
+            .timeout(timeout)
             .connect_timeout(TIMEOUT)
             .user_agent(USER_AGENT)
             .resolve(&host, addr)
@@ -392,7 +395,7 @@ fn image_ext(content_type: &str) -> Option<&'static str> {
 /// Downloads an image into the card's cache folder; its vault-relative path.
 async fn cache_image(root: &Path, key: &str, name: &str, url: &str, max: usize) -> Option<String> {
     let url = Url::parse(url).ok()?;
-    let (_, content_type, body) = tokio::time::timeout(TIMEOUT, fetch(url, max, "image/*", false)).await.ok()?.ok()?;
+    let (_, content_type, body) = tokio::time::timeout(TIMEOUT, fetch(url, max, "image/*", false, TIMEOUT)).await.ok()?.ok()?;
     let ext = image_ext(&content_type)?;
     let rel = format!("{INTERNAL_DIR}/previews/{key}/{name}.{ext}");
     atomic_write_bytes(&root.join(&rel), &body).ok()?;
@@ -400,7 +403,7 @@ async fn cache_image(root: &Path, key: &str, name: &str, url: &str, max: usize) 
 }
 
 async fn fetch_preview(root: &Path, url: &Url, key: &str) -> CmdResult<Preview> {
-    let (final_url, content_type, body) = tokio::time::timeout(TIMEOUT, fetch(url.clone(), MAX_HTML, "text/html,application/xhtml+xml", true))
+    let (final_url, content_type, body) = tokio::time::timeout(TIMEOUT, fetch(url.clone(), MAX_HTML, "text/html,application/xhtml+xml", true, TIMEOUT))
         .await
         .map_err(|_| err("timeout"))??;
     if !content_type.starts_with("text/html") && !content_type.starts_with("application/xhtml") {
@@ -452,6 +455,25 @@ pub async fn link_preview(state: State<'_, VaultState>, url: String, refresh: bo
         }
         Err(e) => cached.map(|c| Preview { stale: true, ..c }).ok_or(e),
     }
+}
+
+/// Remote image › "Download locally": fetched with the same rules as previews
+/// (never the local network), then imported into assets/ like a dropped file.
+#[tauri::command]
+pub async fn download_image(state: State<'_, VaultState>, url: String) -> CmdResult<crate::assets::Imported> {
+    download_to(&current_root(&state)?, &url).await
+}
+
+async fn download_to(root: &Path, url: &str) -> CmdResult<crate::assets::Imported> {
+    let parsed = Url::parse(url.trim()).map_err(err)?;
+    let (_, content_type, body) = tokio::time::timeout(DOWNLOAD_TIMEOUT, fetch(parsed.clone(), MAX_DOWNLOAD, "image/*", false, DOWNLOAD_TIMEOUT))
+        .await
+        .map_err(|_| err("timeout"))??;
+    if !content_type.starts_with("image/") {
+        return Err(err("not an image"));
+    }
+    let name = parsed.path_segments().and_then(|mut s| s.next_back()).filter(|s| !s.is_empty()).unwrap_or("image");
+    crate::assets::import(root, &crate::assets::percent_decode(name), &body)
 }
 
 /// Removes cached cards fetched more than 90 days ago (at vault opening).
@@ -535,6 +557,16 @@ mod tests {
         let p = fetch_preview(v.path(), &url("https://www.rust-lang.org/"), "test").await.unwrap();
         assert!(p.title.is_some_and(|t| t.contains("Rust")), "title");
         assert!(p.icon.is_some(), "favicon cached");
+    }
+
+    #[tokio::test]
+    async fn remote_images_from_the_local_network_are_never_downloaded() {
+        let v = tempfile::tempdir().unwrap();
+        for url in ["http://192.168.1.10/photo.jpg", "http://nas.local/a.png", "http://localhost:8080/x.png", "file:///C:/a.png"] {
+            let e = download_to(v.path(), url).await.unwrap_err();
+            assert!(e.message.contains("blocked") || e.message.contains("relative URL"), "{url}: {}", e.message);
+        }
+        assert!(!v.path().join("assets").exists());
     }
 
     #[test]

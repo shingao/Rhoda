@@ -7,6 +7,7 @@ import { editorHooks, refreshPreview } from "../hooks";
 import { ImageWidget, sizeOf, type ImageActions } from "./image";
 import { LinkCardWidget } from "./linkCard";
 import { PdfCardWidget } from "./pdfCard";
+import { RemoteImageWidget } from "./remoteImage";
 
 /**
  * Images, link cards and PDF cards: lines holding only one of them become a
@@ -14,14 +15,14 @@ import { PdfCardWidget } from "./pdfCard";
  * can be edited without the block jumping away [DESIGN §2.10].
  */
 const focusChanged = StateEffect.define<boolean>();
-/** Selects the image block starting at this position (null: none). */
-const selectImage = StateEffect.define<number | null>();
+/** Selects the block (image, PDF card) starting at this position (null: none). */
+const selectBlock = StateEffect.define<number | null>();
 
 interface Embeds {
   /** Embeds by line number, recomputed when the text changes. */
   lines: Map<number, EmbedLine>;
   focused: boolean;
-  /** Start of the line of the selected image (ring, handles, bar), or null. */
+  /** Start of the line of the selected block (image: ring, handles, bar; PDF: ring), or null. */
   selected: number | null;
   deco: DecorationSet;
 }
@@ -33,14 +34,18 @@ function imageLineOf(view: EditorView, dom: HTMLElement) {
   return embed?.kind === "image" ? { line, embed } : null;
 }
 
+/**
+ * Selects the block of `dom`: the cursor goes to its line (so Ctrl+Z after a
+ * resize stays here) while its Markdown stays hidden.
+ */
+function selectBlockOf(view: EditorView, dom: HTMLElement): void {
+  const line = view.state.doc.lineAt(view.posAtDOM(dom));
+  view.dispatch({ selection: { anchor: line.from }, effects: selectBlock.of(line.from) });
+  view.focus();
+}
+
 const actions: ImageActions = {
-  select(view, dom) {
-    const found = imageLineOf(view, dom);
-    if (!found) return;
-    // The cursor goes to the image's line (so Ctrl+Z after a resize stays here); a selected image keeps its Markdown hidden.
-    view.dispatch({ selection: { anchor: found.line.from }, effects: selectImage.of(found.line.from) });
-    view.focus();
-  },
+  select: selectBlockOf,
   resize(view, dom, width) {
     const found = imageLineOf(view, dom);
     if (!found) return;
@@ -48,7 +53,7 @@ const actions: ImageActions = {
     if (embed.width === width) return;
     view.dispatch({
       changes: { from: line.from + embed.attrFrom, to: line.from + embed.attrTo, insert: width ? `{width=${width}}` : "" },
-      effects: selectImage.of(line.from),
+      effects: selectBlock.of(line.from),
       // One drag or one click of the bar = one Ctrl+Z.
       annotations: isolateHistory.of("full"),
       userEvent: "input.resize",
@@ -75,9 +80,10 @@ function widgetFor(embed: EmbedLine, rhythm: number, selected = false) {
   }
   if (embed.kind === "pdf") {
     const state = editorHooks().pdfCard(embed.src, embed.label);
-    return state ? new PdfCardWidget(state) : null;
+    return state ? new PdfCardWidget(state, selected, selectBlockOf) : null;
   }
   if (embed.kind !== "image") return null;
+  if (/^https?:\/\//i.test(embed.src)) return new RemoteImageWidget(embed.src, editorHooks().remoteImage(embed.src));
   const url = editorHooks().assetUrl(embed.src);
   if (!url) return null;
   if (!sizeOf(url)) editorHooks().wantSize(embed.src, url);
@@ -110,7 +116,7 @@ const embedsField = StateField.define<Embeds>({
     const focus = tr.effects.find((e) => e.is(focusChanged));
     if (focus) focused = focus.value;
     const refreshed = tr.effects.some((e) => e.is(refreshPreview));
-    const select = tr.effects.find((e) => e.is(selectImage));
+    const select = tr.effects.find((e) => e.is(selectBlock));
     if (tr.docChanged) lines = linesOf(tr.state);
     if (selected !== null && tr.docChanged) selected = tr.changes.mapPos(selected);
     // Moving the cursor deselects; so does losing the image line.
@@ -164,7 +170,7 @@ const removeLine = onSelected((view, line) => {
   const { doc } = view.state;
   const to = line.to < doc.length ? line.to + 1 : line.to;
   const from = line.to < doc.length || line.from === 0 ? line.from : line.from - 1;
-  view.dispatch({ changes: { from, to }, selection: { anchor: from }, effects: selectImage.of(null), userEvent: "delete" });
+  view.dispatch({ changes: { from, to }, selection: { anchor: from }, effects: selectBlock.of(null), userEvent: "delete" });
 });
 
 export const embeds: Extension = [
@@ -173,10 +179,10 @@ export const embeds: Extension = [
     keymap.of([
       { key: "ArrowDown", run: stepOnto(1) },
       { key: "ArrowUp", run: stepOnto(-1) },
-      { key: "Escape", run: onSelected((view) => view.dispatch({ effects: selectImage.of(null) })) },
+      { key: "Escape", run: onSelected((view) => view.dispatch({ effects: selectBlock.of(null) })) },
       { key: "Delete", run: removeLine },
       { key: "Backspace", run: removeLine },
-      { key: "Enter", run: onSelected((view, line) => view.dispatch({ selection: { anchor: line.to }, effects: selectImage.of(null) })) },
+      { key: "Enter", run: onSelected((view, line) => view.dispatch({ selection: { anchor: line.to }, effects: selectBlock.of(null) })) },
     ]),
   ),
   EditorView.domEventHandlers({

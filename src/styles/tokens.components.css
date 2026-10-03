@@ -243,6 +243,10 @@
   --pdf-meta-fs: 12.5px;
   --pdf-open: 32px;
 
+  /* Remote image card (decision P7-15): like the PDF card, 2 rhythm units */
+  --remote-card-h: calc(var(--rhythm) * 2);
+  --remote-card-icon: 18px;
+
   /* Focus mode [§4 « Mode focus » + maquette 03] */
   --focus-dim-opacity: .4;                 /* (decision) paragraphs other than the current one */
   --focus-hint-fs: var(--fs-2xs);          /* « Échap pour quitter », « 214 mots · 1 min » */

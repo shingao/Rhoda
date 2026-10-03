@@ -1,7 +1,8 @@
 import { basename } from "../core/note/filename";
 import { imageMarkdown, linkMarkdown, relativeSrc, resolveVaultPath } from "../core/markdown/embeds";
 import { rememberSize } from "../editor/embeds/image";
-import { editorPosAt, insertBlockLines, refreshEditor } from "../editor/session";
+import type { RemoteImageState } from "../editor/embeds/remoteImage";
+import { editorPosAt, insertBlockLines, refreshEditor, replaceImageSrc } from "../editor/session";
 import { assetsApi, type Imported } from "../services/assets";
 import { errorMessage } from "../services/errors";
 import { currentMessages } from "./i18n";
@@ -132,4 +133,38 @@ export function assetUrl(src: string): string | null {
   const note = openNote();
   const path = note ? resolveVaultPath(note.path, src) : null;
   return path ? assetsApi.url(path) : null;
+}
+
+/** Remote images being downloaded or that failed (by URL). */
+const remoteStates = new Map<string, RemoteImageState>();
+
+/** Editor hook: download state of a remote image. */
+export function remoteImage(url: string): RemoteImageState {
+  return remoteStates.get(url) ?? { status: "idle" };
+}
+
+/**
+ * Editor hook: "Download locally". The Rust side fetches it with the link
+ * preview's protections (no internal address, timeout, size cap), copies it
+ * into assets/ (identical files reused) and the line points to it (undoable).
+ */
+export function downloadImage(url: string, lineFrom: number): void {
+  const note = openNote();
+  if (!note || remoteStates.get(url)?.status === "downloading") return;
+  const t = currentMessages();
+  remoteStates.set(url, { status: "downloading" });
+  refreshEditor();
+  void assetsApi
+    .downloadImage(url)
+    .then((result) => {
+      if (result.status !== "ok") throw { kind: result.reason };
+      remoteStates.delete(url);
+      replaceImageSrc(note.id, lineFrom, relativeSrc(note.path, result.path));
+    })
+    .catch((e: unknown) => {
+      const kind = (e as { kind?: string; message?: string })?.message ?? (e as { kind?: string })?.kind ?? "";
+      const reason = /blocked/.test(kind) ? t.remote.reasons.blocked : /large|tooLarge/.test(kind) ? t.remote.reasons.tooLarge : /image|unsupported|heic/.test(kind) ? t.remote.reasons.notImage : t.remote.reasons.network;
+      remoteStates.set(url, { status: "failed", reason });
+    })
+    .finally(refreshEditor);
 }

@@ -70,6 +70,7 @@ pub fn run() {
             assets::pick_attachments,
             assets::asset_info,
             preview::link_preview,
+            preview::download_image,
             assets::pdf_info,
             assets::save_pdf_preview,
             assets::open_attachment,

@@ -2,7 +2,7 @@ import { titleKey } from "../core/markdown/extract";
 import { snippetAround } from "../core/note/text";
 import { setEditorHooks, type Backlink } from "../editor/hooks";
 import { focusEditor, refreshEditor } from "../editor/session";
-import { assetUrl, attachFiles, pasteClipboardImage, wantSize } from "./attachments";
+import { assetUrl, attachFiles, downloadImage, pasteClipboardImage, remoteImage, wantSize } from "./attachments";
 import { confirmAction } from "./confirm";
 import { openCrop } from "./crops";
 import { openCardMenu, urlCard } from "./previews";
@@ -51,6 +51,8 @@ export function connectEditor(): void {
     pasteClipboardImage,
     cropImage: openCrop,
     urlCard,
+    remoteImage,
+    downloadImage,
     pdfCard,
     openAttachment,
     openCardMenu,

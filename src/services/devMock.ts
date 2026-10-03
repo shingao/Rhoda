@@ -77,7 +77,7 @@ function seed(now: number): Array<[string, string, number]> {
     ["Note longue (5000 lignes).md", longNote, now - 30 * DAY],
     [
       "Pièces jointes.md",
-      "# Pièces jointes\n\nLe devis reçu ce matin :\n\n[devis-renovation.pdf](assets/devis-renovation.pdf)\n\nÀ relire avant vendredi.\n",
+      "# Pièces jointes\n\nLe devis reçu ce matin :\n\n[devis-renovation.pdf](assets/devis-renovation.pdf)\n\nÀ relire avant vendredi. Une image restée sur le web :\n\n![Photo du chantier](https://example.com/photos/chantier.jpg){width=400}\n\nUne autre, sur le réseau local :\n\n![](http://192.168.1.20/camera.jpg)\n",
       now - 5_000,
     ],
     [
@@ -198,6 +198,12 @@ export function installDevMock(): void {
         return null;
       case "open_attachment":
         return null;
+      case "download_image": {
+        // Browser only: example.com images become the sample landscape, anything else is "blocked".
+        const url = (payload as { url: string }).url;
+        if (!/^https:\/\/example\.com\//.test(url)) throw { kind: "other", message: "blocked: Address" };
+        return { status: "ok", path: "assets/paysage.png", format: "png", width: 640, height: 360, reused: true };
+      }
       case "asset_info":
         return ((payload as { paths: string[] }).paths ?? []).map(() => null);
       case "import_clipboard_image":

@@ -30,6 +30,8 @@ export const assetsApi = {
   importBytes: (bytes: Uint8Array, name: string) => invoke<Imported>("import_bytes", bytes, { headers: { "x-ursa-name": encodeURIComponent(name) } }),
   /** Image of the system clipboard as PNG, or null if it holds none. */
   importClipboardImage: (name: string) => invoke<Imported | null>("import_clipboard_image", { name }),
+  /** Copies a web image into assets/ (Rust, with the link preview's network protections). */
+  downloadImage: (url: string) => invoke<Imported>("download_image", { url }),
   pick: (title: string) => invoke<string[]>("pick_attachments", { title }),
   info: (paths: string[]) => invoke<Array<AssetInfo | null>>("asset_info", { paths }),
   /** URL for <img> / pdf.js of a vault-relative file, served by the `vault:` protocol. */

@@ -11,7 +11,7 @@
 | 4 | Sommaire, folding, focus de section | ✅ validée |
 | 5 | Recherche | ✅ validée |
 | 6 | Thèmes, fonds de page, rythme, réglages | ✅ validée |
-| 7 | Images, aperçus de liens, PDF | ✅ fait (à valider sur Windows) |
+| 7 | Images, aperçus de liens, PDF | ✅ validée |
 | 8 | Stickers et post-it | — |
 | 9 | OCR local | — |
 | 10 | Export, raccourcis, palette, packaging | — |
@@ -601,9 +601,15 @@ Livrée en sous-étapes : 7a images (import, affichage, rythme), 7b sélection, 
 | P7-9 | Images orphelines | Seulement les fichiers de `assets/`. Toute note (corbeille et archives comprises) qui y fait référence les garde. Un original de recadrage que seule `crops.json` référence n'est pas concerné. |
 | P7-10 | Caches | `.ursa/thumbs/` (vignettes et aperçus PDF, nommés d'après chemin + date + taille) n'est pas purgé automatiquement : il se reconstruit. `.ursa/previews/` : cartes non revues depuis 90 jours supprimées à l'ouverture du coffre. |
 | P7-11 | Aperçus de liens | Ports 80, 443, 8080, 8443. Proxy système ignoré (il résoudrait les noms lui-même). Carte haute de 4 lignes, chargement = squelette fixe. « Lien simple » = `<url>`. |
-| P7-12 | Cartes PDF | Un clic ouvre le PDF (ta consigne ; DESIGN §2.11 : double-clic). Hauteur 3 lignes. pdf.js 4.x chargé seulement quand une carte en a besoin, sans `eval`. |
+| P7-12 | Cartes PDF | ~~Un clic ouvre le PDF~~ → corrigé à la validation : un clic sélectionne la carte (anneau, comme une image), Ctrl+clic ou double-clic l'ouvre. Hauteur 3 lignes. pdf.js 4.x chargé seulement quand une carte en a besoin, sans `eval`. |
 | P7-13 | Glisser-déposer | Pas d'indicateur pendant le survol : insertion à la ligne sous le pointeur au lâcher (sur sa ligne si elle est vide, sinon juste après). Le curseur se place sous les blocs insérés. |
 | P7-14 | Outils | `npm run sample:images` régénère les images et le PDF d'exemple ; coffre factice : notes « Pièces jointes » et « Aperçus de liens ». |
+
+| P7-15 | Images distantes | Jamais chargées automatiquement : carte « Image distante » (domaine + « Télécharger localement », 2 lignes). Le téléchargement passe par le même `fetch()` Rust que les aperçus (aucune adresse interne, IP vérifiée après DNS, redirections vérifiées), 20 Mo et 30 s au plus, puis import dans `assets/` (dédoublonné) et réécriture du lien (texte alternatif et largeur gardés, annulable). |
+
+### Ajustements après validation
+- **PDF** : un clic sélectionne la carte (Échap, Suppr, Entrée comme pour une image) ; Ctrl+clic, double-clic ou le bouton l'ouvre.
+- **Images distantes** : carte « Image distante » et téléchargement local protégé (P7-15) ; une adresse du réseau local est refusée avec « adresse interne ou non autorisée » (test Rust).
 
 ### Comparaison avec la maquette 02 (éditeur)
 **Conforme** :

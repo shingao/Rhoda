@@ -2,6 +2,7 @@ import { StateEffect } from "@codemirror/state";
 import type { FoldKey } from "../core/folds";
 import type { CardState } from "./embeds/linkCard";
 import type { PdfState } from "./embeds/pdfCard";
+import type { RemoteImageState } from "./embeds/remoteImage";
 import type { OutlineData } from "./sections/outline";
 
 /**
@@ -41,6 +42,10 @@ export interface EditorHooks {
   pdfCard(src: string, label: string): PdfState | null;
   /** Click on a PDF card: open it with the default app. */
   openAttachment(path: string): void;
+  /** Download state of a remote image (never loaded by itself). */
+  remoteImage(url: string): RemoteImageState;
+  /** "Download locally" on a remote image: copy into assets/ and rewrite the line starting at `lineFrom`. */
+  downloadImage(url: string, lineFrom: number): void;
   /** "…" of a link card. */
   openCardMenu(url: string, lineFrom: number, at: { x: number; y: number }): void;
   /** "Crop" on a selected image: the app opens the crop dialog for the image line starting at `lineFrom`. */
@@ -76,6 +81,8 @@ let hooks: EditorHooks = {
   pasteClipboardImage: () => undefined,
   cropImage: () => undefined,
   urlCard: () => null,
+  remoteImage: () => ({ status: "idle" }),
+  downloadImage: () => undefined,
   pdfCard: () => null,
   openAttachment: () => undefined,
   openCardMenu: () => undefined,

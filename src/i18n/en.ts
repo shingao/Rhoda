@@ -299,6 +299,18 @@ export const en: Messages = {
     pdfMissing: (name: string) => `PDF not found: ${name}`,
     units: ["B", "KB", "MB", "GB"] as readonly [string, string, string, string],
   },
+  remote: {
+    title: "Remote image",
+    download: "Download locally",
+    downloading: "Downloading…",
+    failed: (reason: string) => `Could not download: ${reason}`,
+    reasons: {
+      blocked: "internal or forbidden address",
+      tooLarge: "image too large",
+      notImage: "not a supported image",
+      network: "site unreachable",
+    },
+  },
   crop: {
     title: "Crop image",
     subtitle: "The original is kept; the cropped version is saved next to it, in assets/.",
