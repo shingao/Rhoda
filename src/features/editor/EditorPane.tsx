@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { ChevronsDownUp, ChevronsUpDown, CircleAlert, Ellipsis, Focus, ListTree, Notebook, PanelLeftClose, PanelLeftOpen, Settings } from "lucide-react";
+import { ChevronsDownUp, ChevronsUpDown, CircleAlert, Ellipsis, Expand, Focus, Info, ListTree, Notebook, PanelLeftClose, PanelLeftOpen, Settings } from "lucide-react";
 import { useT } from "../../app/i18n";
 import { cssPx } from "../../app/cssTokens";
-import { toggleColumn, toggleOutline } from "../../app/layout";
+import { toggleColumn, toggleFocusMode, toggleOutline } from "../../app/layout";
 import { editNote, trashNote } from "../../app/notes";
 import { shortcutLabel } from "../../app/shortcuts";
 import { setState, updateSettings, useApp } from "../../app/store";
@@ -14,10 +14,13 @@ import { Menu } from "../../components/Menu";
 import { Tooltip } from "../../components/Tooltip";
 import { editorExtensions } from "../../editor/setup";
 import { isSectionIsolated, mountEditor, runSectionCommand, setEditorOption, showNote, unmountEditor } from "../../editor/session";
+import { focusDim, focusDimCompartment } from "../../editor/focusDim";
 import { typewriter, typewriterCompartment } from "../../editor/typewriter";
 import { noteMenuEntries } from "../notelist/noteActions";
 import { Breadcrumb } from "./Breadcrumb";
 import { FindPanel } from "./FindPanel";
+import { NoteInfo } from "./NoteInfo";
+import { useNoteStats } from "./useNoteStats";
 import { PaperPicker } from "./PaperPicker";
 import paperStyles from "./paper.module.css";
 import { FindPill } from "./FindPill";
@@ -44,6 +47,9 @@ export function EditorPane() {
   const now = useNow();
   const [menuAt, setMenuAt] = useState<{ x: number; y: number } | null>(null);
   const [paperAt, setPaperAt] = useState<{ x: number; y: number } | null>(null);
+  const [infoAt, setInfoAt] = useState<{ x: number; y: number } | null>(null);
+  const focusMode = useApp((st) => st.focusMode);
+  const stats = useNoteStats(focusMode ? note : undefined);
   const defaults = useApp((st) => st.settings.editor);
   const paper = note?.paper ?? defaults.paper;
   const margin = note?.margin ?? defaults.margin;
@@ -61,16 +67,29 @@ export function EditorPane() {
   }, []);
 
   useEffect(() => setEditorOption(typewriterCompartment, typewriter(typewriterOn)), [typewriterOn]);
+  useEffect(() => setEditorOption(focusDimCompartment, focusDim(focusMode)), [focusMode]);
 
   const edited = mtime !== undefined ? relativeDate(mtime, now, t.dates) : null;
 
   return (
-    <section className={s.pane} aria-label={t.editor.label}>
-      <div className={s.bar}>
+    <section className={[s.pane, focusMode && s.focus].filter(Boolean).join(" ")} aria-label={t.editor.label}>
+      <div className={s.bar} inert={focusMode}>
         <Breadcrumb />
         <div className={s.spacer} />
         <FindPill />
-        {edited && <span className={s.edited}>{t.editor.editedAt(edited.kind, edited.text)}</span>}
+        {edited && note && (
+          <button
+            type="button"
+            className={s.edited}
+            aria-haspopup="dialog"
+            onClick={(e) => {
+              const r = e.currentTarget.getBoundingClientRect();
+              setInfoAt({ x: r.right, y: r.bottom + 4 });
+            }}
+          >
+            {t.editor.editedAt(edited.kind, edited.text)}
+          </button>
+        )}
         {saveError && (
           <Tooltip label={t.saveStatus.tooltip(t.errors.reasons[saveError])}>
             <span className={s.unsaved} role="status" tabIndex={0} aria-label={t.saveStatus.tooltip(t.errors.reasons[saveError])}>
@@ -112,6 +131,13 @@ export function EditorPane() {
           </div>
         )}
       </div>
+      {focusMode && stats && (
+        <footer className={s.focusFooter} aria-live="off">
+          <span>{t.info.wordCount(stats.words)}</span>
+          <span>{t.info.readingTime(stats.readingMinutes)}</span>
+        </footer>
+      )}
+      {infoAt && note && <NoteInfo note={note} at={infoAt} onClose={() => setInfoAt(null)} />}
       {paperAt && note && <PaperPicker note={note} current={paper} margin={margin} at={paperAt} onClose={() => setPaperAt(null)} />}
       {menuAt && (
         <Menu
@@ -156,6 +182,12 @@ export function EditorPane() {
                     icon: Notebook,
                     onSelect: () => setPaperAt(menuAt),
                   },
+                  {
+                    id: "info",
+                    label: t.info.menu,
+                    icon: Info,
+                    onSelect: () => setInfoAt(menuAt),
+                  },
                   { kind: "separator" as const, id: "sep-view" },
                 ]
               : []),
@@ -165,6 +197,13 @@ export function EditorPane() {
               checked: typewriterOn,
               toggle: true,
               onSelect: () => updateSettings((st) => ({ ...st, editor: { ...st.editor, typewriter: !st.editor.typewriter } })),
+            },
+            {
+              id: "focusMode",
+              label: t.info.focusMode,
+              icon: Expand,
+              shortcut: shortcutLabel("focus.toggle", t),
+              onSelect: toggleFocusMode,
             },
             {
               id: "settings",

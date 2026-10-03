@@ -1,12 +1,49 @@
 .titlebar {
   --ring-bg: var(--bg-0);
 
+  position: relative;
   display: flex;
   align-items: center;
   height: var(--titlebar-h);
   flex: none;
   background: var(--bg-0);
   color: var(--chrome-text);
+  transition: background-color var(--dur-slow) var(--ease-in-out);
+}
+
+/* Focus mode [§4, maquette 03]: the titlebar takes the page colour, only the window controls stay */
+.focus {
+  --chrome-text: var(--text-2);
+  --chrome-text-3: var(--text-3);
+  --chrome-hover: var(--hover);
+
+  background: var(--bg-2);
+}
+
+.chrome {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  transition: opacity var(--dur-slow) var(--ease-in-out);
+}
+
+.focus .chrome {
+  opacity: 0;
+}
+
+.focusHint {
+  position: absolute;
+  left: 50%;
+  font-size: var(--focus-hint-fs);
+  color: var(--text-3);
+  transform: translateX(-50%);
+  animation: hint-in var(--dur-slow) var(--ease-in-out);
+}
+
+@keyframes hint-in {
+  from {
+    opacity: 0;
+  }
 }
 
 .left {

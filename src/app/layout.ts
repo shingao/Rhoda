@@ -1,5 +1,6 @@
+import { useEffect } from "react";
 import { cssPx } from "./cssTokens";
-import { getState, updateSettings } from "./store";
+import { getState, setState, updateSettings, useApp } from "./store";
 
 type Column = "sidebar" | "list";
 
@@ -41,7 +42,12 @@ export function setColumnWidth(column: Column, width: number | null): void {
   }));
 }
 
+/** Showing a column leaves focus mode (the columns come back as they were). */
 export function toggleColumn(column: Column): void {
+  if (getState().focusMode) {
+    setState({ focusMode: false });
+    return;
+  }
   updateSettings((s) => ({
     ...s,
     layout: {
@@ -50,6 +56,29 @@ export function toggleColumn(column: Column): void {
         column === "sidebar" ? !s.layout.sidebarCollapsed : !s.layout.listCollapsed,
     },
   }));
+}
+
+/** Focus mode [§4, maquette 03]: sidebar, list and toolbars fade out; Escape or the shortcut brings them back. */
+export function toggleFocusMode(): void {
+  setState((s) => ({ focusMode: !s.focusMode }));
+}
+
+/**
+ * Escape leaves focus mode, unless something else used it first (closing a
+ * menu, the find panel, an isolated section…: those stop or prevent it).
+ */
+export function useEscapeLeavesFocus(): void {
+  const on = useApp((st) => st.focusMode);
+  useEffect(() => {
+    if (!on) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || e.defaultPrevented || e.ctrlKey || e.shiftKey || e.altKey || e.metaKey) return;
+      if (getState().settingsPage) return;
+      setState({ focusMode: false });
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [on]);
 }
 
 export function toggleOutline(): void {

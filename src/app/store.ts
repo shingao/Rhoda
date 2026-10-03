@@ -34,6 +34,8 @@ interface AppState {
   search: SearchInput;
   /** Find in the note (Ctrl+F / Ctrl+H) and the occurrences in the open note. */
   find: FindState;
+  /** Focus mode (Ctrl+Shift+F): only the editor, the rest of the chrome fades out. Not persisted. */
+  focusMode: boolean;
   /** Settings dialog and its current page; null = closed. */
   settingsPage: SettingsPage | null;
 }
@@ -78,6 +80,7 @@ export const useApp = create<AppState>()(() => ({
   search: { chips: [], text: "" },
   find: { open: false, focusToken: 0, replace: false, query: "", count: 0, current: null },
   settingsPage: null,
+  focusMode: false,
 }));
 
 export const getState = useApp.getState;

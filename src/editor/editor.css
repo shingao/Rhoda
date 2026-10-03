@@ -402,6 +402,15 @@
   background: linear-gradient(var(--separator), var(--separator)) center / 100% var(--hr-thickness) no-repeat;
 }
 
+/* Focus mode (maquette 03): other paragraphs fade */
+.cm-editor .cm-line.cm-dimmed {
+  opacity: var(--focus-dim-opacity);
+}
+
+.cm-editor.cm-focus-mode .cm-line {
+  transition: opacity var(--dur-slow) var(--ease-in-out);
+}
+
 /* Typewriter mode */
 .cm-editor.cm-typewriter .cm-content {
   padding-top: var(--typewriter-pad);

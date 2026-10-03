@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { bootstrap } from "./app/bootstrap";
 import { focusSearch } from "./app/commands";
 import { useT } from "./app/i18n";
-import { toggleColumn, toggleOutline } from "./app/layout";
+import { toggleColumn, toggleFocusMode, toggleOutline, useEscapeLeavesFocus } from "./app/layout";
 import { createNote } from "./app/notes";
 import { openFindFromSelection } from "./app/search";
 import { useGlobalShortcuts, type ShortcutHandlers } from "./app/shortcuts";
@@ -21,12 +21,15 @@ const globalHandlers: ShortcutHandlers = {
   "find.open": () => openFindFromSelection(false),
   "find.replace": () => openFindFromSelection(true),
   "settings.open": () => setState({ settingsPage: getState().settingsPage ?? "general" }),
+  "focus.toggle": toggleFocusMode,
+  "focus.toggleKey": toggleFocusMode,
 };
 
 export function App() {
   const vault = useApp((st) => st.vault);
   const t = useT();
   useGlobalShortcuts(globalHandlers);
+  useEscapeLeavesFocus();
   useEffect(() => void bootstrap(), []);
 
   if (vault.kind === "error") {

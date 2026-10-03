@@ -192,6 +192,15 @@
   --modal-scale-from: .98;
   --modal-top: 18vh;                       /* (decision) */
 
+  /* Focus mode [§4 « Mode focus » + maquette 03] */
+  --focus-dim-opacity: .4;                 /* (decision) paragraphs other than the current one */
+  --focus-hint-fs: var(--fs-2xs);          /* « Échap pour quitter », « 214 mots · 1 min » */
+  --focus-footer-h: 40px;                  /* (decision) */
+
+  /* Note info popover (decision, phase 6) */
+  --info-popover-w: 264px;
+  --info-row-gap: var(--sp-1);
+
   /* Settings [§2.17] 860×660, nav 200 px, content padding 24 32, sections 22 apart */
   --settings-w: 860px;
   --settings-h: 660px;

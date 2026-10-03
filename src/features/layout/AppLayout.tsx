@@ -19,6 +19,7 @@ type Column = "sidebar" | "list";
 export function AppLayout() {
   const layout = useApp((st) => st.settings.layout);
   const resizing = useApp((st) => st.resizing);
+  const focus = useApp((st) => st.focusMode);
   const t = useT();
   const sidebarWidth = layout.sidebarWidth ?? defaultWidth("sidebar");
   const listWidth = layout.listWidth ?? defaultWidth("list");
@@ -32,18 +33,18 @@ export function AppLayout() {
   });
 
   return (
-    <div className={[s.app, resizing && s.resizing].filter(Boolean).join(" ")}>
+    <div className={[s.app, resizing && s.resizing, focus && s.focus].filter(Boolean).join(" ")}>
       <Titlebar />
       <div className={s.body}>
-        <Column collapsed={layout.sidebarCollapsed} width={sidebarWidth}>
+        <Column collapsed={layout.sidebarCollapsed || focus} width={sidebarWidth}>
           <Sidebar />
         </Column>
-        {!layout.sidebarCollapsed && <Resizer label={t.layout.resizeSidebar} {...resizerProps("sidebar", sidebarWidth)} />}
+        {!layout.sidebarCollapsed && !focus && <Resizer label={t.layout.resizeSidebar} {...resizerProps("sidebar", sidebarWidth)} />}
         <div className={s.sheet}>
-          <Column collapsed={layout.listCollapsed} width={listWidth}>
+          <Column collapsed={layout.listCollapsed || focus} width={listWidth}>
             <NoteList />
           </Column>
-          {!layout.listCollapsed && <Resizer label={t.layout.resizeList} {...resizerProps("list", listWidth)} />}
+          {!layout.listCollapsed && !focus && <Resizer label={t.layout.resizeList} {...resizerProps("list", listWidth)} />}
           <div className={s.editor}>
             <EditorPane />
           </div>

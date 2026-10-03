@@ -15,13 +15,48 @@
   height: var(--editor-bar-h);
   flex: none;
   padding: var(--editor-bar-pad);
+  transition: opacity var(--dur-slow) var(--ease-in-out);
 }
 
 .edited {
   margin-right: var(--editor-meta-gap);
+  padding: 0 var(--sp-1);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  font: inherit;
   font-size: var(--editor-meta-fs);
   color: var(--text-3);
   white-space: nowrap;
+  cursor: pointer;
+}
+
+.edited:hover {
+  background: var(--hover);
+  color: var(--text-2);
+}
+
+/* Focus mode [§4: chrome opacity, --dur-slow, --ease-in-out; maquette 03] */
+.focus .bar {
+  opacity: 0;
+}
+
+.focusFooter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  height: var(--focus-footer-h);
+  flex: none;
+  font-size: var(--focus-hint-fs);
+  color: var(--text-3);
+  animation: focus-in var(--dur-slow) var(--ease-in-out);
+}
+
+@keyframes focus-in {
+  from {
+    opacity: 0;
+  }
 }
 
 .spacer {
