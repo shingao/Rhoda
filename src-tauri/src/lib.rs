@@ -70,6 +70,9 @@ pub fn run() {
             assets::pick_attachments,
             assets::asset_info,
             preview::link_preview,
+            assets::pdf_info,
+            assets::save_pdf_preview,
+            assets::open_attachment,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Ursa");

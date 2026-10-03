@@ -85,4 +85,8 @@ Une URL seule sur sa ligne (carte d'aperçu si le réglage est activé) :
 
 https://example.com/articles/rythme-vertical
 
+Un PDF joint :
+
+[devis-renovation.pdf](assets/devis-renovation.pdf)
+
 Fin de la note.

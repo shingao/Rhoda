@@ -294,6 +294,10 @@ export const en: Messages = {
     open: "Open in browser",
     refresh: "Refresh preview",
     plain: "Back to a plain link",
+    pdfOpen: "Open with the default app",
+    pdfMeta: (pages: number | null, size: string) => (pages === null ? size : `${pages} page${pages === 1 ? "" : "s"} · ${size}`),
+    pdfMissing: (name: string) => `PDF not found: ${name}`,
+    units: ["B", "KB", "MB", "GB"] as readonly [string, string, string, string],
   },
   crop: {
     title: "Crop image",

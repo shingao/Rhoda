@@ -1,6 +1,7 @@
 import { StateEffect } from "@codemirror/state";
 import type { FoldKey } from "../core/folds";
 import type { CardState } from "./embeds/linkCard";
+import type { PdfState } from "./embeds/pdfCard";
 import type { OutlineData } from "./sections/outline";
 
 /**
@@ -36,6 +37,10 @@ export interface EditorHooks {
   wantSize(src: string, url: string): void;
   /** Card of a URL alone on its line; null when link previews are off. */
   urlCard(url: string): CardState | null;
+  /** Card of a PDF linked alone on its line (null: outside the vault). */
+  pdfCard(src: string, label: string): PdfState | null;
+  /** Click on a PDF card: open it with the default app. */
+  openAttachment(path: string): void;
   /** "…" of a link card. */
   openCardMenu(url: string, lineFrom: number, at: { x: number; y: number }): void;
   /** "Crop" on a selected image: the app opens the crop dialog for the image line starting at `lineFrom`. */
@@ -71,6 +76,8 @@ let hooks: EditorHooks = {
   pasteClipboardImage: () => undefined,
   cropImage: () => undefined,
   urlCard: () => null,
+  pdfCard: () => null,
+  openAttachment: () => undefined,
   openCardMenu: () => undefined,
 };
 

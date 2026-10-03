@@ -701,6 +701,113 @@
   stroke-linecap: round;
 }
 
+/* PDF card [§2.11] */
+.cm-editor .cm-pdf-card {
+  display: flow-root;
+  height: var(--pdf-card-h);
+}
+
+.cm-editor .cm-pdf-card-body {
+  display: flex;
+  align-items: center;
+  gap: var(--pdf-card-gap);
+  box-sizing: border-box;
+  height: 100%;
+  padding: var(--pdf-card-pad);
+  border-radius: var(--r-lg);
+  background: var(--bg-1);
+  font-family: var(--font-ui);
+  line-height: var(--lh-snug);
+  cursor: pointer;
+}
+
+.cm-editor .cm-pdf-card-body:hover {
+  background: linear-gradient(var(--hover), var(--hover)), var(--bg-1);
+}
+
+.cm-editor .cm-pdf-preview {
+  position: relative;
+  width: var(--pdf-preview-w);
+  height: var(--pdf-preview-h);
+  flex: none;
+  overflow: hidden;
+  border-radius: var(--pdf-preview-radius);
+  background: var(--bg-2);
+  box-shadow: var(--shadow-card);
+}
+
+.cm-editor .cm-pdf-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+
+.cm-editor .cm-pdf-badge {
+  position: absolute;
+  bottom: var(--sp-1);
+  left: var(--sp-1);
+  padding: 0 var(--sp-1);
+  border-radius: var(--r-xs);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: var(--pdf-badge-fs);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-ui);
+}
+
+.cm-editor .cm-pdf-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+
+.cm-editor .cm-pdf-name {
+  overflow: hidden;
+  font-size: var(--pdf-name-fs);
+  font-weight: var(--fw-bold);
+  color: var(--text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cm-editor .cm-pdf-meta {
+  font-size: var(--pdf-meta-fs);
+  color: var(--text-3);
+}
+
+.cm-editor .cm-pdf-open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--pdf-open);
+  height: var(--pdf-open);
+  flex: none;
+  border-radius: var(--r-md);
+  color: var(--text-2);
+}
+
+.cm-editor .cm-pdf-open:hover {
+  background: var(--hover);
+}
+
+.cm-editor .cm-pdf-icon {
+  width: var(--image-bar-icon);
+  height: var(--image-bar-icon);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cm-editor .cm-pdf-card.is-missing .cm-pdf-card-body {
+  cursor: default;
+}
+
 .cm-editor .cm-image.is-missing {
   font-size: var(--image-missing-fs);
   line-height: var(--rhythm);

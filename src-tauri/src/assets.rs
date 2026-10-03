@@ -367,6 +367,73 @@ const THUMB: u32 = 128;
 /// Prefix of thumbnail URLs: `vault://localhost/_thumb/assets/photo.png`.
 const THUMB_PREFIX: &str = "_thumb/";
 
+/// Names a cached derivative of a file: changes when the file is edited.
+fn version_key(rel: &str, meta: &fs::Metadata) -> String {
+    let modified = meta.modified().ok().and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map_or(0, |d| d.as_nanos());
+    sha256(format!("{rel}\0{modified}\0{}", meta.len()).as_bytes()).iter().take(16).map(|b| format!("{b:02x}")).collect()
+}
+
+#[derive(Debug, Serialize, serde::Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct PdfInfo {
+    pub bytes: u64,
+    /// `.ursa/thumbs/<key>.png`, first page drawn by pdf.js, once.
+    pub thumb: Option<String>,
+    pub pages: Option<u32>,
+}
+
+fn pdf_cache(root: &Path, rel: &str) -> CmdResult<(PathBuf, PathBuf, u64)> {
+    let meta = fs::metadata(resolve(root, rel)?)?;
+    let key = version_key(rel, &meta);
+    let dir = root.join(INTERNAL_DIR).join("thumbs");
+    Ok((dir.join(format!("pdf-{key}.png")), dir.join(format!("pdf-{key}.json")), meta.len()))
+}
+
+/// Size of a PDF and its cached first-page preview, if made already.
+#[tauri::command]
+pub async fn pdf_info(state: State<'_, VaultState>, path: String) -> CmdResult<PdfInfo> {
+    let root = current_root(&state)?;
+    let (png, json, bytes) = pdf_cache(&root, &path)?;
+    let pages = fs::read_to_string(&json).ok().and_then(|t| serde_json::from_str::<PdfInfo>(&t).ok()).and_then(|i| i.pages);
+    let thumb = png.exists().then(|| png.strip_prefix(&root).map(|p| p.to_string_lossy().replace('\\', "/")).unwrap_or_default());
+    Ok(PdfInfo { bytes, thumb, pages })
+}
+
+/// Keeps the first-page preview drawn by the frontend (raw PNG body; `x-ursa-path`, `x-ursa-pages` headers).
+#[tauri::command]
+pub async fn save_pdf_preview(state: State<'_, VaultState>, request: tauri::ipc::Request<'_>) -> CmdResult<()> {
+    let root = current_root(&state)?;
+    let tauri::ipc::InvokeBody::Raw(png) = request.body() else {
+        return Err(CmdError::new(ErrorKind::Other, "expected raw bytes"));
+    };
+    if !matches!(detect(png), Detected::Ok(Format::Png)) {
+        return Err(CmdError::new(ErrorKind::Other, "expected a PNG"));
+    }
+    let header = |name: &str| request.headers().get(name).and_then(|v| v.to_str().ok()).map(percent_decode);
+    let rel = header("x-ursa-path").unwrap_or_default();
+    let pages = header("x-ursa-pages").and_then(|p| p.parse::<u32>().ok());
+    let (png_path, json_path, bytes) = pdf_cache(&root, &rel)?;
+    fs::create_dir_all(png_path.parent().unwrap_or(&root))?;
+    crate::vault::atomic_write_bytes(&png_path, png)?;
+    crate::vault::atomic_write(&json_path, &serde_json::to_string(&PdfInfo { bytes, thumb: None, pages }).map_err(CmdError::other)?)?;
+    Ok(())
+}
+
+/// Opens an attachment of the vault with the system's default app (PDF reader…).
+#[tauri::command]
+pub async fn open_attachment(app: AppHandle, state: State<'_, VaultState>, path: String) -> CmdResult<()> {
+    use tauri_plugin_opener::OpenerExt;
+    let root = current_root(&state)?;
+    if !servable(&path) {
+        return Err(CmdError::new(ErrorKind::InvalidName, "not an attachment"));
+    }
+    let abs = resolve(&root, &path)?;
+    if !abs.is_file() {
+        return Err(CmdError::new(ErrorKind::NotFound, format!("{path} not found")));
+    }
+    app.opener().open_path(abs.to_string_lossy(), None::<&str>).map_err(CmdError::other)
+}
+
 /// Thumbnail of an image of the vault, made once and kept in `.ursa/thumbs/`
 /// (named after the path, date and size of the original, so an edit makes a new one).
 /// SVG is served as is (it scales by itself).
@@ -380,8 +447,7 @@ pub(crate) fn thumbnail(root: &Path, rel: &str) -> CmdResult<PathBuf> {
         Detected::Ok(Format::Pdf) | Detected::Refused(_) => return Err(CmdError::new(ErrorKind::Other, "not an image")),
         Detected::Ok(_) => {}
     }
-    let modified = meta.modified().ok().and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map_or(0, |d| d.as_nanos());
-    let key: String = sha256(format!("{rel}\0{modified}\0{}", meta.len()).as_bytes()).iter().take(16).map(|b| format!("{b:02x}")).collect();
+    let key = version_key(rel, &meta);
     let dir = root.join(INTERNAL_DIR).join("thumbs");
     let thumb = dir.join(format!("{key}.png"));
     if thumb.exists() {

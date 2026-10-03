@@ -231,6 +231,18 @@
   --link-card-desc-lh: 1.45;
   --link-card-menu: 28px;                  /* (decision) */
 
+  /* PDF card [§2.11]: padding 12 14, gap 14, --r-lg, --bg-1; 3 rhythm units high [§6] */
+  --pdf-card-h: calc(var(--rhythm) * 3);   /* (decision) */
+  --pdf-card-pad: 12px 14px;
+  --pdf-card-gap: 14px;
+  --pdf-preview-w: 44px;
+  --pdf-preview-h: 56px;
+  --pdf-preview-radius: 4px;
+  --pdf-badge-fs: 9px;
+  --pdf-name-fs: 14.5px;
+  --pdf-meta-fs: 12.5px;
+  --pdf-open: 32px;
+
   /* Focus mode [§4 « Mode focus » + maquette 03] */
   --focus-dim-opacity: .4;                 /* (decision) paragraphs other than the current one */
   --focus-hint-fs: var(--fs-2xs);          /* « Échap pour quitter », « 214 mots · 1 min » */

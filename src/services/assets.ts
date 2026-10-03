@@ -34,6 +34,13 @@ export const assetsApi = {
   info: (paths: string[]) => invoke<Array<AssetInfo | null>>("asset_info", { paths }),
   /** URL for <img> / pdf.js of a vault-relative file, served by the `vault:` protocol. */
   url: (path: string): string => mockUrl?.(path) ?? convertFileSrc(path, "vault"),
+  /** Size of a PDF, and its first-page preview and page count once drawn. */
+  pdfInfo: (path: string) => invoke<{ bytes: number; thumb: string | null; pages: number | null }>("pdf_info", { path }),
+  /** Keeps the first-page preview drawn by pdf.js (PNG). */
+  savePdfPreview: (path: string, pages: number, png: Uint8Array) =>
+    invoke<void>("save_pdf_preview", png, { headers: { "x-ursa-path": encodeURIComponent(path), "x-ursa-pages": String(pages) } }),
+  /** Opens a vault attachment with the system's default app. */
+  openAttachment: (path: string) => invoke<void>("open_attachment", { path }),
   /** 128 px square thumbnail of a vault image, made once and cached in `.ursa/thumbs/`. */
   thumbUrl: (path: string): string => assetsApi.url(`_thumb/${path}`),
   /** Files dropped from the Explorer (Tauri delivers paths; `position` in physical pixels). */

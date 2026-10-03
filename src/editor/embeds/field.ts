@@ -6,6 +6,7 @@ import { decodeSrc, embedLines, parseEmbedLine, type EmbedLine } from "../../cor
 import { editorHooks, refreshPreview } from "../hooks";
 import { ImageWidget, sizeOf, type ImageActions } from "./image";
 import { LinkCardWidget } from "./linkCard";
+import { PdfCardWidget } from "./pdfCard";
 
 /**
  * Images, link cards and PDF cards: lines holding only one of them become a
@@ -71,6 +72,10 @@ function widgetFor(embed: EmbedLine, rhythm: number, selected = false) {
     const state = editorHooks().urlCard(embed.url);
     // Off, or the link cannot be previewed: it stays a plain link.
     return state && state.status !== "plain" ? new LinkCardWidget(embed.url, state) : null;
+  }
+  if (embed.kind === "pdf") {
+    const state = editorHooks().pdfCard(embed.src, embed.label);
+    return state ? new PdfCardWidget(state) : null;
   }
   if (embed.kind !== "image") return null;
   const url = editorHooks().assetUrl(embed.src);

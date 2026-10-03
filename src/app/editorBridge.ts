@@ -6,6 +6,7 @@ import { assetUrl, attachFiles, pasteClipboardImage, wantSize } from "./attachme
 import { confirmAction } from "./confirm";
 import { openCrop } from "./crops";
 import { openCardMenu, urlCard } from "./previews";
+import { openAttachment, pdfCard } from "./pdfs";
 import { rememberFolds, savedFolds } from "./folds";
 import { currentMessages } from "./i18n";
 import { noteIndex, resolveTitle } from "./noteIndex";
@@ -50,6 +51,8 @@ export function connectEditor(): void {
     pasteClipboardImage,
     cropImage: openCrop,
     urlCard,
+    pdfCard,
+    openAttachment,
     openCardMenu,
     linkExists: (target) => resolve(target) !== null,
     openWikiLink: (target) => {

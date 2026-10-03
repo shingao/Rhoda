@@ -66,4 +66,35 @@ writeFileSync(
 </svg>
 `,
 );
-console.log("samples/assets: paysage.png, portrait.png, petite.png, schema.svg");
+// Two-page PDF (A4), written by hand: a title, a few lines and a coloured band.
+function pdf(pages) {
+  const objects = ["<< /Type /Catalog /Pages 2 0 R >>", null, "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"];
+  const kids = [];
+  for (const content of pages) {
+    const stream = Buffer.from(content, "latin1");
+    objects.push(`<< /Length ${stream.length} >>\nstream\n${content}\nendstream`);
+    const contentId = objects.length;
+    objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents ${contentId} 0 R >>`);
+    kids.push(`${objects.length} 0 R`);
+  }
+  objects[1] = `<< /Type /Pages /Kids [${kids.join(" ")}] /Count ${kids.length} >>`;
+  let out = "%PDF-1.4\n";
+  const offsets = [];
+  objects.forEach((body, i) => {
+    offsets.push(Buffer.byteLength(out, "latin1"));
+    out += `${i + 1} 0 obj\n${body}\nendobj\n`;
+  });
+  const xref = Buffer.byteLength(out, "latin1");
+  out += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n${offsets.map((o) => `${String(o).padStart(10, "0")} 00000 n \n`).join("")}`;
+  out += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+  return Buffer.from(out, "latin1");
+}
+const text = (lines) => lines.map(([size, y, t]) => `BT /F1 ${size} Tf 60 ${y} Td (${t}) Tj ET`).join("\n");
+writeFileSync(
+  "samples/assets/devis-renovation.pdf",
+  pdf([
+    `0.88 0.4 0.29 rg 0 772 595 70 re f\n0 0 0 rg\n${text([[26, 700, "Devis - renovation"], [12, 660, "Cuisine et salle de bains"], [12, 630, "Total : 12 480 EUR TTC"], [12, 600, "Validite : 30 jours"]])}`,
+    text([[18, 760, "Conditions"], [12, 730, "Acompte de 30 % a la signature."], [12, 710, "Solde a la reception des travaux."]]),
+  ]),
+);
+console.log("samples/assets: paysage.png, portrait.png, petite.png, schema.svg, devis-renovation.pdf");

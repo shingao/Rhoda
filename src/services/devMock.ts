@@ -76,6 +76,11 @@ function seed(now: number): Array<[string, string, number]> {
     ["Lien vers le rythme.md", "# Lien vers le rythme\n\nVoir [[Rythme vertical]] pour le panneau des rétroliens.\n", now - 25_000],
     ["Note longue (5000 lignes).md", longNote, now - 30 * DAY],
     [
+      "Pièces jointes.md",
+      "# Pièces jointes\n\nLe devis reçu ce matin :\n\n[devis-renovation.pdf](assets/devis-renovation.pdf)\n\nÀ relire avant vendredi.\n",
+      now - 5_000,
+    ],
+    [
       "Aperçus de liens.md",
       "# Aperçus de liens\n\nUne URL seule sur sa ligne devient une carte :\n\nhttps://example.com/articles/rythme-vertical\n\nUne adresse de l'intranet reste un lien simple, sans aucune requête :\n\nhttp://wiki.corp/accueil\n\nUn lien simple voulu :\n\n<https://example.com/articles/rythme-vertical>\n",
       now - 10_000,
@@ -178,6 +183,21 @@ export function installDevMock(): void {
           stale: false,
         };
       }
+      case "pdf_info": {
+        const path = (payload as { path: string }).path;
+        const store = assetsOf(vaultPath);
+        if (!store.has(path)) throw { kind: "notFound", message: path };
+        const thumb = `.ursa/thumbs/pdf-${path}.png`;
+        return { bytes: 1460, thumb: store.has(thumb) ? thumb : null, pages: store.has(thumb) ? 2 : null };
+      }
+      case "save_pdf_preview":
+        // The path header is not visible here: the demo vault has a single PDF.
+        assetsOf(vaultPath).set(".ursa/thumbs/pdf-assets/devis-renovation.pdf.png", {
+          url: URL.createObjectURL(new Blob([(payload as unknown as Uint8Array).slice()], { type: "image/png" })),
+        });
+        return null;
+      case "open_attachment":
+        return null;
       case "asset_info":
         return ((payload as { paths: string[] }).paths ?? []).map(() => null);
       case "import_clipboard_image":

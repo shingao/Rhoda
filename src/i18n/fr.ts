@@ -304,6 +304,10 @@ export const fr = {
     open: "Ouvrir dans le navigateur",
     refresh: "Rafraîchir l'aperçu",
     plain: "Revenir à un lien simple",
+    pdfOpen: "Ouvrir avec l'application par défaut",
+    pdfMeta: (pages: number | null, size: string) => (pages === null ? size : `${pages} page${pages > 1 ? "s" : ""} · ${size}`),
+    pdfMissing: (name: string) => `PDF introuvable : ${name}`,
+    units: ["o", "Ko", "Mo", "Go"] as readonly [string, string, string, string],
   },
   crop: {
     title: "Recadrer l'image",
