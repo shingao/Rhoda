@@ -109,3 +109,27 @@ export function embedLines(lines: Iterable<string>): Map<number, EmbedLine> {
   }
   return out;
 }
+
+const LINK_DEST = new RegExp(String.raw`(!?)\[[^\]\n]*\]\(${DEST}${TITLE}\)`, "g");
+
+/** Files of the vault a note points to with Markdown images or links (vault-relative paths). */
+export function localReferences(notePath: string, body: string): Set<string> {
+  const out = new Set<string>();
+  for (const m of body.matchAll(LINK_DEST)) {
+    const path = resolveVaultPath(notePath, unwrap(m[2]!));
+    if (path) out.add(path);
+  }
+  return out;
+}
+
+const IMAGE_EXT = /\.(png|jpe?g|gif|webp|svg)$/i;
+
+/** First local image of a note (thumbnail of its card), or null. */
+export function firstImage(notePath: string, body: string): string | null {
+  for (const m of body.matchAll(LINK_DEST)) {
+    if (m[1] !== "!") continue;
+    const path = resolveVaultPath(notePath, unwrap(m[2]!));
+    if (path && IMAGE_EXT.test(path)) return path;
+  }
+  return null;
+}

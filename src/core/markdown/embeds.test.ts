@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { embedLines, imageMarkdown, parseEmbedLine, relativeSrc, resolveVaultPath } from "./embeds";
+import { embedLines, firstImage, imageMarkdown, localReferences, parseEmbedLine, relativeSrc, resolveVaultPath } from "./embeds";
 
 describe("parseEmbedLine", () => {
   it("recognises an image alone on its line, with its width", () => {
@@ -45,5 +45,16 @@ describe("embedLines", () => {
   it("skips code blocks", () => {
     const lines = ["![](a.png)", "```", "![](b.png)", "```", "    ![](c.png)", "https://example.com", "~~~~", "https://x.org", "~~~~", "![](d.png)"];
     expect([...embedLines(lines).keys()]).toEqual([1, 6, 10]);
+  });
+});
+
+describe("references", () => {
+  const body = "Texte ![a](assets/a.png){width=200}\n[devis](<../assets/devis 2026.pdf>)\n![](https://example.com/x.png)\n[[Wiki]] [web](https://example.com)\n![b](./b.webp)";
+  it("lists the local files a note points to", () => {
+    expect([...localReferences("projets/Note.md", body)].sort()).toEqual(["assets/devis 2026.pdf", "projets/assets/a.png", "projets/b.webp"]);
+  });
+  it("finds the first local image", () => {
+    expect(firstImage("Note.md", body)).toBe("assets/a.png");
+    expect(firstImage("Note.md", "![](https://example.com/x.png)\n[pdf](a.pdf)")).toBeNull();
   });
 });

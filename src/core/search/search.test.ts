@@ -88,6 +88,9 @@ describe("search", () => {
     expect(run(all, "@pinned")).toEqual(["Courses"]);
     expect(run(all, "@today kyoto")).toEqual(["Voyage à Kyoto", "Carnet", "Budget voyages 2026"]);
     expect(run(all, "@images")).toEqual(["Lectures"]);
+    // Images inserted by Ursa (width, paths with spaces) count too.
+    const added = [note("# Collée\n![](assets/capture-2026-10-03-143200.png){width=420}\n"), note("# Glissée\n![](<assets/mon image.png>)\n")];
+    expect(run(added, "@images")).toEqual(["Collée", "Glissée"]);
     expect(run(all, "@untagged -@pinned kyoto")).toEqual(["Ancienne"]);
   });
 

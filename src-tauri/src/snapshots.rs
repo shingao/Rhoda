@@ -112,6 +112,32 @@ pub(crate) fn purge_before(root: &Path, before: &str) -> io::Result<usize> {
     Ok(removed)
 }
 
+/// Attachments (images, PDFs) of a backup copied back, byte for byte, where
+/// they were, unless a file is there again. Returns the paths restored.
+pub(crate) fn restore_assets(root: &Path, name: &str, paths: &[String]) -> CmdResult<Vec<String>> {
+    validate_name(name)?;
+    let dir = backups_root(root).join(name);
+    let mut restored = Vec::new();
+    for rel in paths {
+        let src = resolve(&dir, rel)?;
+        let dst = resolve(root, rel)?;
+        if dst.exists() || !src.is_file() {
+            continue;
+        }
+        if let Some(parent) = dst.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        fs::copy(&src, &dst)?;
+        restored.push(rel.clone());
+    }
+    Ok(restored)
+}
+
+#[tauri::command]
+pub async fn restore_backup_assets(state: State<'_, VaultState>, name: String, paths: Vec<String>) -> CmdResult<Vec<String>> {
+    restore_assets(&current_root(&state)?, &name, &paths)
+}
+
 #[derive(Debug, Serialize)]
 pub struct BackupInfo {
     pub name: String,
@@ -285,6 +311,22 @@ mod tests {
         assert!(read(v.path(), &old).unwrap().manifest.is_none());
         assert!(read(v.path(), "missing").is_err());
         assert!(write_file(v.path(), "missing", "manifest.json", "{}").is_err());
+    }
+
+    #[test]
+    fn backups_keep_attachments_byte_for_byte() {
+        let v = vault();
+        fs::create_dir_all(v.path().join("assets")).unwrap();
+        let bytes: Vec<u8> = (0..=255).collect();
+        fs::write(v.path().join("assets/p.png"), &bytes).unwrap();
+        let name = backup_files(v.path(), "2026-10-03_10-00-00-delete-notes", &["a.md".into(), "assets/p.png".into()]).unwrap();
+        fs::remove_file(v.path().join("assets/p.png")).unwrap();
+        assert_eq!(restore_assets(v.path(), &name, &["assets/p.png".into()]).unwrap(), vec!["assets/p.png".to_string()]);
+        assert_eq!(fs::read(v.path().join("assets/p.png")).unwrap(), bytes);
+        // Already back: left alone.
+        assert!(restore_assets(v.path(), &name, &["assets/p.png".into()]).unwrap().is_empty());
+        // Notes are counted, attachments are not.
+        assert_eq!(list(v.path()).unwrap()[0].notes, 1);
     }
 
     #[test]

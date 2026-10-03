@@ -47,6 +47,8 @@ export const vaultApi = {
   writeBackupFile: (name: string, file: "manifest.json" | "tags.json", content: string) => invoke<void>("write_backup_file", { name, file, content }),
   /** Native folder picker; null if cancelled. */
   pickFolder: (title: string, current: string | null) => invoke<string | null>("pick_vault_folder", { title, current }),
+  /** Attachments of a backup copied back (binary), unless a file is there again. */
+  restoreAssets: (name: string, paths: string[]) => invoke<string[]>("restore_backup_assets", { name, paths }),
   /** Removes backups whose name sorts before `before` (a file stamp). */
   purgeBackups: (before: string) => invoke<number>("purge_backups", { before }),
   onChanged: (handler: (paths: string[]) => void): Promise<UnlistenFn> =>

@@ -103,7 +103,7 @@ export function installDevMock(): void {
   };
   for (const [file, url] of Object.entries(SAMPLE_ASSETS)) assetsOf(DEFAULT_VAULT).set(`assets/${file.split("/").pop()}`, { url });
   let vaultPath = DEFAULT_VAULT;
-  setMockAssetUrl((path) => assetsOf(vaultPath).get(path)?.url ?? null);
+  setMockAssetUrl((path) => assetsOf(vaultPath).get(path.replace(/^_thumb\//, ""))?.url ?? null);
   let files = vaultOf(DEFAULT_VAULT).files;
   let backups = vaultOf(DEFAULT_VAULT).backups;
   for (const [path, content, mtime] of seed(now)) files.set(path, { content, mtime, created: mtime });

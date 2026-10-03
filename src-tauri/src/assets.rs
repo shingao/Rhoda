@@ -362,15 +362,60 @@ fn content_type(path: &Path) -> &'static str {
     }
 }
 
+/// Side of the thumbnails of note cards (64 px shown, ×2 for high-DPI screens).
+const THUMB: u32 = 128;
+/// Prefix of thumbnail URLs: `vault://localhost/_thumb/assets/photo.png`.
+const THUMB_PREFIX: &str = "_thumb/";
+
+/// Thumbnail of an image of the vault, made once and kept in `.ursa/thumbs/`
+/// (named after the path, date and size of the original, so an edit makes a new one).
+/// SVG is served as is (it scales by itself).
+pub(crate) fn thumbnail(root: &Path, rel: &str) -> CmdResult<PathBuf> {
+    let src = resolve(root, rel)?;
+    let meta = fs::metadata(&src)?;
+    let mut head = [0u8; 4096];
+    let n = fs::File::open(&src)?.read(&mut head)?;
+    match detect(&head[..n]) {
+        Detected::Ok(Format::Svg) => return Ok(src),
+        Detected::Ok(Format::Pdf) | Detected::Refused(_) => return Err(CmdError::new(ErrorKind::Other, "not an image")),
+        Detected::Ok(_) => {}
+    }
+    let modified = meta.modified().ok().and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map_or(0, |d| d.as_nanos());
+    let key: String = sha256(format!("{rel}\0{modified}\0{}", meta.len()).as_bytes()).iter().take(16).map(|b| format!("{b:02x}")).collect();
+    let dir = root.join(INTERNAL_DIR).join("thumbs");
+    let thumb = dir.join(format!("{key}.png"));
+    if thumb.exists() {
+        return Ok(thumb);
+    }
+    let image = image::ImageReader::open(&src)?.with_guessed_format()?.decode().map_err(CmdError::other)?;
+    let small = image.resize_to_fill(THUMB, THUMB, image::imageops::FilterType::Triangle);
+    let mut png = Vec::new();
+    small.write_to(&mut io::Cursor::new(&mut png), image::ImageFormat::Png).map_err(CmdError::other)?;
+    fs::create_dir_all(&dir)?;
+    crate::vault::atomic_write_bytes(&thumb, &png)?;
+    Ok(thumb)
+}
+
 /// `vault://localhost/<path>` (`http://vault.localhost/<path>` on Windows).
 pub fn serve(app: &AppHandle, request: &tauri::http::Request<Vec<u8>>) -> Response<Vec<u8>> {
     let not_found = || Response::builder().status(StatusCode::NOT_FOUND).body(Vec::new()).expect("valid response");
     let Some(root) = root_of(&app.state::<VaultState>()) else { return not_found() };
     let rel = percent_decode(request.uri().path().trim_start_matches('/'));
-    if !servable(&rel) {
-        return not_found();
-    }
-    let Ok(path) = resolve(&root, &rel) else { return not_found() };
+    let path = if let Some(original) = rel.strip_prefix(THUMB_PREFIX) {
+        if !servable(original) {
+            return not_found();
+        }
+        match thumbnail(&root, original) {
+            Ok(p) => p,
+            Err(_) => return not_found(),
+        }
+    } else {
+        if !servable(&rel) {
+            return not_found();
+        }
+        let Ok(p) = resolve(&root, &rel) else { return not_found() };
+        p
+    };
     let Ok(bytes) = fs::read(&path) else { return not_found() };
     Response::builder()
         .header(header::CONTENT_TYPE, content_type(&path))
@@ -437,6 +482,23 @@ mod tests {
         let renamed = import(v.path(), "fake.gif", b"%PDF-1.4 rest").unwrap();
         assert!(matches!(&renamed, Imported::Ok { path, format: Format::Pdf, .. } if path == "assets/fake.pdf"));
         assert!(matches!(import(v.path(), "IMG_0001.HEIC", b"\0\0\0\x18ftypheic\0\0\0\0").unwrap(), Imported::Refused { reason: Refusal::Heic, .. }));
+    }
+
+    #[test]
+    fn thumbnails_are_made_once_and_cover_the_square() {
+        let v = tempfile::tempdir().unwrap();
+        fs::create_dir_all(v.path().join("assets")).unwrap();
+        let img = image::RgbImage::from_pixel(400, 200, image::Rgb([200, 100, 50]));
+        img.save(v.path().join("assets/large.png")).unwrap();
+        let thumb = thumbnail(v.path(), "assets/large.png").unwrap();
+        assert!(thumb.starts_with(v.path().join(".ursa/thumbs")));
+        let made = image::open(&thumb).unwrap();
+        assert_eq!((made.width(), made.height()), (THUMB, THUMB));
+        let again = thumbnail(v.path(), "assets/large.png").unwrap();
+        assert_eq!(thumb, again);
+        fs::write(v.path().join("assets/s.svg"), "<svg width=\"10\" height=\"10\"></svg>").unwrap();
+        assert_eq!(thumbnail(v.path(), "assets/s.svg").unwrap(), v.path().join("assets/s.svg"));
+        assert!(thumbnail(v.path(), "../x.png").is_err());
     }
 
     #[test]

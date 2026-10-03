@@ -26,7 +26,11 @@ pub fn run() {
         )
         .manage(vault::VaultState::default())
         // Attachments and caches of the open vault, for <img> and pdf.js.
-        .register_uri_scheme_protocol("vault", |ctx, request| assets::serve(ctx.app_handle(), &request))
+        .register_asynchronous_uri_scheme_protocol("vault", |ctx, request, responder| {
+            // Thumbnails can take a moment: never on the main thread.
+            let app = ctx.app_handle().clone();
+            std::thread::spawn(move || responder.respond(assets::serve(&app, &request)));
+        })
         .setup(|app| {
             if let Some(window) = app.get_webview_window("main") {
                 std::thread::spawn(move || {
@@ -57,6 +61,7 @@ pub fn run() {
             snapshots::list_backups,
             snapshots::read_backup,
             snapshots::write_backup_file,
+            snapshots::restore_backup_assets,
             vault::pick_vault_folder,
             assets::import_files,
             assets::import_bytes,

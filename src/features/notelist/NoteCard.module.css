@@ -1,12 +1,29 @@
 .card {
   display: flex;
-  flex-direction: column;
-  gap: var(--sp-1);
+  gap: var(--card-gap);
   padding: var(--card-pad);
   border-radius: var(--r-lg);
   transition:
     background-color var(--dur-fast) var(--ease-out),
     box-shadow var(--dur-instant) linear;
+}
+
+.text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+
+/* [§2.4] optional thumbnail 64×64, --r-md, cover (first image of the note) */
+.thumb {
+  width: var(--card-thumb);
+  height: var(--card-thumb);
+  flex: none;
+  border-radius: var(--r-md);
+  object-fit: cover;
+  background: var(--bg-sunken);
 }
 
 .card:hover {

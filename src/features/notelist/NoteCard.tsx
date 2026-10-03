@@ -2,6 +2,8 @@ import { forwardRef, memo, useMemo, type MouseEvent } from "react";
 import { Archive, Pin, ScanText, SquareCheck } from "lucide-react";
 import { useT } from "../../app/i18n";
 import { formatRelative } from "../../core/dates";
+import { firstImage } from "../../core/markdown/embeds";
+import { assetsApi } from "../../services/assets";
 import type { Note } from "../../core/note/note";
 import type { SearchQuery } from "../../core/search/query";
 import { highlights, snippet } from "../../core/search/search";
@@ -23,7 +25,13 @@ interface NoteCardProps {
 }
 
 /** Text with `<mark>` on the given ranges. */
-function Marked({ text, ranges }: { text: string; ranges: Array<[number, number]> }) {
+function Marked({
+  text,
+  ranges,
+}: {
+  text: string;
+  ranges: Array<[number, number]>;
+}) {
   if (!ranges.length) return <>{text}</>;
   const parts = [];
   let at = 0;
@@ -40,10 +48,38 @@ function Marked({ text, ranges }: { text: string; ranges: Array<[number, number]
   return <>{parts}</>;
 }
 
-/** Note card [DESIGN §2.4]: meta line, title, two-line plain-text preview. */
+/** First image of the note, 64×64 cover [DESIGN §2.4]; hidden if it cannot be shown. */
+function Thumb({ path }: { path: string }) {
+  return (
+    <img
+      className={s.thumb}
+      src={assetsApi.thumbUrl(path)}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      draggable={false}
+      onError={(e) => {
+        e.currentTarget.hidden = true;
+      }}
+    />
+  );
+}
+
+/** Note card [DESIGN §2.4]: meta line, title, two-line plain-text preview, thumbnail of the first image. */
 export const NoteCard = memo(
   forwardRef<HTMLDivElement, NoteCardProps>(function NoteCard(
-    { domId, note, now, dateKind, todoLabel, selected, focusable, onSelect, onContextMenu, query },
+    {
+      domId,
+      note,
+      now,
+      dateKind,
+      todoLabel,
+      selected,
+      focusable,
+      onSelect,
+      onContextMenu,
+      query,
+    },
     ref,
   ) {
     const t = useT();
@@ -52,10 +88,18 @@ export const NoteCard = memo(
       const excerpt = snippet(note, query);
       return {
         title: highlights(note.title, query),
-        excerpt: excerpt ?? { text: note.preview, ranges: highlights(note.preview, query), source: null },
+        excerpt: excerpt ?? {
+          text: note.preview,
+          ranges: highlights(note.preview, query),
+          source: null,
+        },
       };
     }, [note, query]);
     const time = dateKind === "created" ? note.created : note.mtime;
+    const image = useMemo(
+      () => firstImage(note.path, note.body),
+      [note.path, note.body],
+    );
     return (
       <div
         ref={ref}
@@ -68,40 +112,56 @@ export const NoteCard = memo(
         onFocus={onSelect}
         onContextMenu={onContextMenu}
       >
-        <div className={s.meta}>
-          {note.pinned && <Pin className={s.metaIcon} aria-label={t.list.pinned} />}
-          <time dateTime={new Date(time).toISOString()}>{formatRelative(time, now, t.dates)}</time>
-          {query && note.archived && (
-            <span className={s.archived}>
-              <Archive className={s.metaIcon} aria-hidden />
-              {t.search.archived}
-            </span>
-          )}
-          {todoLabel && note.syntax && (
-            <span className={s.todos} aria-label={todoLabel}>
-              <SquareCheck className={s.metaIcon} aria-hidden />
-              {note.syntax.todos.done}/{note.syntax.todos.total}
-            </span>
-          )}
-          {found?.excerpt.source && (
-            <span className={s.foundIn}>
-              <ScanText className={s.metaIcon} aria-hidden />
-              {t.search.foundIn[found.excerpt.source] ?? found.excerpt.source}
-            </span>
-          )}
+        <div className={s.text}>
+          <div className={s.meta}>
+            {note.pinned && (
+              <Pin className={s.metaIcon} aria-label={t.list.pinned} />
+            )}
+            <time dateTime={new Date(time).toISOString()}>
+              {formatRelative(time, now, t.dates)}
+            </time>
+            {query && note.archived && (
+              <span className={s.archived}>
+                <Archive className={s.metaIcon} aria-hidden />
+                {t.search.archived}
+              </span>
+            )}
+            {todoLabel && note.syntax && (
+              <span className={s.todos} aria-label={todoLabel}>
+                <SquareCheck className={s.metaIcon} aria-hidden />
+                {note.syntax.todos.done}/{note.syntax.todos.total}
+              </span>
+            )}
+            {found?.excerpt.source && (
+              <span className={s.foundIn}>
+                <ScanText className={s.metaIcon} aria-hidden />
+                {t.search.foundIn[found.excerpt.source] ?? found.excerpt.source}
+              </span>
+            )}
+          </div>
+          <div
+            className={[s.title, !note.title && s.untitled]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            {note.title ? (
+              <Marked text={note.title} ranges={found?.title ?? []} />
+            ) : (
+              t.untitled
+            )}
+          </div>
+          {found
+            ? found.excerpt.text && (
+                <div className={s.preview}>
+                  <Marked
+                    text={found.excerpt.text}
+                    ranges={found.excerpt.ranges}
+                  />
+                </div>
+              )
+            : note.preview && <div className={s.preview}>{note.preview}</div>}
         </div>
-        <div className={[s.title, !note.title && s.untitled].filter(Boolean).join(" ")}>
-          {note.title ? <Marked text={note.title} ranges={found?.title ?? []} /> : t.untitled}
-        </div>
-        {found ? (
-          found.excerpt.text && (
-            <div className={s.preview}>
-              <Marked text={found.excerpt.text} ranges={found.excerpt.ranges} />
-            </div>
-          )
-        ) : (
-          note.preview && <div className={s.preview}>{note.preview}</div>
-        )}
+        {image && <Thumb path={image} />}
       </div>
     );
   }),

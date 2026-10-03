@@ -34,6 +34,8 @@ export const assetsApi = {
   info: (paths: string[]) => invoke<Array<AssetInfo | null>>("asset_info", { paths }),
   /** URL for <img> / pdf.js of a vault-relative file, served by the `vault:` protocol. */
   url: (path: string): string => mockUrl?.(path) ?? convertFileSrc(path, "vault"),
+  /** 128 px square thumbnail of a vault image, made once and cached in `.ursa/thumbs/`. */
+  thumbUrl: (path: string): string => assetsApi.url(`_thumb/${path}`),
   /** Files dropped from the Explorer (Tauri delivers paths; `position` in physical pixels). */
   onFileDrop: (handler: (paths: string[], position: { x: number; y: number }) => void): Promise<UnlistenFn> =>
     getCurrentWebview().onDragDropEvent((e) => {

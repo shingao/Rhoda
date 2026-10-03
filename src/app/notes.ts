@@ -17,6 +17,11 @@ import {
 } from "../core/note/note";
 import { applyChanges, wikiLinkRenameChanges, type TextChange } from "../core/rewrite";
 import { restoreTagScopes } from "../core/tags";
+import { localReferences } from "../core/markdown/embeds";
+import { assetsApi } from "../services/assets";
+
+/** Attachments folder of the vault (the Rust side uses the same name). */
+const ASSETS_DIR = "assets";
 import { editorText, focusEditor, forgetNote, replaceFromDisk, rewriteInEditor, showNote } from "../editor/session";
 import { errorKind } from "../services/errors";
 import { vaultApi } from "../services/vault";
@@ -161,11 +166,14 @@ export interface TagUndo {
 interface UndoRecord {
   items: UndoItem[];
   tags?: TagUndo;
+  /** Attachments sent to the recycle bin with the notes (orphan images, PDFs), copied in the backup. */
+  assets?: string[];
 }
 interface Manifest {
   version: 1;
   items: UndoItem[];
   tagScopes?: string[];
+  assets?: string[];
 }
 const undoRecords = new Map<string, UndoRecord>();
 
@@ -176,7 +184,7 @@ export class BackupFailedError extends Error {}
  * Writes pending text of the notes (so their files are current), then copies
  * them. Runs inside the queue; throws BackupFailedError on any failure.
  */
-async function backupBefore(op: BulkOperation, ids: string[]): Promise<string> {
+async function backupBefore(op: BulkOperation, ids: string[], assets: string[] = []): Promise<string> {
   try {
     for (const id of ids) {
       const body = pendingBodies.get(id);
@@ -191,7 +199,7 @@ async function backupBefore(op: BulkOperation, ids: string[]): Promise<string> {
         throw e;
       }
     }
-    const paths = ids.flatMap((id) => noteById(id)?.path ?? []);
+    const paths = [...ids.flatMap((id) => noteById(id)?.path ?? []), ...assets];
     return await vaultApi.backup(`${fileStamp()}-${op}`, paths);
   } catch (e) {
     console.warn("[ursa] backup failed, operation cancelled", op, e);
@@ -206,11 +214,22 @@ function remember(name: string, record: UndoRecord): void {
     if (undoRecords.size <= UNDO_LIMIT) break;
     undoRecords.delete(key);
   }
-  const manifest: Manifest = { version: 1, items: record.items, ...(record.tags && { tagScopes: record.tags.scopes }) };
+  const manifest: Manifest = {
+    version: 1,
+    items: record.items,
+    ...(record.tags && { tagScopes: record.tags.scopes }),
+    ...(record.assets?.length && { assets: record.assets }),
+  };
   const write = (file: "manifest.json" | "tags.json", content: unknown) =>
     vaultApi.writeBackupFile(name, file, JSON.stringify(content)).catch((e: unknown) => console.warn("[ursa] backup file not written", name, file, e));
   void write("manifest.json", manifest);
   if (record.tags) void write("tags.json", { version: 1, tags: record.tags.snapshot });
+}
+
+/** Attachments deleted with the notes come back too (never over a file that is there again). */
+async function restoreAssets(name: string, assets: string[] | undefined): Promise<void> {
+  if (!assets?.length) return;
+  await vaultApi.restoreAssets(name, assets).catch((e: unknown) => console.warn("[ursa] attachments not restored", name, e));
 }
 
 /** Tag settings back as they were before the operation (Undo and Settings › Restore alike). */
@@ -268,7 +287,14 @@ async function backupRecord(name: string): Promise<UndoRecord> {
       const note = noteFromFile(file);
       return { id: note.id, from: file.path, title: note.title };
     });
-  return { items, tags: parseTagUndo(manifest, tags) };
+  let assets: string[] | undefined;
+  try {
+    const listed = manifest ? (JSON.parse(manifest) as Partial<Manifest>).assets : undefined;
+    if (Array.isArray(listed)) assets = listed.filter((a): a is string => typeof a === "string");
+  } catch {
+    assets = undefined;
+  }
+  return { items, tags: parseTagUndo(manifest, tags), assets };
 }
 
 /** Writes the copies back and updates the index and the editor. Runs inside the queue. */
@@ -309,6 +335,7 @@ export function undoBulk(name: string): Promise<UndoResult> {
     }
     undoRecords.delete(name);
     restoreTags(record.tags);
+    await restoreAssets(name, record.assets);
     return "undone";
   });
 }
@@ -381,6 +408,7 @@ export function restoreBackup(name: string, force: boolean): Promise<RestoreResu
       return { kind: "failed" };
     }
     restoreTags(record.tags);
+    await restoreAssets(name, record.assets);
     if (safety) {
       const undo = restored.filter((n) => before.has(n.id)).map((n) => ({ id: n.id, from: before.get(n.id)!, title: n.title, expected: afterOperation(n.body) }));
       remember(safety, { items: undo, tags: tagsBefore });
@@ -637,7 +665,8 @@ export async function deleteNotes(ids: string[], op: BulkOperation = "delete-not
   const result = await enqueue(async (): Promise<BulkResult> => {
     const present = ids.filter((id) => noteById(id));
     if (present.length === 0) return { count: 0, backup: null };
-    const backup = await backupBefore(op, present);
+    const orphans = await orphanAssets(present);
+    const backup = await backupBefore(op, present, orphans);
     const items: UndoItem[] = [];
     for (const id of present) {
       const note = noteById(id)!;
@@ -646,12 +675,35 @@ export async function deleteNotes(ids: string[], op: BulkOperation = "delete-not
       forget(id);
       removeNotes([id]);
     }
-    remember(backup, { items });
+    // Their attachments that no other note uses go to the recycle bin too.
+    for (const path of orphans) await vaultApi.remove(path).catch((e: unknown) => console.warn("[ursa] attachment not deleted", path, e));
+    remember(backup, { items, assets: orphans });
     return { count: items.length, backup };
   });
   for (const id of ids) reselectAfter(id, before);
   if (getState().selectedId === null) selectNote(currentList()[0]?.id ?? null);
   return result;
+}
+
+/**
+ * Files of `assets/` that the notes `ids` point to and no other note does
+ * (trash and archive included), and that still exist.
+ */
+async function orphanAssets(ids: string[]): Promise<string[]> {
+  const leaving = new Set(ids);
+  const theirs = new Set<string>();
+  for (const id of ids) {
+    const note = noteById(id)!;
+    for (const path of localReferences(note.path, currentText(id))) if (path.startsWith(`${ASSETS_DIR}/`)) theirs.add(path);
+  }
+  if (theirs.size === 0) return [];
+  for (const note of Object.values(getState().notes)) {
+    if (leaving.has(note.id)) continue;
+    for (const path of localReferences(note.path, currentText(note.id))) theirs.delete(path);
+  }
+  const candidates = [...theirs];
+  const infos = await assetsApi.info(candidates).catch(() => candidates.map(() => null));
+  return candidates.filter((_, i) => infos[i] !== null);
 }
 
 export function trashedNoteIds(): string[] {

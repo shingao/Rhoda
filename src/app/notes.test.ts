@@ -70,6 +70,13 @@ const fake = vi.hoisted(() => {
       files: [...backups.get(name)!].map(([path, content]) => ({ path, content, mtime: 0, created: 0 })),
     }),
     writeBackupFile: async (name: string, file: string, content: string) => void manifests.set(`${name}/${file}`, content),
+    restoreAssets: async (name: string, paths: string[]) =>
+      paths.filter((p) => {
+        if (files.has(p)) return false;
+        const mtime = ++state.clock;
+        files.set(p, { content: backups.get(name)!.get(p)!, mtime, created: mtime });
+        return true;
+      }),
     readInternal: async () => null,
     writeInternal: async () => undefined,
     rename: async (from: string, stem: string) => {
@@ -87,6 +94,9 @@ const fake = vi.hoisted(() => {
 });
 
 vi.mock("../services/vault", () => ({ vaultApi: fake.vaultApi }));
+vi.mock("../services/assets", () => ({
+  assetsApi: { info: async (paths: string[]) => paths.map((p) => (fake.files.has(p) ? { width: 1, height: 1, bytes: 1 } : null)) },
+}));
 /** Stand-in for the editor: one "open" note whose text lives here, as in CodeMirror. */
 const editor = vi.hoisted(() => ({ openId: null as string | null, text: "", rewrites: [] as Array<{ id: string; changes: unknown }> }));
 vi.mock("../editor/session", () => ({
@@ -126,7 +136,8 @@ const { deleteTag, notesWithTag, renameTag, updateTagSettings } = await import("
 const { getState, setState, useApp } = await import("./store");
 const session = await import("../editor/session");
 
-const diskFiles = (): NoteFile[] => [...fake.files.keys()].map((path) => ({ path, ...fake.files.get(path)! }));
+/** Notes on disk (attachments are not notes, as in the Rust scan). */
+const diskFiles = (): NoteFile[] => [...fake.files.keys()].filter((p) => p.endsWith(".md")).map((path) => ({ path, ...fake.files.get(path)! }));
 const notes = () => Object.values(getState().notes);
 const paths = () => notes().map((n) => n.path).sort();
 
@@ -589,6 +600,23 @@ describe("safety backups before bulk operations", () => {
     expect(await restoreBackup(copy, true)).toMatchObject({ kind: "restored", count: 1, backup: null });
     expect(fake.files.has("3.md")).toBe(true);
     expect(getState().notes.n3!.title).toBe("Trois");
+  });
+
+  it("sends the images only the deleted note used to the recycle bin, and Undo brings them back", async () => {
+    seed("assets/seule.png", "PNG-A");
+    seed("assets/commune.png", "PNG-B");
+    seed("I.md", "---\nid: img\n---\n# Images\n![](assets/seule.png)\n![](assets/commune.png)\n![](assets/absente.png)\n");
+    seed("J.md", "---\nid: other\n---\n# Autre\n![](assets/commune.png)\n");
+    await loadNotes(diskFiles());
+    await trashNote("img");
+    const { backup } = await deleteNotes(["img"], "empty-trash");
+    expect(fake.files.has("assets/seule.png")).toBe(false);
+    expect(fake.files.has("assets/commune.png")).toBe(true);
+    expect([...fake.backups.get(backup!)!.keys()].sort()).toEqual(["I.md", "assets/seule.png"]);
+    expect(JSON.parse(fake.manifests.get(`${backup!}/manifest.json`)!).assets).toEqual(["assets/seule.png"]);
+    expect(await undoBulk(backup!)).toBe("undone");
+    expect(fake.files.get("assets/seule.png")?.content).toBe("PNG-A");
+    expect(getState().notes.img).toBeDefined();
   });
 
   it("purges backups older than 30 days", async () => {
