@@ -715,7 +715,7 @@ Livrée en sous-étapes : 8a modèle, ancrage et recherche ; 8b calque et annula
 | P8-8 | Fenêtre étroite | Seuls les stickers posés entièrement dans une marge se rangent ; ceux posés sur le texte restent où l'utilisateur les a mis. Stickers : réduction jusqu'à 40 % (`--sticker-fit-min`), à 8 px du bord, jamais sous le panneau Sommaire ancré. ~~Post-it réduits jusqu'à 40 %~~ → corrigé à la validation : sous 70 % (`--postit-fit-pill`), pastille qui remplit la marge ; un clic l'ouvre en entier par-dessus le texte (clic ailleurs ou Échap pour la refermer). Rien n'est enregistré. |
 | P8-9 | Alt | Alt seul (pas AltGr, indispensable pour taper `#`, `@` ou `[` sur AZERTY). |
 | P8-10 | Raccourcis | Ctrl+Maj+S tiroir (DESIGN), Ctrl+Maj+H masquer : S et H sont au même endroit en AZERTY et QWERTY. |
-| P8-11 | Orphelins | ~~Une image de « Les miens » utilisée seulement par des notes supprimées part avec elles~~ → corrigé à la validation : la bibliothèque (`assets/stickers/`) n'est **jamais** orpheline. Une image n'en sort que par le tiroir (clic droit ou Suppr › « Retirer de mes stickers »), après une confirmation qui indique combien de notes l'utilisent ; elle va à la Corbeille de Windows et ces notes affichent un emplacement vide. Les orphelins ne concernent que les images du texte des notes. |
+| P8-11 | Orphelins | ~~Une image de « Les miens » utilisée seulement par des notes supprimées part avec elles~~ → corrigé à la validation : la bibliothèque (`assets/stickers/`) n'est **jamais** orpheline. Une image n'en sort que par le tiroir (clic droit ou Suppr › « Retirer de mes stickers »), après une confirmation qui indique combien de notes l'utilisent ; elle va à la Corbeille de Windows ~~et ces notes affichent un emplacement vide~~ → avant validation de la phase 9 : « Retirer aussi des N notes » la retire aussi des notes, annulable (toast, Réglages › Sauvegardes). Les orphelins ne concernent que les images du texte des notes. |
 | P8-12 | Catalogue | 209 emoji : Nature 55, Cuisine 54, Voyage 50, Objets 50 ; identifiant `fluent/<nom Fluent>` (ex. `fluent/hot_beverage`) ; source : paquet `@lobehub/fluent-emoji-3d` (MIT), copié tel quel. |
 | P8-13 | Récents | 16 derniers stickers posés, dans les réglages de l'app (pas dans le coffre) ; les images importées d'un autre coffre n'y apparaissent pas. |
 
@@ -736,7 +736,7 @@ Captures : `docs/captures/phase-8/` — 01 et 02 page journal claire (coral, tir
 
 ### Ajustements après validation
 - **Post-it en marge étroite** : pastille au lieu d'une réduction sous 70 %, ouverte en entier au clic (P8-8).
-- **« Les miens »** : jamais orphelins ; retrait explicite depuis le tiroir avec confirmation (P8-11).
+- **« Les miens »** : jamais orphelins ; retrait explicite depuis le tiroir avec confirmation (P8-11). Depuis la phase 9, s'il est utilisé, il est retiré aussi des notes, de façon annulable.
 - **Intégration continue Windows** : `.github/workflows/windows.yml` (windows-latest, à chaque push) lance `npm run check`, clippy, les tests Rust (dont le vrai test OCR, phase 9), puis `npx tauri build`, avec le `.msi` en artefact. Badge dans `README.md`. Seule correction propre à Windows : `scripts/check-tokens.mjs` (chemin `file://` via `fileURLToPath`, séparateurs `\`). Premier passage vert, `.msi` de 6,7 Mo.
 
 ### Checklist de test manuel (phase 8, Windows)
@@ -772,7 +772,8 @@ Livrée en sous-étapes : 9a moteur Rust (Windows.Media.Ocr, tuiles, orientation
   - interface `Engine` ; implémentation Windows.Media.Ocr dans `windows.rs` (`#[cfg(windows)]`) ; aucun moteur ailleurs (l'app tourne sans OCR) ; moteur factice dans les tests ;
   - langues réellement installées (`AvailableRecognizerLanguages`) et taille maximale du moteur (`MaxImageDimension`) ;
   - orientation EXIF appliquée avant l'OCR (comme `<img>`) ;
-  - petites images agrandies ×2 ; grandes images découpées en tuiles qui se chevauchent de 256 px, à pleine résolution (jamais réduites, les petits textes restent lisibles). Un mot coupé par un bord intérieur ou lu deux fois dans un chevauchement est retiré ;
+  - petites images agrandies ×2 ; grandes images découpées en tuiles qui se chevauchent de 1 024 px, à pleine résolution (jamais réduites, les petits textes restent lisibles). Chaque mot vient de la tuile qui possède son centre (les tuiles se partagent leur chevauchement par le milieu) : un mot coupé par un bord est lu une fois, entier ;
+  - texte incliné : Windows donne les zones dans l'image redressée (`TextAngle`) ; elles sont retournées dans l'image (`unrotate`) ;
   - mots **et** zones gardés, en pixels de l'image affichée ;
   - plusieurs langues : les lignes de la première, puis celles qu'une autre lit autrement ;
   - une reconnaissance à la fois, thread en priorité basse.
@@ -799,8 +800,8 @@ Livrée en sous-étapes : 9a moteur Rust (Windows.Media.Ocr, tuiles, orientation
   - message clair si l'OCR de Windows est indisponible ;
   - pages par PDF, avancement, « Réindexer ».
 - **Tests** :
-  - Vitest 183 (zones, cadrage de la vignette, parties de texte et pages, ordre texte/images dans Ctrl+F) ; Rust 34 en local (tuiles, agrandissement, EXIF, langues, cache) ;
-  - **vrai test Windows** dans le workflow : image de texte connu (`src-tauri/tests/fixtures/ocr-text.png`), en français si la langue est installée sinon en anglais. Il vérifie SHINKANSEN, KYOTO, NARA et la zone de KYOTO. Passé sur le runner (anglais seul installé, `MaxImageDimension` = 10 000) ; texte lu : « JR WEST RESERVED SEAT / SHINKANSEN 15 APR / KYOTO -+ NARA / CAR 7 SEAT 12A • 13:05 » (la flèche et le point médian sont mal lus, les mots sont justes). La dernière étape du workflow affiche ces lignes.
+  - Vitest 184 (zones, cadrage de la vignette, parties de texte et pages, ordre texte/images dans Ctrl+F, retrait d'un sticker de la bibliothèque) ; Rust 36 en local (tuiles et partage des chevauchements, agrandissement, EXIF, photo de test affichée droite, zones redressées, langues, cache) ;
+  - **vrais tests Windows** dans le workflow (3, voir « Ajustements avant validation ») : image de texte connu (`src-tauri/tests/fixtures/ocr-text.png`) en anglais, la langue présente sur les runners. Il vérifie SHINKANSEN, KYOTO, NARA et la zone de KYOTO. Passé sur le runner (anglais seul installé, `MaxImageDimension` = 10 000) ; texte lu : « JR WEST RESERVED SEAT / SHINKANSEN 15 APR / KYOTO -+ NARA / CAR 7 SEAT 12A • 13:05 » (la flèche et le point médian sont mal lus, les mots sont justes). La dernière étape du workflow affiche ces lignes.
 - Coffre factice : note « Billets JR — scans » ; OCR simulé avec mots et zones ; `localStorage` `ursa-dev-ocr` = `off` (sans moteur) ou `en` (anglais seul).
 
 ### Décisions (phase 9)
@@ -809,7 +810,7 @@ Livrée en sous-étapes : 9a moteur Rust (Windows.Media.Ocr, tuiles, orientation
 | P9-1 | Tesseract | Aucun repli embarqué (taille de l'installeur), selon ta consigne. Sans Windows.Media.Ocr : message dans Réglages › OCR, et l'app fonctionne sans OCR. |
 | P9-2 | Fichiers lus | Images PNG, JPEG, GIF, WebP utilisées par une note (corbeille et archives comprises), et PDF. Pas les SVG (texte vectoriel, pas en pixels) ni les images distantes. Pas les stickers. |
 | P9-3 | Langues | Par défaut, les langues installées commençant par `fr` puis `en` ; sinon la première installée. Plusieurs langues = plusieurs passages (le coût double, en arrière-plan). Changer de langues relit tout (le cache est indexé par contenu **et** langues). |
-| P9-4 | Tuiles | Chevauchement de 256 px (au plus un quart de la taille maximale) : tout mot plus court que cela est entier dans une tuile. Agrandissement ×2 sous 1 000 px. |
+| P9-4 | Tuiles | Chevauchement de 1 024 px (au plus un quart de la taille maximale), partagé par le milieu : un mot est gardé par la seule tuile qui contient son centre, où il est entier s'il fait moins de 1 024 px de large. Agrandissement ×2 sous 1 000 px. Cache passé en version 2 (résultats des grandes images différents). |
 | P9-5 | Priorité | Une reconnaissance à la fois (verrou côté Rust), thread en `THREAD_PRIORITY_BELOW_NORMAL`, pause pendant la frappe côté app. Une image déjà envoyée au moteur n'est pas interrompue : son résultat reste en cache. |
 | P9-6 | PDF | Une page avec moins de 20 caractères de texte est traitée comme un scan. Au-delà de la limite de pages, les pages suivantes ne sont pas lues. |
 | P9-7 | Vignette du résultat | Pour une correspondance OCR, la carte affiche cette image (plutôt que la 1re de la note), cadrée sur la zone : image entière chargée, la vignette en cache étant déjà recadrée au centre. |
@@ -821,6 +822,17 @@ Livrée en sous-étapes : 9a moteur Rust (Windows.Media.Ocr, tuiles, orientation
 - Écran OCR des réglages et bandeau « +N dans les images » : sans maquette, dans le style des autres pages et du panneau Ctrl+F.
 
 Captures : `docs/captures/phase-9/` (avancement, recherche image et PDF, Ctrl+F, texte de l'image, réglages normal / indisponible / langue manquante).
+
+### Ajustements avant validation
+- **Vrais tests OCR qui prouvent quelque chose** (`src-tauri/src/ocr/windows.rs`) : aucun `#[ignore]`, aucun repli. Pas de moteur, pas de langue anglaise, ou un mot non lu : le test échoue. La dernière étape du workflow vérifie aussi que les 3 tests existent (`--list`) et que le résumé dit exactement « 3 passed; 0 failed; 0 ignored ». Un test filtré, ignoré ou disparu fait donc échouer le run. L'étape « Rust tests » les exclut (`--skip ocr::windows`) pour qu'ils ne tournent qu'une fois.
+- **Images de test difficiles** (`scripts/make-ocr-fixtures.mjs`, rendu Chromium) :
+  - `ocr-photo.jpg` : billet photographié incliné de 4° sur une table en bois, JPEG enregistré de côté avec l'orientation EXIF 6. Vérifié : dimensions affichées 1600 × 1067, HAKONE, ODAWARA et TOGENDAI lus, centres des zones à moins de 16 px des positions mesurées dans le navigateur ;
+  - `ocr-words.png` : quatre mots posés sur une image de `MaxImageDimension` + 2 500 px (12 500 px sur le runner). Un mot dans la seule 1re tuile, un dans le chevauchement, un à cheval sur le bord de la 1re tuile, un au-delà de 10 000 px. Vérifié : exactement 4 mots (aucun morceau de mot coupé), positions à 12 px près, KUSHIRO entier de part et d'autre de x = 10 000.
+- Deux corrections révélées par ces cas :
+  - partage des tuiles par le milieu du chevauchement (P9-4) ;
+  - zones du texte incliné ramenées dans l'image (`TextAngle`).
+- **Retirer un sticker de « Les miens » utilisé** : la confirmation propose « Retirer aussi des N notes » (« de la note » s'il n'y en a qu'une) ou « Annuler ». Les stickers sont retirés des notes (aucun emplacement vide), l'image va à la Corbeille de Windows, et une sauvegarde (`remove-sticker`, avec l'image) permet « Annuler » dans le toast ou Réglages › Sauvegardes.
+- **README › « Tester une build »** : télécharger le `.msi` depuis Actions, passer SmartScreen (Débloquer, ou Informations complémentaires › Exécuter quand même ; cas du Contrôle intelligent des applications), où sont les réglages (`%APPDATA%\com.ursa.notes`), la WebView (`%LOCALAPPDATA%\com.ursa.notes`) et `.ursa\`, comment repartir de zéro.
 
 ### Checklist de test manuel (phase 9, Windows)
 1. **Réglages › OCR** : les langues listées sont celles de Windows, avec fr et en cochés si présents. Si le français manque, le message explique comment l'installer.
