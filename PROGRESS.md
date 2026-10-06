@@ -800,7 +800,7 @@ Livrée en sous-étapes : 9a moteur Rust (Windows.Media.Ocr, tuiles, orientation
   - pages par PDF, avancement, « Réindexer ».
 - **Tests** :
   - Vitest 183 (zones, cadrage de la vignette, parties de texte et pages, ordre texte/images dans Ctrl+F) ; Rust 34 en local (tuiles, agrandissement, EXIF, langues, cache) ;
-  - **vrai test Windows** dans le workflow : image de texte connu (`src-tauri/tests/fixtures/ocr-text.png`), en français si la langue est installée sinon en anglais. Il vérifie SHINKANSEN, KYOTO, NARA et la zone de KYOTO. Le CI l'a passé ; une étape `--nocapture` affiche les langues et le texte lu.
+  - **vrai test Windows** dans le workflow : image de texte connu (`src-tauri/tests/fixtures/ocr-text.png`), en français si la langue est installée sinon en anglais. Il vérifie SHINKANSEN, KYOTO, NARA et la zone de KYOTO. Passé sur le runner (anglais seul installé, `MaxImageDimension` = 10 000) ; texte lu : « JR WEST RESERVED SEAT / SHINKANSEN 15 APR / KYOTO -+ NARA / CAR 7 SEAT 12A • 13:05 » (la flèche et le point médian sont mal lus, les mots sont justes). La dernière étape du workflow affiche ces lignes.
 - Coffre factice : note « Billets JR — scans » ; OCR simulé avec mots et zones ; `localStorage` `ursa-dev-ocr` = `off` (sans moteur) ou `en` (anglais seul).
 
 ### Décisions (phase 9)
