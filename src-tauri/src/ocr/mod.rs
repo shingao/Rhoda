@@ -25,12 +25,12 @@ use crate::error::{CmdError, CmdResult, ErrorKind};
 use crate::vault::{current_root, resolve, VaultState, INTERNAL_DIR};
 
 /// Version of the cache files: bumped when results would differ.
-const CACHE_VERSION: u32 = 1;
+const CACHE_VERSION: u32 = 2;
 const OCR_DIR: &str = "ocr";
 /// Images smaller than this (longest side) are enlarged ×2: the engine reads small text badly.
 const ENLARGE_BELOW: u32 = 1000;
-/// Overlap between tiles, so that every word lies whole in at least one tile.
-const TILE_OVERLAP: u32 = 256;
+/// Overlap between tiles: a word narrower than this lies whole in the tile that owns it.
+const TILE_OVERLAP: u32 = 1024;
 
 /// A recognized word and its box, in pixels of the image as displayed (orientation applied).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -114,6 +114,25 @@ pub fn decode_oriented(bytes: &[u8]) -> Result<DynamicImage, String> {
     Ok(image)
 }
 
+/// Box, in the image, of a word the engine located in the image straightened by
+/// `angle` (degrees clockwise, around the centre): the corners turned back, then
+/// their bounding box, kept inside the image.
+#[cfg_attr(not(windows), allow(dead_code))] // used by the Windows engine
+pub fn unrotate(word: Word, angle: f64, width: u32, height: u32) -> Word {
+    if angle.abs() < 0.01 {
+        return word;
+    }
+    let (sin, cos) = (angle.to_radians() as f32).sin_cos();
+    let (cx, cy) = (width as f32 / 2.0, height as f32 / 2.0);
+    let corners = [(word.x, word.y), (word.x + word.w, word.y), (word.x, word.y + word.h), (word.x + word.w, word.y + word.h)]
+        .map(|(x, y)| (cx + (x - cx) * cos - (y - cy) * sin, cy + (x - cx) * sin + (y - cy) * cos));
+    let x0 = corners.iter().map(|c| c.0).fold(f32::MAX, f32::min).max(0.0);
+    let y0 = corners.iter().map(|c| c.1).fold(f32::MAX, f32::min).max(0.0);
+    let x1 = corners.iter().map(|c| c.0).fold(f32::MIN, f32::max).min(width as f32);
+    let y1 = corners.iter().map(|c| c.1).fold(f32::MIN, f32::max).min(height as f32);
+    Word { text: word.text, x: x0, y: y0, w: (x1 - x0).max(0.0), h: (y1 - y0).max(0.0) }
+}
+
 /// Origins of tiles of at most `max` px covering `len` px, overlapping by `overlap`.
 fn tile_starts(len: u32, max: u32, overlap: u32) -> Vec<u32> {
     if len <= max {
@@ -125,18 +144,17 @@ fn tile_starts(len: u32, max: u32, overlap: u32) -> Vec<u32> {
     starts
 }
 
-fn iou(a: &Word, b: &Word) -> f32 {
-    let x1 = a.x.max(b.x);
-    let y1 = a.y.max(b.y);
-    let x2 = (a.x + a.w).min(b.x + b.w);
-    let y2 = (a.y + a.h).min(b.y + b.h);
-    let inter = (x2 - x1).max(0.0) * (y2 - y1).max(0.0);
-    let union = a.w * a.h + b.w * b.h - inter;
-    if union <= 0.0 {
-        0.0
-    } else {
-        inter / union
-    }
+/// Part of each tile that owns the words centred in it: tiles meet in the middle
+/// of their overlap, so a word is kept once, from a tile where it is not cut.
+fn owned_spans(starts: &[u32], tile: u32, len: u32) -> Vec<(f32, f32)> {
+    let end = |i: usize| (starts[i] + tile).min(len) as f32;
+    (0..starts.len())
+        .map(|i| {
+            let lo = if i == 0 { 0.0 } else { (starts[i] as f32 + end(i - 1)) / 2.0 };
+            let hi = if i + 1 == starts.len() { len as f32 } else { (starts[i + 1] as f32 + end(i)) / 2.0 };
+            (lo, hi)
+        })
+        .collect()
 }
 
 /// Recognizes an image of any size with one language: enlarged if small, tiled if
@@ -160,26 +178,22 @@ pub fn recognize_image(engine: &dyn Engine, image: &RgbaImage, lang: &str) -> Re
     let overlap = TILE_OVERLAP.min(max / 4);
     let xs = tile_starts(sw, max, overlap);
     let ys = tile_starts(sh, max, overlap);
+    let (own_x, own_y) = (owned_spans(&xs, max, sw), owned_spans(&ys, max, sh));
     let tiled = xs.len() > 1 || ys.len() > 1;
     let mut lines: Vec<Line> = Vec::new();
-    let mut kept: Vec<Word> = Vec::new();
-    for &ty in &ys {
-        for &tx in &xs {
-            let tw = max.min(sw - tx);
-            let th = max.min(sh - ty);
-            let tile = if tiled { image::imageops::crop_imm(source, tx, ty, tw, th).to_image() } else { source.clone() };
+    for (row, &ty) in ys.iter().enumerate() {
+        for (col, &tx) in xs.iter().enumerate() {
+            let tile = if tiled { image::imageops::crop_imm(source, tx, ty, max.min(sw - tx), max.min(sh - ty)).to_image() } else { source.clone() };
+            let ((x0, x1), (y0, y1)) = (own_x[col], own_y[row]);
             for line in engine.recognize(&tile, lang)? {
                 let words: Vec<Word> = line
                     .words
                     .into_iter()
+                    // Words centred near an inner edge (perhaps cut) are read whole by the neighbour.
                     .filter(|word| {
-                        // A word cut by an inner tile edge is read whole in the neighbouring tile.
-                        let edge = 2.0;
-                        let cut_left = tx > 0 && word.x <= edge;
-                        let cut_top = ty > 0 && word.y <= edge;
-                        let cut_right = tx + tw < sw && word.x + word.w >= tw as f32 - edge;
-                        let cut_bottom = ty + th < sh && word.y + word.h >= th as f32 - edge;
-                        !(cut_left || cut_top || cut_right || cut_bottom)
+                        let cx = tx as f32 + word.x + word.w / 2.0;
+                        let cy = ty as f32 + word.y + word.h / 2.0;
+                        cx >= x0 && cx < x1 && cy >= y0 && cy < y1
                     })
                     .map(|word| Word {
                         text: word.text,
@@ -188,14 +202,10 @@ pub fn recognize_image(engine: &dyn Engine, image: &RgbaImage, lang: &str) -> Re
                         w: word.w / scale as f32,
                         h: word.h / scale as f32,
                     })
-                    // The same word read again in an overlap.
-                    .filter(|word| !kept.iter().any(|k| k.text == word.text && iou(k, word) > 0.5))
                     .collect();
-                if words.is_empty() {
-                    continue;
+                if !words.is_empty() {
+                    lines.push(Line { words });
                 }
-                kept.extend(words.iter().cloned());
-                lines.push(Line { words });
             }
         }
     }
@@ -473,17 +483,19 @@ mod tests {
         assert_eq!(tile_starts(800, 1000, 100), vec![0]);
         assert_eq!(tile_starts(2500, 1000, 200), vec![0, 800, 1500]);
         assert_eq!(tile_starts(1001, 1000, 200), vec![0, 1]);
+        assert_eq!(owned_spans(&[0, 800, 1500], 1000, 2500), vec![(0.0, 900.0), (900.0, 1650.0), (1650.0, 2500.0)]);
     }
 
     #[test]
     fn large_images_are_tiled_never_shrunk_and_words_kept_once() {
         let fake = Fake { max: 1000, calls: RefCell::new(Vec::new()) };
-        // A small word across the tile seam (x = 744–1000 overlap), others far apart.
-        let image = page_with_boxes(2400, 1300, &[(100, 100, 40, 12), (790, 600, 60, 12), (2300, 1250, 30, 10)]);
+        // Columns start at 0, 750, 1400 (overlap 250): a word inside an overlap, one
+        // across the first tile's right edge (read cut there, whole in the next), others far apart.
+        let image = page_with_boxes(2400, 1300, &[(100, 100, 40, 12), (790, 600, 60, 12), (960, 300, 80, 12), (2300, 1250, 30, 10)]);
         let lines = recognize_image(&fake, &image, "en").unwrap();
         let mut words: Vec<_> = lines.iter().flat_map(|l| l.words.clone()).collect();
         words.sort_by(|a, b| a.x.total_cmp(&b.x));
-        assert_eq!(words.iter().map(|w| (w.x, w.y, w.w, w.h)).collect::<Vec<_>>(), vec![(100.0, 100.0, 40.0, 12.0), (790.0, 600.0, 60.0, 12.0), (2300.0, 1250.0, 30.0, 10.0)]);
+        assert_eq!(words.iter().map(|w| (w.x, w.y, w.w, w.h)).collect::<Vec<_>>(), vec![(100.0, 100.0, 40.0, 12.0), (790.0, 600.0, 60.0, 12.0), (960.0, 300.0, 80.0, 12.0), (2300.0, 1250.0, 30.0, 10.0)]);
         // Small text kept: every tile at full resolution.
         assert!(fake.calls.borrow().iter().all(|&(w, h)| w <= 1000 && h <= 1000));
         assert!(fake.calls.borrow().len() >= 4);
@@ -508,6 +520,28 @@ mod tests {
         let tagged = [&jpeg[..2], exif, &jpeg[2..]].concat();
         let image = decode_oriented(&tagged).unwrap();
         assert_eq!((image.width(), image.height()), (2, 4));
+    }
+
+    #[test]
+    fn sideways_photo_fixture_is_shown_upright() {
+        // Stored 1067 × 1600 with orientation 6 (see scripts/make-ocr-fixtures.mjs).
+        let image = decode_oriented(include_bytes!("../../tests/fixtures/ocr-photo.jpg")).unwrap();
+        assert_eq!((image.width(), image.height()), (1600, 1067));
+        if let Ok(path) = std::env::var("URSA_DUMP_PHOTO") {
+            image.save(path).unwrap();
+        }
+    }
+
+    #[test]
+    fn boxes_of_straightened_text_are_turned_back() {
+        let word = |x, y, w, h| Word { text: "a".into(), x, y, w, h };
+        assert_eq!(unrotate(word(10.0, 20.0, 30.0, 8.0), 0.0, 200, 100), word(10.0, 20.0, 30.0, 8.0));
+        // A quarter turn clockwise around (100, 100): right of the centre goes below it.
+        let turned = unrotate(word(140.0, 98.0, 20.0, 4.0), 90.0, 200, 200);
+        assert!((turned.x - 98.0).abs() < 0.01 && (turned.y - 140.0).abs() < 0.01 && (turned.w - 4.0).abs() < 0.01 && (turned.h - 20.0).abs() < 0.01, "{turned:?}");
+        // Never outside the image.
+        let edge = unrotate(word(0.0, 0.0, 50.0, 10.0), -10.0, 200, 100);
+        assert!(edge.x >= 0.0 && edge.y >= 0.0);
     }
 
     #[test]

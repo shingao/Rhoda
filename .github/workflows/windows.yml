@@ -39,9 +39,10 @@ jobs:
         working-directory: src-tauri
         run: cargo clippy --all-targets -- -D warnings
 
+      # The real OCR tests run in their own step, at the end.
       - name: Rust tests
         working-directory: src-tauri
-        run: cargo test
+        run: cargo test -- --skip ocr::windows
 
       - name: Build the installer
         run: npx tauri build
@@ -52,7 +53,18 @@ jobs:
           path: src-tauri/target/release/bundle/msi/*.msi
           if-no-files-found: error
 
-      # Last, so that its output (installed languages, text read) ends the log.
-      - name: Windows OCR on a picture of known text (languages and text shown)
+      # Last, so that its output (installed languages, text and boxes read) ends the log.
+      # The step fails unless exactly these real OCR tests ran and passed: no engine,
+      # no English recognizer, a word not read, or a test skipped or filtered out
+      # turns the run red.
+      - name: Windows OCR on real pictures (must run and pass)
         working-directory: src-tauri
-        run: cargo test --lib ocr::windows -- --nocapture
+        shell: bash
+        run: |
+          tests="reads_known_text_with_windows_ocr reads_a_tilted_photo_saved_sideways reads_a_picture_wider_than_the_engine_limit"
+          cargo test --lib ocr::windows -- --list | tee ocr-tests.list
+          for test in $tests; do
+            grep -qx "ocr::windows::tests::$test: test" ocr-tests.list || { echo "::error::real OCR test $test is missing"; exit 1; }
+          done
+          cargo test --lib ocr::windows -- --include-ignored --test-threads=1 --nocapture 2>&1 | tee ocr-tests.log
+          grep -q "^test result: ok\. 3 passed; 0 failed; 0 ignored" ocr-tests.log || { echo "::error::the 3 real OCR tests did not all run and pass"; exit 1; }
