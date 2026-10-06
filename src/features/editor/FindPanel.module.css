@@ -72,3 +72,9 @@
     transform: translateY(var(--popover-shift));
   }
 }
+
+/* "+2 dans les images" (OCR, phase 9) */
+.inImages {
+  margin-left: var(--sp-1);
+  color: var(--accent-text);
+}

@@ -1,4 +1,6 @@
+import { resolveVaultPath } from "../core/markdown/embeds";
 import { isPdf, matchBoxes, ocrFiles, ocrParts, type OcrBox } from "../core/ocr";
+import { refreshEditor } from "../editor/session";
 import { invalidateTextSources, registerTextSource } from "../core/search/search";
 import { assetsApi } from "../services/assets";
 import { errorMessage } from "../services/errors";
@@ -56,9 +58,14 @@ function publish(): void {
   setState((s) => ({ ocr: { ...s.ocr, remaining: queue.length + (running ? 1 : 0), version: s.ocr.version + 1 } }));
 }
 
+let refresh: ReturnType<typeof setTimeout> | undefined;
+
 function setResult(path: string, doc: OcrDoc): void {
   results.set(path, doc);
   invalidateTextSources();
+  // The open note may show this image: its occurrences (Ctrl+F) and its "Text" button.
+  clearTimeout(refresh);
+  refresh = setTimeout(refreshEditor, 200);
 }
 
 /** Finds what is new, takes cached results, queues the rest. */
@@ -184,6 +191,28 @@ export function ocrMatches(path: string, needles: readonly string[]): { boxes: O
   if (!page) return null;
   const boxes = matchBoxes(page, needles);
   return boxes.length ? { boxes, width: page.width, height: page.height } : null;
+}
+
+/** Vault path of an image of the open note (as written in its Markdown). */
+export function imageVaultPath(src: string): string | null {
+  const { selectedId, notes } = getState();
+  const note = selectedId ? notes[selectedId] : undefined;
+  return note ? resolveVaultPath(note.path, src) : null;
+}
+
+/** Editor hook: the "Text" button of a selected image. */
+export function openOcrText(src: string, at: { x: number; y: number }): void {
+  const path = imageVaultPath(src);
+  if (path) setState({ ocrText: { path, at } });
+}
+
+/** Text read in an image, or why there is none yet. */
+export function ocrTextOf(path: string): { status: "ready"; text: string } | { status: "pending" | "off" | "unavailable" } {
+  const doc = results.get(path);
+  if (doc) return { status: "ready", text: doc.pages.map((p) => p.text).join("\n\n").trim() };
+  if (!getState().settings.ocr.enabled) return { status: "off" };
+  if (!canOcr()) return { status: "unavailable" };
+  return { status: "pending" };
 }
 
 /** Starts the background reading once the vault is open; follows notes and settings. */

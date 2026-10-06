@@ -421,6 +421,8 @@
   --ocr-zone-ring: 1.5px;
   --ocr-zone-min: 4px;                     /* (decision) visible even for a tiny word */
   --ocr-status-icon: 14px;                 /* (decision) sidebar progress line */
+  --ocr-text-w: 320px;                     /* (decision) "Text" popover of an image */
+  --ocr-text-h: 240px;
 
   /* Settings › About (decision P8) */
   --licence-text-h: 240px;

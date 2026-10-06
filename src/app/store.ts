@@ -49,6 +49,8 @@ interface AppState {
   stickerLibrary: string[];
   /** OCR: engine and languages, files left to read, and a counter bumped when results arrive. */
   ocr: { status: OcrStatus | null; remaining: number; version: number };
+  /** Text read by OCR in an image, shown from its "Text" button. */
+  ocrText: { path: string; at: { x: number; y: number } } | null;
   /** Notes whose stickers are hidden ("Hide stickers", `.ursa/view.json`). */
   hiddenStickers: Record<string, true>;
   /** Context menu of a sticker or post-it of the open note. */
@@ -70,6 +72,9 @@ export interface FindState {
   query: string;
   count: number;
   current: number | null;
+  /** Occurrences read by OCR in the note's images, and the current one among them. */
+  images: number;
+  currentImage: number | null;
 }
 
 export interface TagSettings {
@@ -93,7 +98,7 @@ export const useApp = create<AppState>()(() => ({
   toast: null,
   outline: { items: [], current: null },
   search: { chips: [], text: "" },
-  find: { open: false, focusToken: 0, replace: false, query: "", count: 0, current: null },
+  find: { open: false, focusToken: 0, replace: false, query: "", count: 0, current: null, images: 0, currentImage: null },
   settingsPage: null,
   crop: null,
   cardMenu: null,
@@ -102,6 +107,7 @@ export const useApp = create<AppState>()(() => ({
   stickerLibrary: [],
   hiddenStickers: {},
   ocr: { status: null, remaining: 0, version: 0 },
+  ocrText: null,
   focusMode: false,
 }));
 

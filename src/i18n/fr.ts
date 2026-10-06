@@ -214,6 +214,8 @@ export const fr = {
   find: {
     occurrences: (n: number) => `${n} occurrence${n > 1 ? "s" : ""}`,
     position: (current: number | null, n: number) => `${current === null ? "–" : current + 1} / ${n}`,
+    inImages: (n: number) => `+${n} dans les images`,
+    imagePosition: (current: number, n: number) => `image ${current + 1} / ${n}`,
     previous: "Occurrence précédente",
     next: "Occurrence suivante",
     label: "Rechercher dans la note",
@@ -324,6 +326,7 @@ export const fr = {
     paperHint: "Pour les notes sans fond choisi. Chaque note peut changer le sien depuis le menu … de l'éditeur.",
   },
   images: {
+    ocrText: "Texte de l'image (OCR)",
     missing: (src: string) => `Image introuvable : ${src}`,
     toolbar: "Taille de l'image",
     sizes: { s: "S", m: "M", l: "L", full: "Pleine" },
@@ -351,6 +354,15 @@ export const fr = {
     pdfMeta: (pages: number | null, size: string) => (pages === null ? size : `${pages} page${pages > 1 ? "s" : ""} · ${size}`),
     pdfMissing: (name: string) => `PDF introuvable : ${name}`,
     units: ["o", "Ko", "Mo", "Go"] as readonly [string, string, string, string],
+  },
+  ocrText: {
+    title: "Texte lu dans l'image",
+    empty: "Aucun texte trouvé dans cette image.",
+    pending: "Pas encore lu : l'image attend son tour (voir l'avancement dans Réglages › OCR).",
+    off: "La lecture du texte des images est désactivée (Réglages › OCR).",
+    unavailable: "La reconnaissance de texte de Windows n'est pas disponible sur cet ordinateur.",
+    copy: "Copier le texte",
+    copied: "Texte copié",
   },
   ocr: {
     remaining: (n: number) => `OCR : ${n} fichier${n > 1 ? "s" : ""} restant${n > 1 ? "s" : ""}`,

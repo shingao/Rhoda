@@ -1,6 +1,6 @@
 # Ursa — PROGRESS
 
-État : **Phase 8 terminée** (à valider sur Windows) — en attente du « go » pour la phase 9.
+État : **Phase 9 terminée** (à valider sur Windows) — en attente du « go » pour la phase 10.
 
 | Phase | Sujet | État |
 |---|---|---|
@@ -12,8 +12,8 @@
 | 5 | Recherche | ✅ validée |
 | 6 | Thèmes, fonds de page, rythme, réglages | ✅ validée |
 | 7 | Images, aperçus de liens, PDF | ✅ validée |
-| 8 | Stickers et post-it | 🟡 terminée, à valider |
-| 9 | OCR local | — |
+| 8 | Stickers et post-it | ✅ validée |
+| 9 | OCR local | 🟡 terminée, à valider |
 | 10 | Export, raccourcis, palette, packaging | — |
 
 ---
@@ -712,10 +712,10 @@ Livrée en sous-étapes : 8a modèle, ancrage et recherche ; 8b calque et annula
 | P8-5 | Fichier déposé | Tiroir ouvert : un fichier image déposé devient un sticker. Tiroir fermé : il reste une image dans le texte (phase 7). |
 | P8-6 | Post-it | Pas de poignée de rotation (rotation ±3° à la pose, `[` `]` au clavier) ; redimensionnement aux angles. Le scotch est présent sur environ la moitié des post-it, incliné de −4° ou +3°, choisi d'après leur id (stable). Une édition en cours est enregistrée dans sa note avant l'affichage d'une autre. |
 | P8-7 | Mode focus | Option « Masquer les décorations en mode focus » **désactivée par défaut** (les stickers font partie de la note) ; « Afficher les décorations » les masque partout. |
-| P8-8 | Fenêtre étroite | Seuls les stickers posés entièrement dans une marge se rangent ; ceux posés sur le texte restent où l'utilisateur les a mis. Réduction jusqu'à 40 % (`--sticker-fit-min`), à 8 px du bord, et jamais sous le panneau Sommaire ancré. |
+| P8-8 | Fenêtre étroite | Seuls les stickers posés entièrement dans une marge se rangent ; ceux posés sur le texte restent où l'utilisateur les a mis. Stickers : réduction jusqu'à 40 % (`--sticker-fit-min`), à 8 px du bord, jamais sous le panneau Sommaire ancré. ~~Post-it réduits jusqu'à 40 %~~ → corrigé à la validation : sous 70 % (`--postit-fit-pill`), pastille qui remplit la marge ; un clic l'ouvre en entier par-dessus le texte (clic ailleurs ou Échap pour la refermer). Rien n'est enregistré. |
 | P8-9 | Alt | Alt seul (pas AltGr, indispensable pour taper `#`, `@` ou `[` sur AZERTY). |
 | P8-10 | Raccourcis | Ctrl+Maj+S tiroir (DESIGN), Ctrl+Maj+H masquer : S et H sont au même endroit en AZERTY et QWERTY. |
-| P8-11 | Orphelins | Une image de « Les miens » utilisée seulement par les notes supprimées définitivement part à la Corbeille avec elles (et revient avec « Annuler » ou Réglages › Sauvegardes). Une image de « Les miens » utilisée par aucune note reste dans la bibliothèque. |
+| P8-11 | Orphelins | ~~Une image de « Les miens » utilisée seulement par des notes supprimées part avec elles~~ → corrigé à la validation : la bibliothèque (`assets/stickers/`) n'est **jamais** orpheline. Une image n'en sort que par le tiroir (clic droit ou Suppr › « Retirer de mes stickers »), après une confirmation qui indique combien de notes l'utilisent ; elle va à la Corbeille de Windows et ces notes affichent un emplacement vide. Les orphelins ne concernent que les images du texte des notes. |
 | P8-12 | Catalogue | 209 emoji : Nature 55, Cuisine 54, Voyage 50, Objets 50 ; identifiant `fluent/<nom Fluent>` (ex. `fluent/hot_beverage`) ; source : paquet `@lobehub/fluent-emoji-3d` (MIT), copié tel quel. |
 | P8-13 | Récents | 16 derniers stickers posés, dans les réglages de l'app (pas dans le coffre) ; les images importées d'un autre coffre n'y apparaissent pas. |
 
@@ -733,6 +733,11 @@ Captures : `docs/captures/phase-8/` — 01 et 02 page journal claire (coral, tir
 - les puces françaises (Récents… Les miens) tiennent sur deux lignes dans 320 px (une en anglais, comme la maquette) ;
 - le bouton œil (masquer les stickers) est en plus dans la barre de l'éditeur, visible seulement si la note a des stickers ;
 - dans une fenêtre très étroite, les post-it rangés deviennent petits (jusqu'à 40 %) : leur texte n'est lisible qu'en élargissant la fenêtre, en masquant la liste ou en les déplaçant.
+
+### Ajustements après validation
+- **Post-it en marge étroite** : pastille au lieu d'une réduction sous 70 %, ouverte en entier au clic (P8-8).
+- **« Les miens »** : jamais orphelins ; retrait explicite depuis le tiroir avec confirmation (P8-11).
+- **Intégration continue Windows** : `.github/workflows/windows.yml` (windows-latest, à chaque push) lance `npm run check`, clippy, les tests Rust (dont le vrai test OCR, phase 9), puis `npx tauri build`, avec le `.msi` en artefact. Badge dans `README.md`. Seule correction propre à Windows : `scripts/check-tokens.mjs` (chemin `file://` via `fileURLToPath`, séparateurs `\`). Premier passage vert, `.msi` de 6,7 Mo.
 
 ### Checklist de test manuel (phase 8, Windows)
 1. Ouvre « Mardi 2 octobre » : la page ressemble à la maquette. Ctrl+Maj+S ouvre le tiroir, Échap le ferme.
@@ -757,6 +762,77 @@ Captures : `docs/captures/phase-8/` — 01 et 02 page journal claire (coral, tir
 8. **Recherche** : cherche un mot d'un post-it. La carte du résultat indique « Trouvé dans un post-it ».
 9. **Dupliquer** la note (clic droit dans la liste) : la copie a ses stickers, avec de nouveaux `id` dans le frontmatter. Supprime définitivement une note qui utilise seule une image de « Les miens » : l'image va à la Corbeille Windows et « Annuler » la ramène.
 10. **Performance** : sur une note avec une cinquantaine de stickers, la frappe et le défilement restent fluides. Réglages › À propos montre les licences (Fluent Emoji MIT, Caveat OFL).
+
+## Phase 9 — OCR local
+
+Livrée en sous-étapes : 9a moteur Rust (Windows.Media.Ocr, tuiles, orientation, cache), 9b file d'attente, PDF, recherche, réglages, 9c Ctrl+F dans les images, texte d'une image, finitions.
+
+### Fait
+- **Moteur** (`src-tauri/src/ocr/`) :
+  - interface `Engine` ; implémentation Windows.Media.Ocr dans `windows.rs` (`#[cfg(windows)]`) ; aucun moteur ailleurs (l'app tourne sans OCR) ; moteur factice dans les tests ;
+  - langues réellement installées (`AvailableRecognizerLanguages`) et taille maximale du moteur (`MaxImageDimension`) ;
+  - orientation EXIF appliquée avant l'OCR (comme `<img>`) ;
+  - petites images agrandies ×2 ; grandes images découpées en tuiles qui se chevauchent de 256 px, à pleine résolution (jamais réduites, les petits textes restent lisibles). Un mot coupé par un bord intérieur ou lu deux fois dans un chevauchement est retiré ;
+  - mots **et** zones gardés, en pixels de l'image affichée ;
+  - plusieurs langues : les lignes de la première, puis celles qu'une autre lit autrement ;
+  - une reconnaissance à la fois, thread en priorité basse.
+- **Cache** `.ursa/ocr/<sha256>.json` par contenu et langues ; `index.json` (chemin → taille, date, empreinte) : un fichier inchangé n'est jamais relu ni même rehaché.
+- **File d'attente** (`src/app/ocr.ts`) :
+  - images et PDF utilisés par les notes ; en pause pendant la frappe (1,5 s après la dernière touche) ;
+  - un fichier dont la note ou l'image a disparu est retiré ; un PDF s'arrête entre deux pages ;
+  - ligne discrète en bas de la barre latérale : « OCR : 12 fichiers restants ».
+- **PDF** :
+  - texte par pdf.js page par page ; OCR seulement pour les pages sans couche texte (dessinées à 2 000 px), jusqu'à 50 pages (réglable 5–500) ;
+  - sans moteur OCR, la couche texte des PDF reste indexée.
+- **Recherche** :
+  - sources de texte étendues avec fichier et page (`TextPart`) ;
+  - carte de résultat « Trouvé dans l'image » avec, sur la vignette, l'image cadrée sur la zone trouvée (rectangle `--match` cerclé d'accent, DESIGN §2.3) ;
+  - « Trouvé page 3 » pour un PDF.
+- **Ctrl+F** :
+  - « 1 / 3 +2 dans les images » ;
+  - ↑ / ↓ parcourent texte et images dans l'ordre du document (« image 1 / 2 ») et surlignent la zone sur l'image, la zone courante cerclée ;
+  - la recherche globale surligne aussi les zones dans les images de la note ouverte.
+- **Image sélectionnée** : bouton `scan-text` dans la barre (DESIGN §2.12) → « Texte lu dans l'image » avec « Copier le texte ».
+- **Réglages › OCR** :
+  - interrupteur ; langues installées (fr et en par défaut si présentes) ;
+  - aide pour installer un pack de langue Windows quand le français ou l'anglais manque ;
+  - message clair si l'OCR de Windows est indisponible ;
+  - pages par PDF, avancement, « Réindexer ».
+- **Tests** :
+  - Vitest 183 (zones, cadrage de la vignette, parties de texte et pages, ordre texte/images dans Ctrl+F) ; Rust 34 en local (tuiles, agrandissement, EXIF, langues, cache) ;
+  - **vrai test Windows** dans le workflow : image de texte connu (`src-tauri/tests/fixtures/ocr-text.png`), en français si la langue est installée sinon en anglais. Il vérifie SHINKANSEN, KYOTO, NARA et la zone de KYOTO. Le CI l'a passé ; une étape `--nocapture` affiche les langues et le texte lu.
+- Coffre factice : note « Billets JR — scans » ; OCR simulé avec mots et zones ; `localStorage` `ursa-dev-ocr` = `off` (sans moteur) ou `en` (anglais seul).
+
+### Décisions (phase 9)
+| # | Sujet | Décision |
+|---|---|---|
+| P9-1 | Tesseract | Aucun repli embarqué (taille de l'installeur), selon ta consigne. Sans Windows.Media.Ocr : message dans Réglages › OCR, et l'app fonctionne sans OCR. |
+| P9-2 | Fichiers lus | Images PNG, JPEG, GIF, WebP utilisées par une note (corbeille et archives comprises), et PDF. Pas les SVG (texte vectoriel, pas en pixels) ni les images distantes. Pas les stickers. |
+| P9-3 | Langues | Par défaut, les langues installées commençant par `fr` puis `en` ; sinon la première installée. Plusieurs langues = plusieurs passages (le coût double, en arrière-plan). Changer de langues relit tout (le cache est indexé par contenu **et** langues). |
+| P9-4 | Tuiles | Chevauchement de 256 px (au plus un quart de la taille maximale) : tout mot plus court que cela est entier dans une tuile. Agrandissement ×2 sous 1 000 px. |
+| P9-5 | Priorité | Une reconnaissance à la fois (verrou côté Rust), thread en `THREAD_PRIORITY_BELOW_NORMAL`, pause pendant la frappe côté app. Une image déjà envoyée au moteur n'est pas interrompue : son résultat reste en cache. |
+| P9-6 | PDF | Une page avec moins de 20 caractères de texte est traitée comme un scan. Au-delà de la limite de pages, les pages suivantes ne sont pas lues. |
+| P9-7 | Vignette du résultat | Pour une correspondance OCR, la carte affiche cette image (plutôt que la 1re de la note), cadrée sur la zone : image entière chargée, la vignette en cache étant déjà recadrée au centre. |
+| P9-8 | Indicateur | Dernière ligne de la barre latérale, seulement pendant la lecture ; détail et « Réindexer » dans Réglages › OCR. |
+
+### Comparaison avec les maquettes
+- **Maquette 05 (recherche active)** : résultat « Trouvé dans l'image » avec l'icône `scan-text` en `--accent-text` et la zone sur la miniature : **conforme**. Écart : la miniature est cadrée sur la zone (la maquette montre une zone au centre d'une miniature hachurée).
+- **DESIGN §2.12** : bouton `scan-text` dans la barre de l'image : **ajouté**.
+- Écran OCR des réglages et bandeau « +N dans les images » : sans maquette, dans le style des autres pages et du panneau Ctrl+F.
+
+Captures : `docs/captures/phase-9/` (avancement, recherche image et PDF, Ctrl+F, texte de l'image, réglages normal / indisponible / langue manquante).
+
+### Checklist de test manuel (phase 9, Windows)
+1. **Réglages › OCR** : les langues listées sont celles de Windows, avec fr et en cochés si présents. Si le français manque, le message explique comment l'installer.
+2. Colle une **capture d'écran contenant du texte** (Win+Maj+S) dans une note. En quelques secondes, la barre latérale montre « OCR : 1 fichier restant » puis plus rien. Ctrl+K sur un mot de la capture : « Trouvé dans l'image », avec la zone encadrée sur la miniature.
+3. **Ctrl+F** sur ce mot dans la note : « +1 dans les images » ; ↓ va jusqu'à l'image et la zone est cerclée.
+4. Une **photo de téléphone prise de côté** (EXIF), avec un texte lisible : le mot est trouvé et la zone tombe au bon endroit.
+5. Une **très grande image** (plus de 10 000 px de côté, par exemple un panorama ou un scan A3 à 600 dpi) avec un petit texte : il est trouvé.
+6. **PDF** : un PDF texte (« Trouvé page N ») et un PDF scanné (OCR des pages). Règle « Pages lues par PDF » à 5 sur un long scan : seules les 5 premières pages sont lues.
+7. **Frappe** : pendant la lecture de nombreuses images, l'écriture reste fluide (la file se met en pause).
+8. **Cache** : relance Ursa : rien n'est relu (aucune ligne « OCR : … »). Remplace une image par une autre sous le même nom : seule celle-ci est relue. « Réindexer » relit tout.
+9. Supprime une image ou une note en attente : elle disparaît de la file.
+10. Image sélectionnée › bouton « Texte » : le texte lu s'affiche et « Copier le texte » fonctionne. Interrupteur OCR coupé : plus de lecture, et la recherche garde les résultats déjà obtenus.
 
 ---
 

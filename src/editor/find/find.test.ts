@@ -5,7 +5,8 @@ import { describe, expect, it } from "vitest";
 import { ursaMarkdownExtensions } from "../../core/markdown/syntax";
 import { fold } from "../../core/search/fold";
 import { foldField, foldSpec, foldedRanges } from "../sections/fold";
-import { findField, findMatches, replaceAllSpec, setNeedles } from "./find";
+import { setEditorHooks } from "../hooks";
+import { findField, findInfo, findMatches, ordered, replaceAllSpec, setNeedles } from "./find";
 
 const DOC = "# Été à Nîmes\n\nUn ÉTÉ chaud, une œuvre.\n\n## Plus tard\nL'été revient. Été !";
 const needle = (s: string) => [{ text: fold(s), wordStart: false }];
@@ -39,5 +40,22 @@ describe("find in note", () => {
     let undone = state;
     undo({ state, dispatch: (tr) => (undone = tr.state) });
     expect(undone.doc.toString()).toBe(DOC);
+  });
+
+  it("adds the occurrences read in the note's images, walked in document order", () => {
+    setEditorHooks({
+      imageMatches: (src, needles) =>
+        src === "assets/billet.png" && needles.includes("nara")
+          ? { boxes: [{ x: 320, y: 198, w: 138, h: 40 }, { x: 10, y: 300, w: 100, h: 40 }], width: 1000, height: 420 }
+          : null,
+    });
+    const doc = "# Nara\n\n![](assets/billet.png)\n\nRetour de Nara le soir.";
+    const state = create(doc).update({ effects: setNeedles.of(needle("nara")) }).state;
+    const f = state.field(findField);
+    expect(findInfo(state)).toEqual({ count: 2, current: null, images: 2, currentImage: null });
+    expect(f.images[0]!.zone).toEqual({ x: 0.32, y: 198 / 420, w: 0.138, h: 40 / 420 });
+    // Title, then the two zones of the image, then the last line.
+    expect(ordered(f).map((o) => (o.image ? `image ${o.index}` : `text ${o.index}`))).toEqual(["text 0", "image 0", "image 1", "text 1"]);
+    setEditorHooks({ imageMatches: () => null });
   });
 });

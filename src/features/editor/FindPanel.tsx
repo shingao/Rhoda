@@ -66,11 +66,16 @@ export function FindPanel() {
           }}
           onKeyDown={(e) => onKeyDown(e, () => findStep(1))}
         />
-        <span className={[s.count, find.query && find.count === 0 && s.none].filter(Boolean).join(" ")} aria-live="polite">
-          {find.query ? t.find.position(find.current, find.count) : ""}
+        <span className={[s.count, find.query && find.count + find.images === 0 && s.none].filter(Boolean).join(" ")} aria-live="polite">
+          {find.query
+            ? find.currentImage !== null
+              ? t.find.imagePosition(find.currentImage, find.images)
+              : t.find.position(find.current, find.count)
+            : ""}
+          {find.query && find.images > 0 && find.currentImage === null && <span className={s.inImages}>{t.find.inImages(find.images)}</span>}
         </span>
-        <IconButton icon={ChevronUp} label={t.find.previous} shortcut={shortcutLabel("find.previous", t)} disabled={!find.count} onClick={() => findStep(-1)} />
-        <IconButton icon={ChevronDown} label={t.find.next} shortcut={shortcutLabel("find.next", t)} disabled={!find.count} onClick={() => findStep(1)} />
+        <IconButton icon={ChevronUp} label={t.find.previous} shortcut={shortcutLabel("find.previous", t)} disabled={!find.count && !find.images} onClick={() => findStep(-1)} />
+        <IconButton icon={ChevronDown} label={t.find.next} shortcut={shortcutLabel("find.next", t)} disabled={!find.count && !find.images} onClick={() => findStep(1)} />
         <IconButton icon={X} label={t.find.close} onClick={closeFind} />
       </div>
       {find.replace && (

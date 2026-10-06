@@ -9,6 +9,7 @@ import { openCardMenu, urlCard } from "./previews";
 import { openAttachment, pdfCard } from "./pdfs";
 import { rememberFolds, savedFolds } from "./folds";
 import { openStickerMenu, stickerUrl } from "./stickers";
+import { imageVaultPath, ocrMatches, openOcrText } from "./ocr";
 import { stickersHidden } from "./noteView";
 import { currentMessages } from "./i18n";
 import { noteIndex, resolveTitle } from "./noteIndex";
@@ -90,7 +91,12 @@ export function connectEditor(): void {
     backlinks: () => backlinksOf(getState().selectedId),
     savedFolds,
     outlineChanged: (outline) => setState({ outline }),
-    findChanged: ({ count, current }) => setState((s) => ({ find: { ...s.find, count, current } })),
+    findChanged: ({ count, current, images, currentImage }) => setState((s) => ({ find: { ...s.find, count, current, images, currentImage } })),
+    imageMatches: (src, needles) => {
+      const path = imageVaultPath(src);
+      return path ? ocrMatches(path, needles) : null;
+    },
+    openOcrText,
     foldsChanged: rememberFolds,
     linkPreview: (target) => {
       const id = resolve(target);

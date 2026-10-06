@@ -1,4 +1,5 @@
 import { WidgetType, type EditorView } from "@codemirror/view";
+import { ScanText, createElement } from "lucide";
 import { currentMessages } from "../../app/i18n";
 
 export interface ImageSize {
@@ -12,7 +13,20 @@ export interface ImageActions {
   /** New `{width=…}` (null = none: full natural width up to the column). One undoable change. */
   resize(view: EditorView, dom: HTMLElement, width: number | null): void;
   crop(view: EditorView, dom: HTMLElement): void;
+  /** "Text": what OCR read in the image. */
+  ocrText(view: EditorView, dom: HTMLElement, at: { x: number; y: number }): void;
 }
+
+/** A zone found by OCR (fractions of the image), the current one ringed. */
+export interface ImageZone {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  current: boolean;
+}
+
+const zonesKey = (zones: readonly ImageZone[]) => zones.map((z) => `${z.x},${z.y},${z.w},${z.h},${z.current}`).join(";");
 
 /** Natural sizes seen so far (by URL), so a note reopens without layout jumps. */
 const knownSizes = new Map<string, ImageSize>();
@@ -37,6 +51,22 @@ export function imageBlock(size: ImageSize, wanted: number | null, column: numbe
   const height = (width * size.height) / size.width;
   const block = Math.max(rhythm, Math.ceil(height / rhythm - 1e-6) * rhythm);
   return { width, height, block, padTop: (block - height) / 2 };
+}
+
+/** Zones of search occurrences on the image (OCR) [DESIGN §2.3]: `--match`, the current one ringed. */
+function drawZones(wrap: HTMLElement, zones: readonly ImageZone[]): void {
+  const frame = wrap.querySelector(".cm-image-frame");
+  if (!frame) return;
+  frame.querySelectorAll(".cm-image-zone").forEach((z) => z.remove());
+  for (const z of zones) {
+    const el = document.createElement("span");
+    el.className = z.current ? "cm-image-zone is-current" : "cm-image-zone";
+    el.style.left = `${z.x * 100}%`;
+    el.style.top = `${z.y * 100}%`;
+    el.style.width = `${z.w * 100}%`;
+    el.style.height = `${z.h * 100}%`;
+    frame.append(el);
+  }
 }
 
 /** S / M / L of the bar [§2.12]: a third, half and three quarters of the column; Full = no width. */
@@ -78,6 +108,8 @@ export class ImageWidget extends WidgetType {
     readonly selected: boolean,
     readonly croppable: boolean,
     readonly actions: ImageActions,
+    /** Search occurrences read by OCR in this image. */
+    readonly zones: readonly ImageZone[] = [],
     /** Whether the size was known when built: once it is, the block is drawn again at its final height. */
     readonly sized = knownSizes.has(url),
   ) {
@@ -92,7 +124,8 @@ export class ImageWidget extends WidgetType {
       other.wanted === this.wanted &&
       other.rhythm === this.rhythm &&
       other.selected === this.selected &&
-      other.sized === this.sized
+      other.sized === this.sized &&
+      zonesKey(other.zones) === zonesKey(this.zones)
     );
   }
 
@@ -102,6 +135,7 @@ export class ImageWidget extends WidgetType {
     if (!d.ursa || d.ursa.widget.url !== this.url || d.ursa.widget.alt !== this.alt) return false;
     d.ursa.widget = this;
     dom.classList.toggle("is-selected", this.selected);
+    drawZones(dom, this.zones);
     d.ursa.layout();
     return true;
   }
@@ -172,7 +206,22 @@ export class ImageWidget extends WidgetType {
       crop.addEventListener("click", () => this.current(wrap).actions.crop(view, wrap));
       bar.append(crop);
     }
+    const text = document.createElement("button");
+    text.type = "button";
+    text.className = "cm-image-text";
+    text.title = t.ocrText;
+    text.setAttribute("aria-label", t.ocrText);
+    const scan = createElement(ScanText);
+    scan.classList.add("cm-image-icon");
+    text.append(scan);
+    text.addEventListener("mousedown", (e) => e.preventDefault());
+    text.addEventListener("click", () => {
+      const r = text.getBoundingClientRect();
+      this.current(wrap).actions.ocrText(view, wrap, { x: r.left, y: r.bottom + 4 });
+    });
+    bar.append(text);
     wrap.append(bar, frame);
+    drawZones(wrap, this.zones);
 
     let dragWidth: number | null = null;
     const layout = () => {

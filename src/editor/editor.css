@@ -572,6 +572,21 @@
   display: flex;
 }
 
+/* Search occurrences read by OCR in an image [§2.3]: --match, the current one ringed 1.5 px accent */
+.cm-editor .cm-image-zone {
+  position: absolute;
+  min-width: var(--ocr-zone-min);
+  min-height: var(--ocr-zone-min);
+  border-radius: var(--r-xs);
+  background: var(--match);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.cm-editor .cm-image-zone.is-current {
+  box-shadow: 0 0 0 var(--ocr-zone-ring) var(--accent);
+}
+
 /* Link preview card [§2.10] */
 .cm-editor .cm-link-card {
   position: relative;

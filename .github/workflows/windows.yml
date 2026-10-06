@@ -39,9 +39,13 @@ jobs:
         working-directory: src-tauri
         run: cargo clippy --all-targets -- -D warnings
 
-      - name: Rust tests (including the Windows OCR tests)
+      - name: Rust tests
         working-directory: src-tauri
         run: cargo test
+
+      - name: Windows OCR on a picture of known text (languages and text shown)
+        working-directory: src-tauri
+        run: cargo test --lib ocr::windows -- --nocapture
 
       - name: Build the installer
         run: npx tauri build

@@ -205,6 +205,8 @@ export const en: Messages = {
   find: {
     occurrences: (n: number) => `${n} match${n > 1 ? "es" : ""}`,
     position: (current: number | null, n: number) => `${current === null ? "–" : current + 1} / ${n}`,
+    inImages: (n: number) => `+${n} in images`,
+    imagePosition: (current: number, n: number) => `image ${current + 1} / ${n}`,
     previous: "Previous match",
     next: "Next match",
     label: "Find in note",
@@ -315,6 +317,7 @@ export const en: Messages = {
     paperHint: "For notes without their own. Each note can change it from the editor's … menu.",
   },
   images: {
+    ocrText: "Text in the image (OCR)",
     missing: (src: string) => `Image not found: ${src}`,
     toolbar: "Image size",
     sizes: { s: "S", m: "M", l: "L", full: "Full" },
@@ -341,6 +344,15 @@ export const en: Messages = {
     pdfMeta: (pages: number | null, size: string) => (pages === null ? size : `${pages} page${pages === 1 ? "" : "s"} · ${size}`),
     pdfMissing: (name: string) => `PDF not found: ${name}`,
     units: ["B", "KB", "MB", "GB"] as readonly [string, string, string, string],
+  },
+  ocrText: {
+    title: "Text read in the image",
+    empty: "No text found in this image.",
+    pending: "Not read yet: the image is waiting its turn (see progress in Settings › OCR).",
+    off: "Reading the text of images is turned off (Settings › OCR).",
+    unavailable: "Windows text recognition is not available on this computer.",
+    copy: "Copy text",
+    copied: "Text copied",
   },
   ocr: {
     remaining: (n: number) => `OCR: ${n} file${n > 1 ? "s" : ""} left`,

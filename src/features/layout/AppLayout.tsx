@@ -10,6 +10,7 @@ import { SettingsDialog } from "../settings/SettingsDialog";
 import { CropDialog } from "../editor/CropDialog";
 import { CardMenu } from "../editor/CardMenu";
 import { StickerMenu } from "../stickers/StickerMenu";
+import { OcrText } from "../editor/OcrText";
 import { EditorPane } from "../editor/EditorPane";
 import { NoteList } from "../notelist/NoteList";
 import { Sidebar } from "../sidebar/Sidebar";
@@ -57,6 +58,7 @@ export function AppLayout() {
       <CropDialog />
       <CardMenu />
       <StickerMenu />
+      <OcrText />
       <CloseDialog />
       <ConfirmHost />
       <Toast />

@@ -57,7 +57,7 @@ export async function switchVault(path: string): Promise<void> {
     vault: { kind: "loading" },
     filter: { kind: "section", section: "notes" },
     search: { chips: [], text: "" },
-    find: { ...getState().find, open: false, query: "", count: 0, current: null },
+    find: { ...getState().find, open: false, query: "", count: 0, current: null, images: 0, currentImage: null },
   });
   try {
     await openVault(path);

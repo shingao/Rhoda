@@ -3,6 +3,8 @@ import { EditorSelection, StateEffect, StateField, type EditorState, type Text, 
 import { Decoration, EditorView, type DecorationSet } from "@codemirror/view";
 import { findAll, foldWithMap } from "../../core/search/fold";
 import type { Needle } from "../../core/search/query";
+import { parseEmbedLine } from "../../core/markdown/embeds";
+import { editorHooks, refreshPreview } from "../hooks";
 import { keepFolds } from "../sections/fold";
 import { revealPosition } from "../sections/visibility";
 
@@ -14,16 +16,44 @@ import { revealPosition } from "../sections/visibility";
 
 export type Match = readonly [from: number, to: number];
 
+/** An occurrence read by OCR in an image of the note: the image line and the zone (fractions of the image). */
+export interface ImageMatch {
+  line: number;
+  src: string;
+  zone: { x: number; y: number; w: number; h: number };
+}
+
 interface FindState {
   needles: readonly Needle[];
   matches: readonly Match[];
   /** Index of the current occurrence in `matches`. */
   current: number | null;
+  /** Occurrences in the note's images (OCR), and the current one among them. */
+  images: readonly ImageMatch[];
+  currentImage: number | null;
   deco: DecorationSet;
 }
 
 export const setNeedles = StateEffect.define<readonly Needle[]>();
 export const setCurrent = StateEffect.define<number | null>();
+export const setCurrentImage = StateEffect.define<number | null>();
+
+/** Occurrences in the images alone on their line, in document order. */
+function findImageMatches(doc: Text, needles: readonly Needle[]): ImageMatch[] {
+  if (needles.length === 0) return [];
+  const words = needles.map((n) => n.text);
+  const out: ImageMatch[] = [];
+  for (let n = 1; n <= doc.lines; n++) {
+    const line = doc.line(n);
+    if (!line.text.includes("![")) continue;
+    const embed = parseEmbedLine(line.text);
+    if (embed?.kind !== "image") continue;
+    const hit = editorHooks().imageMatches(embed.src, words);
+    if (!hit) continue;
+    for (const b of hit.boxes) out.push({ line: line.from, src: embed.src, zone: { x: b.x / hit.width, y: b.y / hit.height, w: b.w / hit.width, h: b.h / hit.height } });
+  }
+  return out;
+}
 
 const folded = new WeakMap<Text, { text: string; map: number[] }>();
 
@@ -49,35 +79,72 @@ function decorate(matches: readonly Match[], current: number | null): Decoration
 }
 
 export const findField = StateField.define<FindState>({
-  create: () => ({ needles: [], matches: [], current: null, deco: Decoration.none }),
+  create: () => ({ needles: [], matches: [], current: null, images: [], currentImage: null, deco: Decoration.none }),
   update(value, tr) {
-    let { needles, matches, current } = value;
+    let { needles, matches, current, images, currentImage } = value;
     let changed = false;
     for (const e of tr.effects) {
       if (e.is(setNeedles)) {
         needles = e.value;
         matches = findMatches(tr.state.doc, needles);
+        images = findImageMatches(tr.state.doc, needles);
         current = null;
+        currentImage = null;
         changed = true;
       } else if (e.is(setCurrent)) {
         current = e.value;
+        currentImage = null;
         changed = true;
+      } else if (e.is(setCurrentImage)) {
+        currentImage = e.value;
+        current = null;
+        changed = true;
+      } else if (e.is(refreshPreview) && needles.length) {
+        // OCR results may have arrived.
+        const next = findImageMatches(tr.state.doc, needles);
+        if (JSON.stringify(next) !== JSON.stringify(images)) {
+          images = next;
+          currentImage = null;
+          changed = true;
+        }
       }
     }
     if (tr.docChanged && needles.length && !changed) {
       matches = findMatches(tr.state.doc, needles);
       if (current !== null) current = matches.length ? Math.min(current, matches.length - 1) : null;
+      images = findImageMatches(tr.state.doc, needles);
+      if (currentImage !== null) currentImage = images.length ? Math.min(currentImage, images.length - 1) : null;
       changed = true;
     }
     if (!changed) return value;
-    return { needles, matches, current, deco: decorate(matches, current) };
+    return { needles, matches, current, images, currentImage, deco: decorate(matches, current) };
   },
   provide: (f) => EditorView.decorations.from(f, (v) => v.deco),
 });
 
-export function findInfo(state: EditorState): { count: number; current: number | null } {
+export interface FindInfo {
+  count: number;
+  current: number | null;
+  images: number;
+  currentImage: number | null;
+}
+
+export function findInfo(state: EditorState): FindInfo {
   const f = state.field(findField, false);
-  return { count: f?.matches.length ?? 0, current: f?.current ?? null };
+  return { count: f?.matches.length ?? 0, current: f?.current ?? null, images: f?.images.length ?? 0, currentImage: f?.currentImage ?? null };
+}
+
+/** Text and image occurrences in document order (an image after the text of its line). */
+export function ordered(f: Pick<FindState, "matches" | "images">): Array<{ image: boolean; index: number; pos: number }> {
+  return [...f.matches.map((m, index) => ({ image: false, index, pos: m[0] })), ...f.images.map((m, index) => ({ image: true, index, pos: m.line + 0.5 }))].sort((a, b) => a.pos - b.pos);
+}
+
+/** Shows image occurrence `index`: the image scrolled to the middle, its zone ringed. */
+export function goToImageMatch(view: EditorView, index: number): void {
+  const m = view.state.field(findField).images[index];
+  if (!m) return;
+  revealPosition(view, m.line);
+  view.dispatch({ effects: [setCurrentImage.of(index), EditorView.scrollIntoView(m.line, { y: "center" })] });
 }
 
 /** Selects occurrence `index`: unfolds what hides it, scrolls it to the middle. */
@@ -94,17 +161,21 @@ export function goToMatch(view: EditorView, index: number, select = true): void 
 
 /** Next (or previous) occurrence after the current one, or after the cursor. */
 export function stepMatch(view: EditorView, direction: 1 | -1): boolean {
-  const { matches, current } = view.state.field(findField);
-  if (!matches.length) return false;
+  const f = view.state.field(findField);
+  const all = ordered(f);
+  if (!all.length) return false;
   let index: number;
-  if (current !== null) index = (current + direction + matches.length) % matches.length;
+  const at = all.findIndex((o) => (o.image ? o.index === f.currentImage : o.index === f.current) && (o.image ? f.currentImage !== null : f.current !== null));
+  if (at >= 0) index = (at + direction + all.length) % all.length;
   else {
     // From the start of the selection, so typing more letters refines the same occurrence.
     const head = view.state.selection.main.from;
-    const after = matches.findIndex(([a]) => a >= head);
-    index = direction === 1 ? (after < 0 ? 0 : after) : (after <= 0 ? matches.length : after) - 1;
+    const after = all.findIndex((o) => o.pos >= head);
+    index = direction === 1 ? (after < 0 ? 0 : after) : (after <= 0 ? all.length : after) - 1;
   }
-  goToMatch(view, index);
+  const target = all[index]!;
+  if (target.image) goToImageMatch(view, target.index);
+  else goToMatch(view, target.index);
   return true;
 }
 

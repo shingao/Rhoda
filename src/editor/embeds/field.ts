@@ -4,7 +4,8 @@ import { Decoration, EditorView, keymap, type Command, type DecorationSet } from
 import { cssPx } from "../../app/cssTokens";
 import { decodeSrc, embedLines, parseEmbedLine, type EmbedLine } from "../../core/markdown/embeds";
 import { editorHooks, refreshPreview } from "../hooks";
-import { ImageWidget, sizeOf, type ImageActions } from "./image";
+import { findField } from "../find/find";
+import { ImageWidget, sizeOf, type ImageActions, type ImageZone } from "./image";
 import { LinkCardWidget } from "./linkCard";
 import { PdfCardWidget } from "./pdfCard";
 import { RemoteImageWidget } from "./remoteImage";
@@ -63,6 +64,10 @@ const actions: ImageActions = {
     const found = imageLineOf(view, dom);
     if (found) editorHooks().cropImage(found.embed.src, found.line.from);
   },
+  ocrText(view, dom, at) {
+    const found = imageLineOf(view, dom);
+    if (found) editorHooks().openOcrText(found.embed.src, at);
+  },
 };
 
 /** Cropping makes a new PNG / JPG / WebP; GIF (animation) and SVG (vector) are left alone. */
@@ -72,7 +77,7 @@ function revealed(state: EditorState, focused: boolean, from: number, to: number
   return focused && state.selection.ranges.some((r) => r.from <= to && r.to >= from);
 }
 
-function widgetFor(embed: EmbedLine, rhythm: number, selected = false) {
+function widgetFor(embed: EmbedLine, rhythm: number, selected = false, zones: readonly ImageZone[] = []) {
   if (embed.kind === "url") {
     const state = editorHooks().urlCard(embed.url);
     // Off, or the link cannot be previewed: it stays a plain link.
@@ -87,16 +92,18 @@ function widgetFor(embed: EmbedLine, rhythm: number, selected = false) {
   const url = editorHooks().assetUrl(embed.src);
   if (!url) return null;
   if (!sizeOf(url)) editorHooks().wantSize(embed.src, url);
-  return new ImageWidget(url, embed.alt, embed.width, embed.src, rhythm, selected, croppable(embed.src), actions);
+  return new ImageWidget(url, embed.alt, embed.width, embed.src, rhythm, selected, croppable(embed.src), actions, zones);
 }
 
 function decorate(state: EditorState, lines: Map<number, EmbedLine>, focused: boolean, selected: number | null): DecorationSet {
   const rhythm = cssPx("--rhythm");
   const ranges: Range<Decoration>[] = [];
+  const find = state.field(findField, false);
   for (const [n, embed] of lines) {
     if (n > state.doc.lines) continue;
     const line = state.doc.line(n);
-    const widget = widgetFor(embed, rhythm, selected === line.from);
+    const zones = (find?.images ?? []).flatMap((m, i) => (m.line === line.from ? [{ ...m.zone, current: i === find!.currentImage }] : []));
+    const widget = widgetFor(embed, rhythm, selected === line.from, zones);
     if (!widget) continue;
     if (selected !== line.from && revealed(state, focused, line.from, line.to)) ranges.push(Decoration.widget({ widget, block: true, side: 1 }).range(line.to));
     else ranges.push(Decoration.replace({ widget, block: true }).range(line.from, line.to));
@@ -123,7 +130,11 @@ const embedsField = StateField.define<Embeds>({
     if (select) selected = select.value;
     else if (tr.selection) selected = null;
     if (selected !== null && !lines.has(tr.state.doc.lineAt(selected).number)) selected = null;
-    if (!tr.docChanged && !tr.selection && !focus && !refreshed && selected === value.selected) return value;
+    // Occurrences read in images (Ctrl+F, search) are drawn on them.
+    const before = tr.startState.field(findField, false);
+    const after = tr.state.field(findField, false);
+    const zonesMoved = before?.images !== after?.images || before?.currentImage !== after?.currentImage;
+    if (!tr.docChanged && !tr.selection && !focus && !refreshed && !zonesMoved && selected === value.selected) return value;
     return { lines, focused, selected, deco: decorate(tr.state, lines, focused, selected) };
   },
   provide: (f) => EditorView.decorations.from(f, (v) => v.deco),

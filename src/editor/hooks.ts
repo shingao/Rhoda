@@ -31,7 +31,7 @@ export interface EditorHooks {
   /** Headings and current section of the open note (Contents panel). */
   outlineChanged(data: OutlineData): void;
   /** Occurrences of the search in the open note ("3 / 12"). */
-  findChanged(info: { count: number; current: number | null }): void;
+  findChanged(info: { count: number; current: number | null; images: number; currentImage: number | null }): void;
   /** URL to display a file referenced by the open note (relative path), or null (remote, outside the vault). */
   assetUrl(src: string): string | null;
   /** Size of an image not displayed yet is wanted (the app reads it from the file, then refreshes). */
@@ -56,6 +56,10 @@ export interface EditorHooks {
   attachFiles(files: File[], pos: number): boolean;
   /** URL of a sticker image (`fluent/<code>` built in, or a vault path), or null if missing. */
   stickerUrl(asset: string): string | null;
+  /** Zones of the search words in an image of the open note (OCR), with its size; null if none or not read yet. */
+  imageMatches(src: string, needles: readonly string[]): { boxes: Array<{ x: number; y: number; w: number; h: number }>; width: number; height: number } | null;
+  /** "Text" button of a selected image: shows what OCR read in it. */
+  openOcrText(src: string, at: { x: number; y: number }): void;
   /** "Hide stickers" remembered for a note. */
   stickersHidden(noteId: string): boolean;
   /** Right-click (or context menu key) on a sticker or post-it. */
@@ -94,6 +98,8 @@ let hooks: EditorHooks = {
   openCardMenu: () => undefined,
   stickerUrl: () => null,
   stickersHidden: () => false,
+  imageMatches: () => null,
+  openOcrText: () => undefined,
   openStickerMenu: () => undefined,
 };
 
