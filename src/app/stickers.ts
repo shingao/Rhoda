@@ -1,7 +1,7 @@
 import type { PostitColor } from "../core/stickers";
-import { addSticker, editorStickers, focusEditor, refreshEditor } from "../editor/session";
-import { vaultApi } from "../services/vault";
+import { addSticker, focusEditor } from "../editor/session";
 import { confirmAction } from "./confirm";
+import { BackupFailedError, notesUsingSticker, removeStickerEverywhere, undoAction } from "./notes";
 import { assetsApi, type Imported } from "../services/assets";
 import { errorMessage } from "../services/errors";
 import { RECENT_STICKERS } from "../services/settings";
@@ -99,28 +99,35 @@ export async function importStickerImages(): Promise<string[]> {
 
 /** Notes that use an image of the library (trash and archive included). */
 export function stickerUsage(asset: string): number {
-  return Object.values(getState().notes).filter((n) => (editorStickers(n.id) ?? n.stickers).some((s) => s.asset === asset)).length;
+  return notesUsingSticker(asset).length;
 }
 
 /**
  * Drawer › "Mine" › "Remove from my stickers": the only way a library image
- * leaves (never as an orphan). After a confirmation saying how many notes use
- * it, the file goes to the system recycle bin; those notes show a placeholder.
+ * leaves (never as an orphan). The confirmation says how many notes use it
+ * and offers to remove it from them too; undone from the toast or Settings › Backups.
  */
 export async function removeLibrarySticker(asset: string): Promise<void> {
-  const t = currentMessages().stickers;
+  const t = currentMessages();
   const name = asset.split("/").pop()!;
-  const ok = await confirmAction({ title: t.removeTitle(name), body: t.removeBody(stickerUsage(asset)), confirmLabel: t.removeConfirm, danger: true });
+  const used = stickerUsage(asset);
+  const ok = await confirmAction({
+    title: t.stickers.removeTitle(name),
+    body: t.stickers.removeBody(used),
+    confirmLabel: used ? t.stickers.removeEverywhere(used) : t.stickers.removeConfirm,
+    danger: true,
+  });
   if (!ok) return;
   try {
-    await vaultApi.remove(asset);
+    const { count, backup } = await removeStickerEverywhere(asset);
+    // Undo brings back the image and its stickers; "Mine" is listed again.
+    showToast(t.stickers.removed(count), backup ? undoAction(backup, () => void refreshStickerLibrary()) : undefined);
   } catch (e) {
-    showToast(t.failed(errorMessage(e)));
+    showToast(e instanceof BackupFailedError ? t.undo.backupFailed : t.stickers.failed(errorMessage(e)));
     return;
   }
   updateSettings((s) => ({ ...s, stickers: { ...s.stickers, recent: s.stickers.recent.filter((a) => a !== asset) } }));
   await refreshStickerLibrary();
-  refreshEditor();
 }
 
 /** Files dropped from the Explorer on the note while the drawer is open: imported and placed there. */

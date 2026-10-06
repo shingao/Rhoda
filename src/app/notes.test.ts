@@ -112,6 +112,11 @@ vi.mock("../editor/session", () => ({
   focusEditor: vi.fn(),
   editorText: (id: string) => (id === editor.openId ? editor.text : null),
   editorStickers: (id: string) => (id === editor.openId ? editor.stickers : null),
+  removeStickerAsset: (id: string, asset: string) => {
+    if (id !== editor.openId || !editor.stickers) return false;
+    editor.stickers = editor.stickers.filter((s) => s.asset !== asset);
+    return true;
+  },
   rewriteInEditor: (id: string, changes: Array<{ from: number; to: number; insert: string }>) => {
     if (id !== editor.openId) return "none";
     editor.rewrites.push({ id, changes });
@@ -687,6 +692,27 @@ describe("safety backups before bulk operations", () => {
     expect(fake.files.has("assets/stickers/chat.png")).toBe(true);
     expect(fake.files.has("assets/photo.png")).toBe(false);
     expect([...fake.backups.get(backup!)!.keys()].sort()).toEqual(["S.md", "assets/photo.png"]);
+  });
+
+  it("removes a library sticker from the notes using it, undone with its image", async () => {
+    seed("assets/stickers/chat.png", "PNG-CHAT");
+    const placed = (id: string, asset: string) => `  - { id: ${id}, type: sticker, asset: ${asset}, anchor: { block: heading, text: x, index: 0 } }`;
+    seed("A.md", `---\nid: a\nstickers:\n${placed("s1", "assets/stickers/chat.png")}\n${placed("s2", "fluent/sun")}\n---\n# A\n`);
+    seed("B.md", `---\nid: b\nstickers:\n${placed("s3", "assets/stickers/chat.png")}\n---\n# B\n`);
+    seed("C.md", "---\nid: c\n---\n# C\n");
+    await loadNotes(diskFiles());
+    const { notesUsingSticker, removeStickerEverywhere } = await import("./notes");
+    expect(notesUsingSticker("assets/stickers/chat.png").sort()).toEqual(["a", "b"]);
+    const { count, backup } = await removeStickerEverywhere("assets/stickers/chat.png");
+    expect(count).toBe(2);
+    expect(fake.files.has("assets/stickers/chat.png")).toBe(false);
+    expect(getState().notes.a!.stickers.map((s) => s.id)).toEqual(["s2"]);
+    expect(fake.files.get("B.md")!.content).not.toContain("stickers");
+    expect([...fake.backups.get(backup!)!.keys()].sort()).toEqual(["A.md", "B.md", "assets/stickers/chat.png"]);
+    expect(await undoBulk(backup!)).toBe("undone");
+    expect(fake.files.get("assets/stickers/chat.png")?.content).toBe("PNG-CHAT");
+    expect(getState().notes.a!.stickers.map((s) => s.id)).toEqual(["s1", "s2"]);
+    expect(getState().notes.b!.stickers.map((s) => s.id)).toEqual(["s3"]);
   });
 
   it("purges backups older than 30 days", async () => {

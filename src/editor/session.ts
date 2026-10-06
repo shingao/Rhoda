@@ -199,6 +199,23 @@ export function addSticker(noteId: string, spec: NewSticker, at?: { x: number; y
   return placeSticker(view, spec, at);
 }
 
+/**
+ * Removes the stickers showing a library image from a note held by the editor
+ * (open or kept in memory), outside the undo history: the operation is undone
+ * from its backup. False when the editor does not hold the note.
+ */
+export function removeStickerAsset(noteId: string, asset: string): boolean {
+  const state = noteId === currentId && view ? view.state : states.get(noteId);
+  const items = state?.field(stickersField, false);
+  if (!state || !items) return false;
+  const kept = items.filter((p) => p.asset !== asset);
+  if (kept.length === items.length) return true;
+  const spec = { effects: loadStickers.of(kept), annotations: [fromDisk.of(true), Transaction.addToHistory.of(false)] };
+  if (noteId === currentId && view) view.dispatch(spec);
+  else states.set(noteId, state.update(spec).state);
+  return true;
+}
+
 /** "Hide stickers" of a note (open, or kept in memory). */
 export function setStickersHidden(noteId: string, hidden: boolean): void {
   const spec = { effects: hideStickers.of(hidden), annotations: Transaction.addToHistory.of(false) };

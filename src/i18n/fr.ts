@@ -404,9 +404,11 @@ export const fr = {
     removeTitle: (name: string) => `Retirer « ${name} » de vos stickers ?`,
     removeBody: (n: number) =>
       n === 0
-        ? "Aucune note ne l'utilise. L'image ira dans la Corbeille de Windows."
-        : `Il est posé sur ${n} note${n > 1 ? "s" : ""} : ${n > 1 ? "elles afficheront" : "elle affichera"} un emplacement vide. L'image ira dans la Corbeille de Windows.`,
+        ? "Aucune note ne l'utilise. L'image ira dans la Corbeille de Windows ; « Annuler » la ramène."
+        : `Il est posé sur ${n} note${n > 1 ? "s" : ""}. Il en sera retiré et l'image ira dans la Corbeille de Windows ; « Annuler » (ou Réglages › Sauvegardes) remet tout en place.`,
     removeConfirm: "Retirer",
+    removeEverywhere: (n: number) => (n > 1 ? `Retirer aussi des ${n} notes` : "Retirer aussi de la note"),
+    removed: (n: number) => (n ? `Sticker retiré de ${n} note${n > 1 ? "s" : ""}` : "Sticker retiré de « Les miens »"),
     angle: (deg: number) => `${deg < 0 ? "−" : ""}${Math.abs(deg)}°`,
   },
   remote: {
@@ -454,6 +456,7 @@ export const fr = {
       "update-links": "Mise à jour des liens",
       "delete-notes": "Suppression définitive",
       "empty-trash": "Vidage de la corbeille",
+      "remove-sticker": "Retrait d'un sticker",
       restore: "Avant une restauration",
     },
     notes: (n: number) => `${n} note${n > 1 ? "s" : ""}`,

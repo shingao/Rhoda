@@ -160,6 +160,7 @@ export function installDevMock(): void {
   };
 
   const ocrCache = new Map<string, unknown>();
+  const assetBackups = new Map<string, Map<string, ReturnType<typeof assetsOf> extends Map<string, infer A> ? A : never>>();
   mockWindows("main");
   mockIPC((cmd, payload) => {
     const args = (payload ?? {}) as Record<string, string>;
@@ -324,8 +325,21 @@ export function installDevMock(): void {
         const { name, paths } = payload as { name: string; paths: string[] };
         let final = name;
         for (let n = 2; backups.has(final); n++) final = `${name}-${n}`;
-        backups.set(final, new Map(paths.map((p) => [p, files.get(p)!.content])));
+        // Notes are copied as text; attachments (images, library stickers) aside.
+        backups.set(final, new Map(paths.filter((p) => files.has(p)).map((p) => [p, files.get(p)!.content])));
+        const store = assetsOf(vaultPath);
+        assetBackups.set(final, new Map(paths.flatMap((p) => (store.has(p) ? [[p, store.get(p)!] as const] : []))));
         return final;
+      }
+      case "restore_backup_assets": {
+        const { name, paths } = payload as { name: string; paths: string[] };
+        const store = assetsOf(vaultPath);
+        const kept = assetBackups.get(name);
+        return paths.filter((p) => {
+          if (store.has(p) || !kept?.has(p)) return false;
+          store.set(p, kept.get(p)!);
+          return true;
+        });
       }
       case "restore_backup": {
         const { name, items } = payload as { name: string; items: Array<{ from: string; to: string; create: boolean }> };

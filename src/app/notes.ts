@@ -22,7 +22,7 @@ import { assetsApi } from "../services/assets";
 
 /** Attachments folder of the vault (the Rust side uses the same name). */
 const ASSETS_DIR = "assets";
-import { editorStickers, editorText, focusEditor, forgetNote, replaceFromDisk, rewriteInEditor, showNote } from "../editor/session";
+import { editorStickers, editorText, focusEditor, forgetNote, removeStickerAsset, replaceFromDisk, rewriteInEditor, showNote } from "../editor/session";
 import { cloneStickers, serializeStickers, stickerId } from "../core/stickers";
 import { patchFrontmatter } from "../core/note/frontmatter";
 import { uuidv7 } from "../core/id";
@@ -147,8 +147,8 @@ function save(id: string): Promise<void> {
  * "Undo", and Settings › Backups lists them; both restore the copies only if
  * none of the notes was edited since (Settings asks before overriding that).
  */
-export type BulkOperation = "rename-tag" | "delete-tag" | "update-links" | "delete-notes" | "empty-trash" | "restore";
-export const BULK_OPERATIONS: readonly BulkOperation[] = ["rename-tag", "delete-tag", "update-links", "delete-notes", "empty-trash", "restore"];
+export type BulkOperation = "rename-tag" | "delete-tag" | "update-links" | "delete-notes" | "empty-trash" | "restore" | "remove-sticker";
+export const BULK_OPERATIONS: readonly BulkOperation[] = ["rename-tag", "delete-tag", "update-links", "delete-notes", "empty-trash", "restore", "remove-sticker"];
 /** Backups older than this are purged at startup. */
 const BACKUP_MAX_AGE = 30 * 24 * 3_600_000;
 /** Undo records kept in memory (one per recent toast). */
@@ -339,6 +339,8 @@ export function undoBulk(name: string): Promise<UndoResult> {
     const record = undoRecords.get(name);
     if (!record) return "expired";
     if (!record.items.every(untouchedSince)) return "changed";
+    // Files first: the restored notes show them at once (stickers, images).
+    await restoreAssets(name, record.assets);
     try {
       await restoreItems(name, record.items);
     } catch (e) {
@@ -347,17 +349,20 @@ export function undoBulk(name: string): Promise<UndoResult> {
     }
     undoRecords.delete(name);
     restoreTags(record.tags);
-    await restoreAssets(name, record.assets);
     return "undone";
   });
 }
 
-/** Toast action that undoes a bulk operation and reports the outcome. */
-export function undoAction(name: string): ToastAction {
+/** Toast action that undoes a bulk operation and reports the outcome (`after`: once undone). */
+export function undoAction(name: string, after?: () => void): ToastAction {
   const t = currentMessages();
   return {
     label: t.undo.action,
-    run: () => void undoBulk(name).then((result) => showToast(t.undo.results[result])),
+    run: () =>
+      void undoBulk(name).then((result) => {
+        showToast(t.undo.results[result]);
+        if (result === "undone") after?.();
+      }),
   };
 }
 
@@ -413,6 +418,7 @@ export function restoreBackup(name: string, force: boolean): Promise<RestoreResu
     const before = new Map(existing.map((id) => [id, noteById(id)!.path]));
     const tagsBefore = record.tags && { scopes: record.tags.scopes, snapshot: getState().tagConfig };
     let restored: Note[];
+    await restoreAssets(name, record.assets);
     try {
       restored = await restoreItems(name, items);
     } catch (e) {
@@ -420,7 +426,6 @@ export function restoreBackup(name: string, force: boolean): Promise<RestoreResu
       return { kind: "failed" };
     }
     restoreTags(record.tags);
-    await restoreAssets(name, record.assets);
     if (safety) {
       const undo = restored.filter((n) => before.has(n.id)).map((n) => ({ id: n.id, from: before.get(n.id)!, title: n.title, expected: afterOperation(n.body) }));
       remember(safety, { items: undo, tags: tagsBefore });
@@ -726,6 +731,37 @@ export async function deleteNotes(ids: string[], op: BulkOperation = "delete-not
   for (const id of ids) reselectAfter(id, before);
   if (getState().selectedId === null) selectNote(currentList()[0]?.id ?? null);
   return result;
+}
+
+/** Notes that place an image of the sticker library (the editor's stickers first: they may be unsaved). */
+export function notesUsingSticker(asset: string): string[] {
+  return Object.values(getState().notes)
+    .filter((n) => (editorStickers(n.id) ?? n.stickers).some((s) => s.asset === asset))
+    .map((n) => n.id);
+}
+
+/**
+ * Drawer › "Mine" › remove an image: after a safety copy of the notes using it
+ * and of the image, its stickers are removed from those notes and the file
+ * goes to the recycle bin. "Undo" (toast) or Settings › Backups bring both back.
+ */
+export async function removeStickerEverywhere(asset: string): Promise<BulkResult> {
+  return enqueue(async (): Promise<BulkResult> => {
+    const ids = notesUsingSticker(asset);
+    const backup = await backupBefore("remove-sticker", ids, [asset]);
+    const items: UndoItem[] = [];
+    for (const id of ids) {
+      const note = noteById(id);
+      if (!note) continue;
+      items.push({ id, from: note.path, title: note.title, expected: afterOperation(currentText(id)) });
+      removeStickerAsset(id, asset);
+      const kept = note.stickers.filter((s) => s.asset !== asset);
+      await persist(withFrontmatter(note, { stickers: serializeStickers(kept) }));
+    }
+    await vaultApi.remove(asset);
+    remember(backup, { items, assets: [asset] });
+    return { count: items.length, backup };
+  });
 }
 
 /** The sticker library ("Mine"): never orphans, removed only from the drawer. */

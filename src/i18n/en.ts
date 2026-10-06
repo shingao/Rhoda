@@ -394,9 +394,11 @@ export const en: Messages = {
     removeTitle: (name: string) => `Remove “${name}” from your stickers?`,
     removeBody: (n: number) =>
       n === 0
-        ? "No note uses it. The image will go to the Windows Recycle Bin."
-        : `It is placed on ${n} note${n > 1 ? "s" : ""}, which will show an empty spot. The image will go to the Windows Recycle Bin.`,
+        ? "No note uses it. The image will go to the Windows Recycle Bin; “Undo” brings it back."
+        : `It is placed on ${n} note${n > 1 ? "s" : ""}. It will be removed from them and the image will go to the Windows Recycle Bin; “Undo” (or Settings › Backups) puts everything back.`,
     removeConfirm: "Remove",
+    removeEverywhere: (n: number) => (n > 1 ? `Also remove from the ${n} notes` : "Also remove from the note"),
+    removed: (n: number) => (n ? `Sticker removed from ${n} note${n > 1 ? "s" : ""}` : "Sticker removed from “Mine”"),
     angle: (deg: number) => `${deg < 0 ? "−" : ""}${Math.abs(deg)}°`,
   },
   remote: {
@@ -444,6 +446,7 @@ export const en: Messages = {
       "update-links": "Links updated",
       "delete-notes": "Deleted permanently",
       "empty-trash": "Trash emptied",
+      "remove-sticker": "Sticker removed",
       restore: "Before a restore",
     },
     notes: (n: number) => `${n} note${n === 1 ? "" : "s"}`,
