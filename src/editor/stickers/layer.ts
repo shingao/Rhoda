@@ -81,19 +81,42 @@ export const PLACE_EVENT = "ursa.sticker.place";
  * against the edge, a little smaller if needed, instead of covering the text.
  * Display only: it goes back to its place when the window widens.
  */
-export function fitInMargin(box: Box, width: number, g: Pick<Geometry, "colLeft" | "colWidth" | "viewLeft" | "viewRight">, edge: number, minScale: number): { x: number; scale: number } {
+export interface Fit {
+  x: number;
+  scale: number;
+  /** Margin the sticker was lined up in, its room (px) and edge; null = left where it is. */
+  side: "left" | "right" | null;
+  room: number;
+  limit: number;
+}
+
+export function fitInMargin(box: Box, width: number, g: Pick<Geometry, "colLeft" | "colWidth" | "viewLeft" | "viewRight">, edge: number, minScale: number): Fit {
   const colRight = g.colLeft + g.colWidth;
   const limitRight = g.viewRight - edge;
   const limitLeft = g.viewLeft + edge;
   if (box.x >= colRight - 1 && box.x + width > limitRight) {
-    const scale = Math.max(minScale, Math.min(1, (limitRight - colRight) / width));
-    return { x: limitRight - width / 2 - (width * scale) / 2, scale };
+    const room = limitRight - colRight;
+    const scale = Math.max(minScale, Math.min(1, room / width));
+    return { x: limitRight - width / 2 - (width * scale) / 2, scale, side: "right", room, limit: limitRight };
   }
   if (box.x + width <= g.colLeft + 1 && box.x < limitLeft) {
-    const scale = Math.max(minScale, Math.min(1, (g.colLeft - limitLeft) / width));
-    return { x: limitLeft - width / 2 + (width * scale) / 2, scale };
+    const room = g.colLeft - limitLeft;
+    const scale = Math.max(minScale, Math.min(1, room / width));
+    return { x: limitLeft - width / 2 + (width * scale) / 2, scale, side: "left", room, limit: limitLeft };
   }
-  return { x: box.x, scale: 1 };
+  return { x: box.x, scale: 1, side: null, room: 0, limit: 0 };
+}
+
+/**
+ * A post-it that would shrink below `pillBelow` of its size becomes a pill
+ * filling the margin room instead (display only); `open` shows it whole
+ * against the edge, over the text, until dismissed.
+ */
+export function postitInMargin(fit: Fit, size: number, pillBelow: number, pill: { min: number; max: number }, open: boolean): { x: number; scale: number; pill: number | null } {
+  if (!fit.side || fit.scale >= pillBelow) return { x: fit.x, scale: fit.scale, pill: null };
+  if (open) return { x: fit.side === "right" ? fit.limit - size : fit.limit, scale: 1, pill: null };
+  const width = clamp(fit.room, pill.min, pill.max);
+  return { x: fit.side === "right" ? fit.limit - width : fit.limit, scale: 1, pill: width };
 }
 
 /** A sticker whose top-left corner is at `box` (layer coordinates): anchored to the block under it. */
@@ -117,6 +140,8 @@ class StickerLayer implements PluginValue {
   private selected: string | null = null;
   /** Post-it whose text is being edited. */
   private editing: string | null = null;
+  /** Post-it shown whole over the text while the margin is too narrow for it (clicked pill). */
+  private opened: string | null = null;
   /** The last press moved a sticker (its click is not a click). */
   private wasDragged = false;
   private destroyed = false;
@@ -220,6 +245,9 @@ class StickerLayer implements PluginValue {
       img.className = "cm-sticker-img";
       img.draggable = false;
       img.alt = "";
+      // A library image removed since: an empty spot instead of a broken image.
+      img.addEventListener("error", () => node.classList.add("cm-sticker-missing"));
+      img.addEventListener("load", () => node.classList.remove("cm-sticker-missing"));
       node.appendChild(img);
     } else {
       buildPostit(node, p, currentMessages().stickers);
@@ -252,7 +280,7 @@ class StickerLayer implements PluginValue {
       const img = node.querySelector<HTMLImageElement>(".cm-sticker-img")!;
       const url = p.asset ? editorHooks().stickerUrl(p.asset) : null;
       if (url && img.getAttribute("src") !== url) img.src = url;
-      node.classList.toggle("cm-sticker-missing", !url);
+      if (!url) node.classList.add("cm-sticker-missing");
       node.setAttribute("role", "img");
       node.setAttribute("aria-label", url ? t.sticker : t.missing);
     } else {
@@ -274,9 +302,17 @@ class StickerLayer implements PluginValue {
         const tops = this.items.map((p) => (isHidden(view.state, p.pos) ? null : view.lineBlockAt(p.pos).top));
         // A collapsed post-it is as wide as its pill.
         const widths = this.items.map((p) => (p.collapsed ? (this.nodes.get(p.id)?.offsetWidth ?? p.size) : p.size));
-        return { geometry, tops, widths, edge: cssPx("--sticker-edge"), minScale: cssPx("--sticker-fit-min") };
+        return {
+          geometry,
+          tops,
+          widths,
+          edge: cssPx("--sticker-edge"),
+          minScale: cssPx("--sticker-fit-min"),
+          pillBelow: cssPx("--postit-fit-pill"),
+          pill: { min: cssPx("--postit-pill-h"), max: cssPx("--postit-pill-max") + cssPx("--postit-pill-h") },
+        };
       },
-      write: ({ geometry, tops, widths, edge, minScale }) => {
+      write: ({ geometry, tops, widths, edge, minScale, pillBelow, pill }) => {
         this.geometry = geometry;
         this.items.forEach((p, i) => {
           const node = this.nodes.get(p.id);
@@ -285,7 +321,19 @@ class StickerLayer implements PluginValue {
           node.hidden = top === null || top === undefined;
           if (node.hidden) return;
           const box = { x: geometry.colLeft + (p.dx / 100) * geometry.colWidth, y: geometry.docTop + top! + p.dy };
-          const fit = fitInMargin(box, widths[i]!, geometry, edge, minScale);
+          const natural = fitInMargin(box, widths[i]!, geometry, edge, minScale);
+          let fit: { x: number; scale: number; pill?: number | null } = natural;
+          if (p.kind === "postit" && !p.collapsed) {
+            // The window widened: the popover is no longer needed.
+            if (this.opened === p.id && (!natural.side || natural.scale >= pillBelow)) this.opened = null;
+            fit = postitInMargin(natural, p.size, pillBelow, pill, this.opened === p.id);
+            const auto = fit.pill !== null && fit.pill !== undefined;
+            node.classList.toggle("cm-postit-collapsed", auto);
+            node.classList.toggle("cm-postit-auto", auto);
+            node.classList.toggle("cm-postit-open", this.opened === p.id && !auto);
+            node.style.width = auto ? `${fit.pill}px` : `${p.size}px`;
+            node.style.height = auto ? "" : `${p.size}px`;
+          }
           this.boxes.set(p.id, box);
           this.drawn.set(p.id, { x: fit.x, y: box.y });
           if (this.gesture?.id === p.id) return;
@@ -476,11 +524,32 @@ class StickerLayer implements PluginValue {
       const color = action.slice(6) as Placed["color"];
       if (color !== p.color) this.commit(p, { ...p, color });
       this.focusSticker(p.id);
+    } else if (node.classList.contains("cm-postit-auto") && !this.wasDragged) {
+      this.openPopover(p.id);
     } else if (p.collapsed && !this.wasDragged) {
       this.commit(p, { ...p, collapsed: false });
       this.focusSticker(p.id);
     }
   };
+
+  /** Narrow margin: shows a post-it whole over the text until a click elsewhere or Escape. */
+  private openPopover(id: string): void {
+    this.opened = id;
+    this.measure();
+    this.focusSticker(id);
+    const close = (e: Event) => {
+      const node = this.nodes.get(id);
+      if (e instanceof KeyboardEvent ? e.key !== "Escape" || this.editing === id : node?.contains(e.target as Node)) return;
+      document.removeEventListener("pointerdown", close, true);
+      document.removeEventListener("keydown", close, true);
+      if (this.opened === id) {
+        this.opened = null;
+        this.measure();
+      }
+    };
+    document.addEventListener("pointerdown", close, true);
+    document.addEventListener("keydown", close, true);
+  }
 
   private readonly onDoubleClick = (e: MouseEvent) => {
     const node = this.nodeOf(e.target);

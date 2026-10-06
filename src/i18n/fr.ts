@@ -370,6 +370,14 @@ export const fr = {
     expand: "Déplier",
     hide: "Masquer les stickers",
     show: "Afficher les stickers",
+    mineMenu: "Options du sticker",
+    removeFromMine: "Retirer de mes stickers",
+    removeTitle: (name: string) => `Retirer « ${name} » de vos stickers ?`,
+    removeBody: (n: number) =>
+      n === 0
+        ? "Aucune note ne l'utilise. L'image ira dans la Corbeille de Windows."
+        : `Il est posé sur ${n} note${n > 1 ? "s" : ""} : ${n > 1 ? "elles afficheront" : "elle affichera"} un emplacement vide. L'image ira dans la Corbeille de Windows.`,
+    removeConfirm: "Retirer",
     angle: (deg: number) => `${deg < 0 ? "−" : ""}${Math.abs(deg)}°`,
   },
   remote: {

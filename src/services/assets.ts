@@ -40,7 +40,7 @@ export const assetsApi = {
   /** Imported stickers of the vault, newest first. */
   listStickers: () => invoke<string[]>("list_stickers"),
   /** URL for <img> / pdf.js of a vault-relative file, served by the `vault:` protocol. */
-  url: (path: string): string => mockUrl?.(path) ?? convertFileSrc(path, "vault"),
+  url: (path: string): string => (mockUrl ? (mockUrl(path) ?? "") : convertFileSrc(path, "vault")),
   /** Size of a PDF, and its first-page preview and page count once drawn. */
   pdfInfo: (path: string) => invoke<{ bytes: number; thumb: string | null; pages: number | null }>("pdf_info", { path }),
   /** Keeps the first-page preview drawn by pdf.js (PNG). */

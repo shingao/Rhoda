@@ -1,5 +1,7 @@
 import type { PostitColor } from "../core/stickers";
-import { addSticker, focusEditor } from "../editor/session";
+import { addSticker, editorStickers, focusEditor, refreshEditor } from "../editor/session";
+import { vaultApi } from "../services/vault";
+import { confirmAction } from "./confirm";
 import { assetsApi, type Imported } from "../services/assets";
 import { errorMessage } from "../services/errors";
 import { RECENT_STICKERS } from "../services/settings";
@@ -93,6 +95,32 @@ async function importStickers(paths: string[]): Promise<string[]> {
 export async function importStickerImages(): Promise<string[]> {
   const paths = await assetsApi.pickStickers(currentMessages().stickers.pickTitle).catch(() => []);
   return paths.length ? importStickers(paths) : [];
+}
+
+/** Notes that use an image of the library (trash and archive included). */
+export function stickerUsage(asset: string): number {
+  return Object.values(getState().notes).filter((n) => (editorStickers(n.id) ?? n.stickers).some((s) => s.asset === asset)).length;
+}
+
+/**
+ * Drawer › "Mine" › "Remove from my stickers": the only way a library image
+ * leaves (never as an orphan). After a confirmation saying how many notes use
+ * it, the file goes to the system recycle bin; those notes show a placeholder.
+ */
+export async function removeLibrarySticker(asset: string): Promise<void> {
+  const t = currentMessages().stickers;
+  const name = asset.split("/").pop()!;
+  const ok = await confirmAction({ title: t.removeTitle(name), body: t.removeBody(stickerUsage(asset)), confirmLabel: t.removeConfirm, danger: true });
+  if (!ok) return;
+  try {
+    await vaultApi.remove(asset);
+  } catch (e) {
+    showToast(t.failed(errorMessage(e)));
+    return;
+  }
+  updateSettings((s) => ({ ...s, stickers: { ...s.stickers, recent: s.stickers.recent.filter((a) => a !== asset) } }));
+  await refreshStickerLibrary();
+  refreshEditor();
 }
 
 /** Files dropped from the Explorer on the note while the drawer is open: imported and placed there. */

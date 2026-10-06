@@ -728,28 +728,25 @@ export async function deleteNotes(ids: string[], op: BulkOperation = "delete-not
   return result;
 }
 
-/** Vault files a note uses: links and images in its text, imported stickers in its frontmatter. */
-function referencesOf(note: Note): Set<string> {
-  const refs = localReferences(note.path, currentText(note.id));
-  for (const s of editorStickers(note.id) ?? note.stickers) if (s.asset?.startsWith(`${ASSETS_DIR}/`)) refs.add(s.asset);
-  return refs;
-}
+/** The sticker library ("Mine"): never orphans, removed only from the drawer. */
+const STICKER_LIBRARY = `${ASSETS_DIR}/stickers/`;
 
 /**
- * Files of `assets/` (images, PDF, imported stickers) that the notes `ids`
- * point to and no other note does (trash and archive included), and that
- * still exist.
+ * Files of `assets/` (images, PDF) that the notes `ids` point to in their
+ * text and no other note does (trash and archive included), and that still
+ * exist. Library stickers are left out.
  */
 async function orphanAssets(ids: string[]): Promise<string[]> {
   const leaving = new Set(ids);
   const theirs = new Set<string>();
+  const refs = (note: Note) => localReferences(note.path, currentText(note.id));
   for (const id of ids) {
-    for (const path of referencesOf(noteById(id)!)) if (path.startsWith(`${ASSETS_DIR}/`)) theirs.add(path);
+    for (const path of refs(noteById(id)!)) if (path.startsWith(`${ASSETS_DIR}/`) && !path.startsWith(STICKER_LIBRARY)) theirs.add(path);
   }
   if (theirs.size === 0) return [];
   for (const note of Object.values(getState().notes)) {
     if (leaving.has(note.id)) continue;
-    for (const path of referencesOf(note)) theirs.delete(path);
+    for (const path of refs(note)) theirs.delete(path);
   }
   const candidates = [...theirs];
   const infos = await assetsApi.info(candidates).catch(() => candidates.map(() => null));

@@ -271,6 +271,7 @@ export function installDevMock(): void {
       }
       case "delete_note":
         files.delete(args.path!);
+        assetsOf(vaultPath).delete(args.path!);
         return null;
       case "backup_notes": {
         const { name, paths } = payload as { name: string; paths: string[] };

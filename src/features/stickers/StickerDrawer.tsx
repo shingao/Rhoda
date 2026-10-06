@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
-import { ImagePlus, Plus, Search, X } from "lucide-react";
+import { ImagePlus, Plus, Search, Trash2, X } from "lucide-react";
 import { useT } from "../../app/i18n";
 import { shortcutLabel } from "../../app/shortcuts";
-import { builtinAsset, importStickerImages, placeFromDrawer, stickerUrl, toggleStickerDrawer, type DrawerItem } from "../../app/stickers";
+import { builtinAsset, importStickerImages, isBuiltin, placeFromDrawer, removeLibrarySticker, stickerUrl, toggleStickerDrawer, type DrawerItem } from "../../app/stickers";
 import { useApp } from "../../app/store";
 import { IconButton } from "../../components/IconButton";
+import { Menu } from "../../components/Menu";
 import { POSTIT_COLORS, STICKER_SIZE } from "../../core/stickers";
 import { fold } from "../../core/search/fold";
 import { CATALOG, type StickerCategory } from "./catalog";
@@ -44,6 +45,7 @@ function DrawerPanel({ leaving, onLeft }: { leaving: boolean; onLeft: () => void
   const library = useApp((st) => st.stickerLibrary);
   const [chip, setChip] = useState<Chip>(() => (recent.length ? "recent" : "nature"));
   const [query, setQuery] = useState("");
+  const [menu, setMenu] = useState<{ asset: string; at: { x: number; y: number } } | null>(null);
   const search = useRef<HTMLInputElement>(null);
 
   useEffect(() => search.current?.focus(), []);
@@ -127,7 +129,13 @@ function DrawerPanel({ leaving, onLeft }: { leaving: boolean; onLeft: () => void
         {cells.cells.length ? (
           <div className={s.grid}>
             {cells.cells.map((c) => (
-              <DrawerCell key={c.asset} item={{ kind: "sticker", asset: c.asset }} label={c.label} url={stickerUrl(c.asset)} />
+              <DrawerCell
+                key={c.asset}
+                item={{ kind: "sticker", asset: c.asset }}
+                label={c.label}
+                url={stickerUrl(c.asset)}
+                onMenu={isBuiltin(c.asset) ? undefined : (at) => setMenu({ asset: c.asset, at })}
+              />
             ))}
           </div>
         ) : (
@@ -147,12 +155,20 @@ function DrawerPanel({ leaving, onLeft }: { leaving: boolean; onLeft: () => void
         </button>
         <p className={s.hint}>{t.stickers.importHint}</p>
       </footer>
+      {menu && (
+        <Menu
+          at={menu.at}
+          label={t.stickers.mineMenu}
+          entries={[{ id: "remove", label: t.stickers.removeFromMine, icon: Trash2, danger: true, onSelect: () => void removeLibrarySticker(menu.asset) }]}
+          onClose={() => setMenu(null)}
+        />
+      )}
     </aside>
   );
 }
 
 /** A sticker or post-it square: click = place in the middle of the note, drag = place where dropped. */
-function DrawerCell({ item, label, url }: { item: DrawerItem; label: string; url: string | null }) {
+function DrawerCell({ item, label, url, onMenu }: { item: DrawerItem; label: string; url: string | null; onMenu?: (at: { x: number; y: number }) => void }) {
   const press = useRef<{ x: number; y: number; ghost: HTMLElement | null } | null>(null);
   /** The click that follows a drag is not a placement. */
   const dragged = useRef(false);
@@ -211,6 +227,23 @@ function DrawerCell({ item, label, url }: { item: DrawerItem; label: string; url
         if (!dragged.current) placeFromDrawer(item);
         dragged.current = false;
       }}
+      // "Mine": right-click, the context menu key or Delete offers to remove it from the library.
+      onContextMenu={
+        onMenu &&
+        ((e) => {
+          e.preventDefault();
+          onMenu({ x: e.clientX, y: e.clientY });
+        })
+      }
+      onKeyDown={
+        onMenu &&
+        ((e) => {
+          if (e.key !== "Delete" && e.key !== "ContextMenu") return;
+          e.preventDefault();
+          const r = e.currentTarget.getBoundingClientRect();
+          onMenu({ x: r.left, y: r.bottom });
+        })
+      }
     >
       {item.kind === "sticker" ? <img src={url ?? undefined} alt="" draggable={false} className={s.cellImg} /> : <Plus className={s.postitIcon} aria-hidden />}
     </button>

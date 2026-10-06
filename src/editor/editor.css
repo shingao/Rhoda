@@ -1567,3 +1567,16 @@
 .cm-postit-text:focus-visible {
   box-shadow: none;
 }
+
+/* Narrow margin: a post-it shown as a pill fills the room; clicked, it opens whole above the others */
+.cm-postit-auto .cm-postit-pill-text {
+  min-width: 0;
+}
+
+.cm-postit-auto .cm-postit-pill {
+  overflow: hidden;
+}
+
+.cm-postit.cm-postit-open {
+  z-index: 1;
+}

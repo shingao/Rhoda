@@ -360,6 +360,14 @@ export const en: Messages = {
     expand: "Expand",
     hide: "Hide stickers",
     show: "Show stickers",
+    mineMenu: "Sticker options",
+    removeFromMine: "Remove from my stickers",
+    removeTitle: (name: string) => `Remove “${name}” from your stickers?`,
+    removeBody: (n: number) =>
+      n === 0
+        ? "No note uses it. The image will go to the Windows Recycle Bin."
+        : `It is placed on ${n} note${n > 1 ? "s" : ""}, which will show an empty spot. The image will go to the Windows Recycle Bin.`,
+    removeConfirm: "Remove",
     angle: (deg: number) => `${deg < 0 ? "−" : ""}${Math.abs(deg)}°`,
   },
   remote: {

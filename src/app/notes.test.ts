@@ -678,19 +678,15 @@ describe("safety backups before bulk operations", () => {
     expect(getState().notes.img).toBeDefined();
   });
 
-  it("treats imported stickers like images: orphans to the recycle bin, kept if another note uses them", async () => {
+  it("never treats library stickers as orphans", async () => {
     seed("assets/stickers/chat.png", "PNG-CHAT");
-    seed("assets/stickers/etoile.svg", "SVG");
-    const sticker = (asset: string) => `  - { id: s-${asset.length}, type: sticker, asset: ${asset}, anchor: { block: heading, text: x, index: 0 } }`;
-    seed("S.md", `---\nid: s\nstickers:\n${sticker("assets/stickers/chat.png")}\n${sticker("assets/stickers/etoile.svg")}\n  - { id: f, type: sticker, asset: fluent/sun, anchor: { block: heading, text: x, index: 0 } }\n---\n# S\n`);
-    seed("T.md", `---\nid: t\nstickers:\n${sticker("assets/stickers/etoile.svg")}\n---\n# T\n`);
+    seed("assets/photo.png", "PNG");
+    seed("S.md", "---\nid: s\nstickers:\n  - { id: a, type: sticker, asset: assets/stickers/chat.png, anchor: { block: heading, text: s, index: 0 } }\n---\n# S\n![](assets/stickers/chat.png)\n![](assets/photo.png)\n");
     await loadNotes(diskFiles());
     const { backup } = await deleteNotes(["s"]);
-    expect(fake.files.has("assets/stickers/chat.png")).toBe(false);
-    expect(fake.files.has("assets/stickers/etoile.svg")).toBe(true);
-    expect([...fake.backups.get(backup!)!.keys()].sort()).toEqual(["S.md", "assets/stickers/chat.png"]);
-    expect(await undoBulk(backup!)).toBe("undone");
-    expect(fake.files.get("assets/stickers/chat.png")?.content).toBe("PNG-CHAT");
+    expect(fake.files.has("assets/stickers/chat.png")).toBe(true);
+    expect(fake.files.has("assets/photo.png")).toBe(false);
+    expect([...fake.backups.get(backup!)!.keys()].sort()).toEqual(["S.md", "assets/photo.png"]);
   });
 
   it("purges backups older than 30 days", async () => {
