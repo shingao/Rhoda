@@ -43,10 +43,6 @@ jobs:
         working-directory: src-tauri
         run: cargo test
 
-      - name: Windows OCR on a picture of known text (languages and text shown)
-        working-directory: src-tauri
-        run: cargo test --lib ocr::windows -- --nocapture
-
       - name: Build the installer
         run: npx tauri build
 
@@ -55,3 +51,8 @@ jobs:
           name: ursa-msi
           path: src-tauri/target/release/bundle/msi/*.msi
           if-no-files-found: error
+
+      # Last, so that its output (installed languages, text read) ends the log.
+      - name: Windows OCR on a picture of known text (languages and text shown)
+        working-directory: src-tauri
+        run: cargo test --lib ocr::windows -- --nocapture
