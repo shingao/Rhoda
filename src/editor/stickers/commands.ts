@@ -1,6 +1,6 @@
 import type { EditorView } from "@codemirror/view";
 import { placementRotation, POSTIT_SIZE, STICKER_SIZE, stickerId, type PostitColor, type StickerKind } from "../../core/stickers";
-import { focusSticker, geometryOf, placedAt, PLACE_EVENT } from "./layer";
+import { editPostit, focusSticker, geometryOf, placedAt, PLACE_EVENT } from "./layer";
 import { stickerById, stickersOf, stickerTransaction, type Placed } from "./state";
 
 /** What to place: a sticker image or a post-it. */
@@ -40,7 +40,9 @@ export function placeSticker(view: EditorView, spec: NewSticker, at?: { x: numbe
   };
   const sticker = placedAt(view, geometry, base, { x: point.x - geometry.originX - size / 2, y: point.y - geometry.originY - size / 2 });
   view.dispatch(stickerTransaction([{ before: null, after: sticker }], PLACE_EVENT));
-  focusSticker(view, sticker.id);
+  // A new post-it is ready to type in.
+  if (spec.kind === "postit" && !spec.text) editPostit(view, sticker.id);
+  else focusSticker(view, sticker.id);
   return sticker.id;
 }
 

@@ -1281,22 +1281,20 @@
   background: var(--bg-2);
 }
 
-/* Angle badge while rotating ("−2°") */
+/* Angle badge while rotating ("−2°"), under the sticker, styled like the image size badge (maquette) */
 .cm-sticker-angle {
   position: absolute;
   top: calc(100% + var(--sticker-badge-gap));
   left: 50%;
   display: none;
-  height: var(--sticker-badge-h);
-  padding: 0 var(--sp-2);
-  border-radius: var(--r-pill);
-  background: var(--bg-raised);
-  box-shadow: var(--shadow-pop);
-  color: var(--text-2);
-  font-family: var(--font-ui);
-  font-size: var(--sticker-badge-fs);
-  font-variant-numeric: tabular-nums;
-  line-height: var(--sticker-badge-h);
+  padding: var(--sticker-badge-pad);
+  border-radius: var(--r-sm);
+  background: var(--image-badge-bg);
+  color: var(--image-badge-fg);
+  font-family: var(--font-mono);
+  font-size: var(--image-badge-fs);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-tight);
   white-space: nowrap;
   transform: translateX(-50%) rotate(calc(-1 * var(--sticker-rotation)));
 }
@@ -1330,7 +1328,7 @@
   }
 }
 
-/* Post-its [§9] (detailed in 8d) */
+/* Post-its [§9]: handwritten, "papier collé" shadow, corner shading, optional tape */
 .cm-postit {
   border-radius: var(--postit-r);
   background: var(--postit-yellow);
@@ -1350,8 +1348,216 @@
   background: var(--postit-blue);
 }
 
+.cm-postit::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--postit-r);
+  background: var(--postit-curl);
+  pointer-events: none;
+}
+
 .cm-postit-text {
+  position: absolute;
+  inset: 0;
   padding: var(--postit-pad);
+  overflow: hidden;
+  outline: none;
+  font-family: var(--font-hand);
+  font-size: var(--postit-fs);
+  font-weight: var(--fw-medium);
+  line-height: var(--postit-lh);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+  caret-color: var(--postit-text);
+  user-select: none;
+}
+
+.cm-postit-tape {
+  position: absolute;
+  top: calc(-1 * var(--postit-tape-out));
+  left: 50%;
+  z-index: 1;
+  width: var(--postit-tape-w);
+  height: var(--postit-tape-h);
+  margin-left: calc(var(--postit-tape-w) / -2);
+  background: var(--postit-tape);
+  transform: rotate(var(--postit-tape-rotation));
+  pointer-events: none;
+}
+
+/* Editing (double-click or Enter): 2 px ring at 5 px, text cursor */
+.cm-postit-editing {
+  cursor: text;
+}
+
+.cm-postit-editing .cm-postit-text {
+  user-select: text;
+}
+
+.cm-postit-editing::before {
+  content: "";
+  position: absolute;
+  inset: calc(-1 * var(--postit-edit-gap));
+  border-radius: var(--r-xs);
+  box-shadow: 0 0 0 var(--postit-edit-ring) var(--focus-ring);
+  pointer-events: none;
+}
+
+/* Post-its: resized from the corners; turned with [ ] (no rotation handle) */
+.cm-postit .cm-sticker-rotate,
+.cm-postit.cm-postit-editing .cm-sticker-frame,
+.cm-postit.cm-postit-collapsed .cm-sticker-frame {
+  visibility: hidden;
+}
+
+/* Hovering a post-it shows its bar, not the frame */
+.cm-postit:hover:not(.cm-sticker-selected) .cm-sticker-frame {
+  visibility: hidden;
+}
+
+/* Hover bar: colours, collapse, delete; kept horizontal */
+.cm-postit-bar {
+  position: absolute;
+  bottom: calc(100% + var(--postit-bar-offset) - var(--postit-bar-h));
+  left: 50%;
+  z-index: 2;
+  display: none;
+  align-items: center;
+  gap: var(--postit-bar-gap);
+  height: var(--postit-bar-h);
+  padding: var(--postit-bar-pad);
+  box-sizing: border-box;
+  border-radius: var(--r-md);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-pop);
+  font-family: var(--font-ui);
+  cursor: default;
+  transform: translateX(-50%) rotate(calc(-1 * var(--sticker-rotation)));
+}
+
+/* Bridge over the gap, so the bar stays while the pointer goes to it */
+.cm-postit-bar::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  height: calc(var(--postit-bar-offset) - var(--postit-bar-h));
+}
+
+.cm-postit:hover .cm-postit-bar,
+.cm-postit.cm-sticker-selected .cm-postit-bar {
+  display: flex;
+}
+
+.cm-postit.cm-postit-collapsed .cm-postit-bar,
+.cm-postit.cm-sticker-lifted .cm-postit-bar {
+  display: none;
+}
+
+.cm-postit-dot {
+  width: var(--postit-dot);
+  height: var(--postit-dot);
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--postit-yellow);
+  cursor: pointer;
+}
+
+.cm-postit-dot[data-color="pink"] {
+  background: var(--postit-pink);
+}
+
+.cm-postit-dot[data-color="green"] {
+  background: var(--postit-green);
+}
+
+.cm-postit-dot[data-color="blue"] {
+  background: var(--postit-blue);
+}
+
+.cm-postit-dot-on {
+  box-shadow:
+    0 0 0 var(--postit-dot-gap) var(--bg-raised),
+    0 0 0 var(--postit-dot-ring) var(--accent);
+}
+
+.cm-postit-sep {
+  width: 1px;
+  height: var(--postit-sep-h);
+  margin: 0 var(--postit-dot-gap);
+  background: var(--separator);
+}
+
+.cm-postit-tool {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--postit-tool);
+  height: var(--postit-tool);
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.cm-postit-tool:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+.cm-postit .cm-postit-tool svg {
+  width: var(--postit-tool-icon);
+  height: var(--postit-tool-icon);
+}
+
+/* Collapsed: a pill with the first words; click = expand */
+.cm-postit-pill {
+  display: none;
+}
+
+.cm-postit-collapsed {
+  box-shadow: var(--postit-pill-shadow);
+  border-radius: var(--r-pill);
+  cursor: pointer;
+}
+
+.cm-postit-collapsed::after,
+.cm-postit-collapsed .cm-postit-tape,
+.cm-postit-collapsed .cm-postit-text {
+  display: none;
+}
+
+.cm-postit-collapsed .cm-postit-pill {
+  display: flex;
+  align-items: center;
+  gap: var(--postit-pill-gap);
+  height: var(--postit-pill-h);
+  padding: var(--postit-pill-pad);
+  font-family: var(--font-hand);
+  font-size: var(--postit-pill-fs);
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+}
+
+.cm-postit .cm-postit-pill svg {
+  flex: none;
+  width: var(--postit-pill-icon);
+  height: var(--postit-pill-icon);
+}
+
+.cm-postit-pill-text {
+  max-width: var(--postit-pill-max);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Keyboard focus shows the same frame as selection [§8], not the generic ring */
+.cm-sticker:focus-visible,
+.cm-postit-text:focus-visible {
+  box-shadow: none;
 }

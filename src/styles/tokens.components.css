@@ -427,9 +427,8 @@
   --sticker-knob: 10px;
   --sticker-lift-scale: 1.06;              /* while dragging */
   --sticker-place-scale: .9;               /* [§11] placement .9 → 1 */
-  --sticker-badge-h: 20px;                 /* (decision) angle badge, like the fold badge */
-  --sticker-badge-fs: 12px;
-  --sticker-badge-gap: var(--sp-2);
+  --sticker-badge-gap: 13px;               /* angle badge ending 36 px under the sticker (maquette) */
+  --sticker-badge-pad: 2px 7px;
   --sticker-layer-z: 2;                    /* (decision) above the text and its selection layer */
   --sticker-rotation: 0deg;                /* set per sticker by the editor */
   --sticker-scale: 1;                      /* set while dragging */
@@ -472,6 +471,32 @@
   /* Post-its [§9] */
   --postit-r: 2px;
   --postit-pad: 20px 14px 0;
+  --postit-fs: 22px;                       /* Caveat 500 22/28 */
+  --postit-lh: 28px;
+  --postit-curl: linear-gradient(135deg, transparent 70%, rgba(0, 0, 0, .05)); /* corner shading */
+  --postit-tape-w: 60px;
+  --postit-tape-h: 18px;
+  --postit-tape-out: 9px;                  /* overhangs the top edge */
+  --postit-tape-rotation: -4deg;           /* −4° or +3°, set per post-it */
+  --postit-edit-gap: 5px;                  /* editing: 2 px focus ring at 5 px */
+  --postit-edit-ring: 2px;
+  --postit-bar-offset: 50px;               /* (maquette) bar 50 px above the post-it */
+  --postit-bar-h: 34px;
+  --postit-bar-pad: 4px 6px;
+  --postit-bar-gap: 6px;
+  --postit-dot: 16px;
+  --postit-dot-ring: 3.5px;                /* current colour: double ring */
+  --postit-dot-gap: 2px;
+  --postit-tool: 26px;
+  --postit-tool-icon: 14px;
+  --postit-sep-h: 18px;
+  --postit-pill-h: 28px;                   /* collapsed */
+  --postit-pill-pad: 0 12px 0 8px;
+  --postit-pill-gap: 6px;
+  --postit-pill-icon: 13px;
+  --postit-pill-fs: 17px;
+  --postit-pill-max: 160px;
+  --postit-pill-shadow: 0 1px 2px rgba(60, 40, 10, .18);
 }
 
 /* Reduced motion [§4]: everything instant except opacity fades (80 ms). */

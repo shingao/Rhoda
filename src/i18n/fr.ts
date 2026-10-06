@@ -337,6 +337,8 @@ export const fr = {
     imported: (n: number) => (n > 1 ? `${n} stickers ajoutés à « Les miens »` : "Sticker ajouté à « Les miens »"),
     failed: (reason: string) => `Import impossible : ${reason}`,
     noNote: "Ouvrez une note pour y poser un sticker",
+    collapse: "Replier",
+    expand: "Déplier",
     angle: (deg: number) => `${deg < 0 ? "−" : ""}${Math.abs(deg)}°`,
   },
   remote: {

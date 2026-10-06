@@ -3,6 +3,7 @@ import { currentMessages } from "../../app/i18n";
 import { POSTIT_SIZE, STICKER_SIZE } from "../../core/stickers";
 import { editorHooks } from "../hooks";
 import { isHidden } from "../sections/visibility";
+import { buildPostit, fillPostit } from "./postit";
 import { blockStartAt, stickerTransaction, stickersField, stickersOf, type Placed } from "./state";
 
 /**
@@ -86,6 +87,11 @@ class StickerLayer implements PluginValue {
   private boxes = new Map<string, Box>();
   private gesture: Gesture | null = null;
   private selected: string | null = null;
+  /** Post-it whose text is being edited. */
+  private editing: string | null = null;
+  /** The last press moved a sticker (its click is not a click). */
+  private wasDragged = false;
+  private destroyed = false;
 
   constructor(readonly view: EditorView) {
     this.dom = document.createElement("div");
@@ -99,6 +105,8 @@ class StickerLayer implements PluginValue {
     this.dom.addEventListener("contextmenu", this.onContextMenu);
     this.dom.addEventListener("focusin", this.onFocus);
     this.dom.addEventListener("focusout", this.onBlur);
+    this.dom.addEventListener("click", this.onClick);
+    this.dom.addEventListener("dblclick", this.onDoubleClick);
     this.sync(stickersOf(view.state), false);
     this.measure();
   }
@@ -113,6 +121,9 @@ class StickerLayer implements PluginValue {
   }
 
   destroy(): void {
+    // Any late focus event must not reach the next note's state.
+    this.editing = null;
+    this.destroyed = true;
     this.dom.remove();
   }
 
@@ -144,6 +155,7 @@ class StickerLayer implements PluginValue {
       this.nodes.delete(id);
       this.boxes.delete(id);
       if (this.selected === id) this.selected = null;
+      if (this.editing === id) this.editing = null;
     }
     this.items = items;
   }
@@ -160,9 +172,7 @@ class StickerLayer implements PluginValue {
       img.alt = "";
       node.appendChild(img);
     } else {
-      const text = document.createElement("div");
-      text.className = "cm-postit-text";
-      node.appendChild(text);
+      buildPostit(node, p, currentMessages().stickers);
     }
     const frame = document.createElement("div");
     frame.className = "cm-sticker-frame";
@@ -196,11 +206,12 @@ class StickerLayer implements PluginValue {
       node.setAttribute("role", "img");
       node.setAttribute("aria-label", url ? t.sticker : t.missing);
     } else {
-      const text = node.querySelector<HTMLElement>(".cm-postit-text")!;
-      if (text.textContent !== (p.text ?? "")) text.textContent = p.text ?? "";
-      node.dataset.color = p.color ?? "yellow";
-      node.setAttribute("role", "note");
-      node.setAttribute("aria-label", `${t.postit} : ${p.text ?? ""}`);
+      fillPostit(node, p, t, this.editing === p.id);
+      // A collapsed post-it is a pill sized by its content.
+      if (p.collapsed) {
+        node.style.width = "";
+        node.style.height = "";
+      }
     }
   }
 
@@ -253,6 +264,11 @@ class StickerLayer implements PluginValue {
     const p = this.item(node.dataset.id!);
     const box = this.boxes.get(node.dataset.id!);
     if (!p || !box) return;
+    this.wasDragged = false;
+    const target = e.target as Element;
+    // Post-it bar buttons are plain clicks; the text being edited takes the caret.
+    if (target.closest("[data-action]")) return;
+    if (this.editing === p.id && target.closest(".cm-postit-text")) return;
     e.preventDefault();
     node.focus({ preventScroll: true });
     const rect = node.getBoundingClientRect();
@@ -268,7 +284,8 @@ class StickerLayer implements PluginValue {
     } else {
       this.gesture = { kind: "move", id: p.id, pointer: e.pointerId, startX: e.clientX, startY: e.clientY, box, moved: false };
     }
-    this.dom.setPointerCapture(e.pointerId);
+    // Captured by the sticker itself, so the click that follows still targets it (pill, double-click).
+    node.setPointerCapture(e.pointerId);
   };
 
   private readonly onPointerMove = (e: PointerEvent) => {
@@ -309,6 +326,7 @@ class StickerLayer implements PluginValue {
     const g = this.gesture;
     if (!g || e.pointerId !== g.pointer) return;
     this.gesture = null;
+    this.wasDragged = g.kind === "move" && g.moved;
     const node = this.nodes.get(g.id);
     node?.classList.remove("cm-sticker-lifted", "cm-sticker-rotating");
     const p = this.item(g.id);
@@ -330,10 +348,20 @@ class StickerLayer implements PluginValue {
     const node = this.nodeOf(e.target);
     const p = node && this.item(node.dataset.id!);
     if (!node || !p) return;
+    if (this.editing === p.id) {
+      // Typing in a post-it: Escape or Ctrl+Enter ends the edit, everything else is text.
+      if (e.key === "Escape" || (e.key === "Enter" && (e.ctrlKey || e.metaKey))) {
+        e.preventDefault();
+        this.finishEdit(true);
+      }
+      return;
+    }
     const box = this.boxes.get(p.id);
     const arrow = ARROWS[e.key];
     let handled = true;
-    if (arrow && box && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    if (e.key === "Enter" && p.kind === "postit" && (e.target as Element) === node) {
+      this.edit(p.id);
+    } else if (arrow && box && !e.ctrlKey && !e.metaKey && !e.altKey) {
       const step = e.shiftKey ? 10 : 1;
       this.commit(p, this.movedTo(p, { x: box.x + arrow[0] * step, y: box.y + arrow[1] * step }));
     } else if (e.key === "[" || e.key === "]") {
@@ -370,10 +398,74 @@ class StickerLayer implements PluginValue {
 
   private readonly onBlur = (e: FocusEvent) => {
     const node = this.nodeOf(e.target);
+    if (node && this.editing === node.dataset.id && (e.target as Element).classList.contains("cm-postit-text")) this.finishEdit(false);
     if (!node || node.contains(e.relatedTarget as Node | null)) return;
     if (this.selected === node.dataset.id) this.selected = null;
     node.classList.remove("cm-sticker-selected");
   };
+
+  /** Post-it bar (colour, collapse, delete) and the collapsed pill (click = expand). */
+  private readonly onClick = (e: MouseEvent) => {
+    const node = this.nodeOf(e.target);
+    const p = node && this.item(node.dataset.id!);
+    if (!node || !p) return;
+    const action = (e.target as Element).closest<HTMLElement>("[data-action]")?.dataset.action;
+    if (action === "delete") {
+      this.view.dispatch(stickerTransaction([{ before: p, after: null }]));
+      this.view.focus();
+    } else if (action === "collapse") {
+      this.commit(p, { ...p, collapsed: true });
+      this.focusSticker(p.id);
+    } else if (action?.startsWith("color:")) {
+      const color = action.slice(6) as Placed["color"];
+      if (color !== p.color) this.commit(p, { ...p, color });
+      this.focusSticker(p.id);
+    } else if (p.collapsed && !this.wasDragged) {
+      this.commit(p, { ...p, collapsed: false });
+      this.focusSticker(p.id);
+    }
+  };
+
+  private readonly onDoubleClick = (e: MouseEvent) => {
+    const node = this.nodeOf(e.target);
+    const p = node && this.item(node.dataset.id!);
+    if (p?.kind === "postit" && !p.collapsed && !(e.target as Element).closest("[data-action]")) this.edit(p.id);
+  };
+
+  /** Edits the text of a post-it in place (double-click, Enter, or a new post-it). */
+  edit(id: string): void {
+    const node = this.nodes.get(id);
+    const p = this.item(id);
+    if (!node || p?.kind !== "postit") return;
+    if (p.collapsed) this.commit(p, { ...p, collapsed: false });
+    const text = node.querySelector<HTMLElement>(".cm-postit-text")!;
+    this.editing = id;
+    node.classList.add("cm-postit-editing");
+    text.contentEditable = "plaintext-only";
+    text.focus({ preventScroll: true });
+    const range = document.createRange();
+    range.selectNodeContents(text);
+    range.collapse(false);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+  }
+
+  /** Ends the edit; the new text is one undo step in the note. */
+  finishEdit(refocus: boolean): void {
+    const id = this.editing;
+    if (!id || this.destroyed) return;
+    this.editing = null;
+    const node = this.nodes.get(id);
+    const text = node?.querySelector<HTMLElement>(".cm-postit-text");
+    if (!node || !text) return;
+    text.contentEditable = "false";
+    node.classList.remove("cm-postit-editing");
+    const value = (text.innerText ?? "").replace(/\n$/, "");
+    const p = this.item(id);
+    if (p && value !== (p.text ?? "")) this.commit(p, { ...p, text: value });
+    if (refocus) this.focusSticker(id);
+  }
 
   /** Focuses a sticker (after a menu, or to keep working on a duplicate). */
   focusSticker(id: string): void {
@@ -382,6 +474,16 @@ class StickerLayer implements PluginValue {
 }
 
 export const stickerLayer = ViewPlugin.fromClass(StickerLayer);
+
+/** Saves a post-it being edited into the open note (before another note is shown). */
+export function commitStickerEdit(view: EditorView): void {
+  view.plugin(stickerLayer)?.finishEdit(false);
+}
+
+/** Starts editing a post-it of the open note, once drawn. */
+export function editPostit(view: EditorView, id: string): void {
+  requestAnimationFrame(() => view.plugin(stickerLayer)?.edit(id));
+}
 
 /** Focuses a sticker of the open note, once drawn. */
 export function focusSticker(view: EditorView, id: string): void {

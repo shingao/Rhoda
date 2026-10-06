@@ -14,6 +14,7 @@ import { headingsIn } from "./sections/headings";
 import { serializeStickers, type Sticker } from "../core/stickers";
 import { placeSticker, runStickerCommand, type NewSticker, type StickerCommand } from "./stickers/commands";
 import { changesStickers, loadStickers, placeStickers, stickersField, storedStickers } from "./stickers/state";
+import { commitStickerEdit } from "./stickers/layer";
 
 /**
  * Owns the single EditorView and one EditorState per note (keyed by note id),
@@ -105,6 +106,7 @@ export function mountEditor(parent: HTMLElement, ext: Extension, onEdit: (id: st
 }
 
 export function unmountEditor(): void {
+  if (view) commitStickerEdit(view);
   if (view && currentId) states.set(currentId, view.state);
   view?.destroy();
   view = null;
@@ -120,6 +122,8 @@ export function resetEditor(): void {
 /** Shows a note instantly (no animation, DESIGN §4). */
 export function showNote(id: string | null, body: string, stickers: readonly Sticker[]): void {
   if (!view || id === currentId) return;
+  // A post-it being typed in belongs to the note being left.
+  commitStickerEdit(view);
   if (currentId) {
     states.set(currentId, view.state);
     scrolls.set(currentId, view.scrollSnapshot());

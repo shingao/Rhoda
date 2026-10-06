@@ -327,6 +327,8 @@ export const en: Messages = {
     imported: (n: number) => (n > 1 ? `${n} stickers added to “Mine”` : "Sticker added to “Mine”"),
     failed: (reason: string) => `Could not import: ${reason}`,
     noNote: "Open a note to place a sticker",
+    collapse: "Collapse",
+    expand: "Expand",
     angle: (deg: number) => `${deg < 0 ? "−" : ""}${Math.abs(deg)}°`,
   },
   remote: {
