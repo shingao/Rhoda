@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { ChevronsDownUp, ChevronsUpDown, CircleAlert, Ellipsis, Expand, Focus, ImagePlus, Info, ListTree, Notebook, PanelLeftClose, PanelLeftOpen, Settings, Sticker } from "lucide-react";
+import { ChevronsDownUp, ChevronsUpDown, CircleAlert, Ellipsis, Expand, Focus, ImagePlus, Info, ListTree, Notebook, PanelLeftClose, PanelLeftOpen, Eye, EyeOff, Settings, Sticker } from "lucide-react";
 import { useT } from "../../app/i18n";
 import { cssPx } from "../../app/cssTokens";
 import { insertFromDialog } from "../../app/attachments";
@@ -28,6 +28,8 @@ import { FindPill } from "./FindPill";
 import { OutlinePanel } from "../outline/OutlinePanel";
 import { StickerDrawer } from "../stickers/StickerDrawer";
 import { toggleStickerDrawer } from "../../app/stickers";
+import { toggleStickersHidden } from "../../app/noteView";
+import { stickerDisplay, stickersShown } from "../../editor/stickers/state";
 import s from "./EditorPane.module.css";
 
 /**
@@ -74,6 +76,10 @@ export function EditorPane() {
   useEffect(() => setEditorOption(typewriterCompartment, typewriter(typewriterOn)), [typewriterOn]);
   const dimOn = focusMode && defaults.focusDim;
   useEffect(() => setEditorOption(focusDimCompartment, focusDim(dimOn)), [dimOn]);
+  const decorations = useApp((st) => st.settings.stickers);
+  const decorationsOn = decorations.show && !(focusMode && decorations.hideInFocus);
+  useEffect(() => setEditorOption(stickerDisplay, stickersShown.of(decorationsOn)), [decorationsOn]);
+  const stickersHidden = useApp((st) => (st.selectedId ? st.hiddenStickers[st.selectedId] === true : false));
 
   const edited = mtime !== undefined ? relativeDate(mtime, now, t.dates) : null;
 
@@ -102,6 +108,16 @@ export function EditorPane() {
               <CircleAlert aria-hidden />
             </span>
           </Tooltip>
+        )}
+        {(stickersHidden || (note?.stickers.length ?? 0) > 0) && (
+          <IconButton
+            icon={stickersHidden ? EyeOff : Eye}
+            label={stickersHidden ? t.stickers.show : t.stickers.hide}
+            shortcut={shortcutLabel("stickers.hide", t)}
+            active={stickersHidden}
+            aria-pressed={stickersHidden}
+            onClick={toggleStickersHidden}
+          />
         )}
         <IconButton
           icon={Sticker}

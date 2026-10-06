@@ -6,15 +6,17 @@ import { Slider } from "../../components/Slider";
 import { Stepper } from "../../components/Stepper";
 import { Toggle } from "../../components/Toggle";
 import { PaperChoices } from "../editor/PaperPicker";
-import { COLUMN_WIDTH, FONT_SIZE, type EditorSettings } from "../../services/settings";
+import { COLUMN_WIDTH, FONT_SIZE, type EditorSettings, type Settings } from "../../services/settings";
 import { Field } from "./fields";
 import s from "./Settings.module.css";
 
 const setEditor = (patch: Partial<EditorSettings>) => updateSettings((st) => ({ ...st, editor: { ...st.editor, ...patch } }));
+const setStickers = (patch: Partial<Settings["stickers"]>) => updateSettings((st) => ({ ...st, stickers: { ...st.stickers, ...patch } }));
 
 export function EditorPage() {
   const t = useT();
   const e = useApp((st) => st.settings.editor);
+  const st = useApp((state) => state.settings.stickers);
   const fonts = ["sans", "serif"] as const;
 
   return (
@@ -57,6 +59,9 @@ export function EditorPage() {
       <Toggle checked={e.headingMarkers} onChange={(headingMarkers) => setEditor({ headingMarkers })} label={t.settings.headingMarkers} hint={t.settings.headingMarkersHint} />
 
       <Toggle checked={e.focusDim} onChange={(focusDim) => setEditor({ focusDim })} label={t.settings.focusDim} hint={t.settings.focusDimHint(shortcutLabel("focus.toggle", t))} />
+
+      <Toggle checked={st.show} onChange={(show) => setStickers({ show })} label={t.settings.decorations} hint={t.settings.decorationsHint(shortcutLabel("stickers.hide", t))} />
+      <Toggle checked={st.hideInFocus} onChange={(hideInFocus) => setStickers({ hideInFocus })} label={t.settings.decorationsInFocus} />
 
       <Field label={t.settings.paper} hint={t.settings.paperHint}>
         <div className={s.paperRow}>

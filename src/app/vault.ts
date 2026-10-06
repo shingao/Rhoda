@@ -2,6 +2,7 @@ import { resetEditor } from "../editor/session";
 import { errorMessage } from "../services/errors";
 import { vaultApi } from "../services/vault";
 import { closeFolds, loadFolds } from "./folds";
+import { closeNoteView, loadNoteView } from "./noteView";
 import { currentMessages } from "./i18n";
 import { closeVault, loadNotes, purgeOldBackups } from "./notes";
 import { getState, setState, showToast, updateSettings } from "./store";
@@ -13,6 +14,7 @@ export async function openVault(path: string): Promise<void> {
   await loadNotes(files);
   await loadTagConfig();
   await loadFolds();
+  await loadNoteView();
   void purgeOldBackups();
   setState({ vault: { kind: "ready", path } });
 }
@@ -47,7 +49,7 @@ export async function switchVault(path: string): Promise<void> {
     showToast(t.settings.unsavedBlocksSwitch);
     return;
   }
-  await Promise.all([closeTagConfig(), closeFolds()]);
+  await Promise.all([closeTagConfig(), closeFolds(), closeNoteView()]);
   resetEditor();
   setState({
     vault: { kind: "loading" },

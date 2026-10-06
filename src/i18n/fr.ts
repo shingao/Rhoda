@@ -277,6 +277,9 @@ export const fr = {
     headingMarkersHint: "Affiche H1–H6 à côté des titres.",
     focusDim: "Estomper les autres paragraphes en mode focus",
     focusDimHint: (key: string) => `Seul le paragraphe en cours reste en pleine encre (mode focus : ${key}).`,
+    decorations: "Afficher les décorations",
+    decorationsHint: (key: string) => `Stickers et post-it posés sur les notes. Masquer ceux d'une seule note : ${key}. Maintenir Alt les rend transparents.`,
+    decorationsInFocus: "Masquer les décorations en mode focus",
     paper: "Fond de page par défaut",
     paperHint: "Pour les notes sans fond choisi. Chaque note peut changer le sien depuis le menu … de l'éditeur.",
   },
@@ -339,6 +342,8 @@ export const fr = {
     noNote: "Ouvrez une note pour y poser un sticker",
     collapse: "Replier",
     expand: "Déplier",
+    hide: "Masquer les stickers",
+    show: "Afficher les stickers",
     angle: (deg: number) => `${deg < 0 ? "−" : ""}${Math.abs(deg)}°`,
   },
   remote: {

@@ -268,6 +268,9 @@ export const en: Messages = {
     headingMarkersHint: "Shows H1–H6 next to titles.",
     focusDim: "Fade other paragraphs in focus mode",
     focusDimHint: (key: string) => `Only the current paragraph stays in full ink (focus mode: ${key}).`,
+    decorations: "Show decorations",
+    decorationsHint: (key: string) => `Stickers and sticky notes placed on notes. Hide those of one note: ${key}. Hold Alt to see through them.`,
+    decorationsInFocus: "Hide decorations in focus mode",
     paper: "Default page background",
     paperHint: "For notes without their own. Each note can change it from the editor's … menu.",
   },
@@ -329,6 +332,8 @@ export const en: Messages = {
     noNote: "Open a note to place a sticker",
     collapse: "Collapse",
     expand: "Expand",
+    hide: "Hide stickers",
+    show: "Show stickers",
     angle: (deg: number) => `${deg < 0 ? "−" : ""}${Math.abs(deg)}°`,
   },
   remote: {

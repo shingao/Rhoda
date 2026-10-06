@@ -1,5 +1,5 @@
 import { invertedEffects, isolateHistory } from "@codemirror/commands";
-import { StateEffect, StateField, Transaction, type EditorState, type Text, type TransactionSpec } from "@codemirror/state";
+import { Compartment, Facet, StateEffect, StateField, Transaction, type EditorState, type Text, type TransactionSpec } from "@codemirror/state";
 import { blockKey, blocksOf, resolveAnchor, type Block, type Sticker } from "../../core/stickers";
 
 /**
@@ -65,7 +65,24 @@ const invertStickers = invertedEffects.of((tr) =>
   tr.effects.flatMap((e) => (e.is(changeSticker) ? [changeSticker.of({ before: e.value.after, after: e.value.before })] : [])),
 );
 
-export const stickerState = [stickersField, invertStickers];
+/** "Hide stickers" for this note (not part of the history). */
+export const hideStickers = StateEffect.define<boolean>();
+
+export const stickersHiddenField = StateField.define<boolean>({
+  create: () => false,
+  update: (hidden, tr) => tr.effects.reduce((value, e) => (e.is(hideStickers) ? e.value : value), hidden),
+});
+
+/** App-wide display: "Show decorations" and the focus mode option (false = hidden). */
+export const stickersShown = Facet.define<boolean, boolean>({ combine: (values) => values.every(Boolean) });
+export const stickerDisplay = new Compartment();
+
+export const stickerState = [stickersField, invertStickers, stickersHiddenField];
+
+/** Whether the layer draws the stickers of this state. */
+export function stickersVisible(state: EditorState): boolean {
+  return state.facet(stickersShown) && !state.field(stickersHiddenField, false);
+}
 
 export function stickersOf(state: EditorState): readonly Placed[] {
   return state.field(stickersField, false) ?? [];

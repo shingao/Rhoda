@@ -8,6 +8,7 @@ import { openFindFromSelection } from "./app/search";
 import { useGlobalShortcuts, type ShortcutHandlers } from "./app/shortcuts";
 import { getState, setState, useApp } from "./app/store";
 import { toggleStickerDrawer } from "./app/stickers";
+import { toggleStickersHidden } from "./app/noteView";
 import { changeVaultFolder } from "./app/vault";
 import { Button } from "./components/Button";
 import { AppLayout } from "./features/layout/AppLayout";
@@ -25,6 +26,7 @@ const globalHandlers: ShortcutHandlers = {
   "focus.toggle": toggleFocusMode,
   "focus.toggleKey": toggleFocusMode,
   "stickers.drawer": () => toggleStickerDrawer(),
+  "stickers.hide": toggleStickersHidden,
 };
 
 export function App() {

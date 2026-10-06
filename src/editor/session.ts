@@ -13,7 +13,7 @@ import type { Needle } from "../core/search/query";
 import { headingsIn } from "./sections/headings";
 import { serializeStickers, type Sticker } from "../core/stickers";
 import { placeSticker, runStickerCommand, type NewSticker, type StickerCommand } from "./stickers/commands";
-import { changesStickers, loadStickers, placeStickers, stickersField, storedStickers } from "./stickers/state";
+import { changesStickers, hideStickers, loadStickers, placeStickers, stickersField, storedStickers } from "./stickers/state";
 import { commitStickerEdit } from "./stickers/layer";
 
 /**
@@ -143,6 +143,7 @@ export function showNote(id: string | null, body: string, stickers: readonly Sti
   if (!kept && id) {
     restoreFolds(editorHooks().savedFolds(id));
     loadFromDisk(stickers);
+    if (editorHooks().stickersHidden(id)) view.dispatch({ effects: hideStickers.of(true), annotations: Transaction.addToHistory.of(false) });
   }
   // A kept state may show stale links or backlinks.
   refreshEditor();
@@ -196,6 +197,16 @@ export function editorStickers(id: string): Sticker[] | null {
 export function addSticker(noteId: string, spec: NewSticker, at?: { x: number; y: number }): string | null {
   if (!view || currentId !== noteId) return null;
   return placeSticker(view, spec, at);
+}
+
+/** "Hide stickers" of a note (open, or kept in memory). */
+export function setStickersHidden(noteId: string, hidden: boolean): void {
+  const spec = { effects: hideStickers.of(hidden), annotations: Transaction.addToHistory.of(false) };
+  if (view && currentId === noteId) view.dispatch(spec);
+  else {
+    const kept = states.get(noteId);
+    if (kept) states.set(noteId, kept.update(spec).state);
+  }
 }
 
 /** A sticker of the open note (for its menu). */

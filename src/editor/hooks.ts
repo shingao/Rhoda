@@ -56,6 +56,8 @@ export interface EditorHooks {
   attachFiles(files: File[], pos: number): boolean;
   /** URL of a sticker image (`fluent/<code>` built in, or a vault path), or null if missing. */
   stickerUrl(asset: string): string | null;
+  /** "Hide stickers" remembered for a note. */
+  stickersHidden(noteId: string): boolean;
   /** Right-click (or context menu key) on a sticker or post-it. */
   openStickerMenu(id: string, at: { x: number; y: number }): void;
 }
@@ -91,6 +93,7 @@ let hooks: EditorHooks = {
   openAttachment: () => undefined,
   openCardMenu: () => undefined,
   stickerUrl: () => null,
+  stickersHidden: () => false,
   openStickerMenu: () => undefined,
 };
 

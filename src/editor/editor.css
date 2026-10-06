@@ -1161,7 +1161,7 @@
 
 .cm-sticker {
   position: absolute;
-  transform: rotate(var(--sticker-rotation)) scale(var(--sticker-scale));
+  transform: rotate(var(--sticker-rotation)) scale(calc(var(--sticker-scale) * var(--sticker-fit)));
   outline: none;
   pointer-events: auto;
   cursor: grab;
@@ -1171,6 +1171,12 @@
 
 .cm-sticker[hidden] {
   display: none;
+}
+
+/* Holding Alt: see-through, clicks go to the text underneath */
+.cm-stickers-peek .cm-sticker {
+  opacity: var(--sticker-peek-opacity);
+  pointer-events: none;
 }
 
 .cm-sticker-img {

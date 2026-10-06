@@ -23,6 +23,10 @@ export interface Settings {
   stickers: {
     /** Last stickers placed, most recent first (drawer › Recent). */
     recent: string[];
+    /** "Show decorations" [DESIGN §8]. */
+    show: boolean;
+    /** Hidden in focus mode (off: they stay). */
+    hideInFocus: boolean;
   };
 }
 
@@ -78,7 +82,7 @@ export const DEFAULT_SETTINGS: Settings = {
     linkPreviews: true,
   },
   layout: { sidebarWidth: null, listWidth: null, sidebarCollapsed: false, listCollapsed: false, outlineOpen: false },
-  stickers: { recent: [] },
+  stickers: { recent: [], show: true, hideInFocus: false },
 };
 
 /** Stickers kept in Recent. */
@@ -124,6 +128,7 @@ export function sanitizeSettings(s: Settings): Settings {
       paper: oneOf(e.paper, PAPERS, "plain"),
     },
     stickers: {
+      ...s.stickers,
       recent: Array.isArray(s.stickers.recent) ? s.stickers.recent.filter((r): r is string => typeof r === "string").slice(0, RECENT_STICKERS) : [],
     },
   };

@@ -34,6 +34,8 @@ export const SHORTCUTS = {
   "focus.toggleKey": { keys: "F11", scope: "global" },
   // Sticker drawer [DESIGN §10]; S is the same key on AZERTY and QWERTY.
   "stickers.drawer": { keys: "Ctrl+Shift+S", scope: "global" },
+  // "Hide stickers" of the open note; H is the same key on AZERTY and QWERTY.
+  "stickers.hide": { keys: "Ctrl+Shift+H", scope: "global" },
 } as const satisfies Record<string, { keys: string; scope: ShortcutScope }>;
 
 /** "editor" shortcuts run inside CodeMirror (see `editorKey`). */

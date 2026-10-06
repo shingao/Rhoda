@@ -46,6 +46,8 @@ interface AppState {
   /** Sticker drawer open (not persisted) and the vault's imported stickers ("Mine"). */
   stickerDrawer: boolean;
   stickerLibrary: string[];
+  /** Notes whose stickers are hidden ("Hide stickers", `.ursa/view.json`). */
+  hiddenStickers: Record<string, true>;
   /** Context menu of a sticker or post-it of the open note. */
   stickerMenu: { noteId: string; id: string; at: { x: number; y: number } } | null;
 }
@@ -95,6 +97,7 @@ export const useApp = create<AppState>()(() => ({
   stickerMenu: null,
   stickerDrawer: false,
   stickerLibrary: [],
+  hiddenStickers: {},
   focusMode: false,
 }));
 

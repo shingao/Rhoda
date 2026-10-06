@@ -1,10 +1,11 @@
 import { ViewPlugin, runScopeHandlers, type EditorView, type PluginValue, type ViewUpdate } from "@codemirror/view";
+import { cssPx } from "../../app/cssTokens";
 import { currentMessages } from "../../app/i18n";
 import { POSTIT_SIZE, STICKER_SIZE } from "../../core/stickers";
 import { editorHooks } from "../hooks";
 import { isHidden } from "../sections/visibility";
 import { buildPostit, fillPostit } from "./postit";
-import { blockStartAt, stickerTransaction, stickersField, stickersOf, type Placed } from "./state";
+import { blockStartAt, stickerTransaction, stickersField, stickersOf, stickersVisible, type Placed } from "./state";
 
 /**
  * Stickers and post-its drawn above the text, in an absolute layer of the
@@ -21,6 +22,9 @@ export interface Geometry {
   docTop: number;
   colLeft: number;
   colWidth: number;
+  /** Visible part of the scroller, left of the docked Contents panel. */
+  viewLeft: number;
+  viewRight: number;
 }
 
 /** Reads the layout (call from a measure phase or in response to the user). */
@@ -32,7 +36,10 @@ export function geometryOf(view: EditorView): Geometry {
   const padRight = parseFloat(style.paddingRight) || 0;
   const originX = scroll.left - view.scrollDOM.scrollLeft;
   const originY = scroll.top - view.scrollDOM.scrollTop;
+  const reserved = parseFloat(getComputedStyle(view.scrollDOM).paddingRight) || 0;
   return {
+    viewLeft: view.scrollDOM.scrollLeft,
+    viewRight: view.scrollDOM.scrollLeft + view.scrollDOM.clientWidth - reserved,
     originX,
     originY,
     docTop: view.documentTop - originY,
@@ -69,6 +76,26 @@ const ARROWS: Record<string, [number, number]> = { ArrowLeft: [-1, 0], ArrowRigh
 /** Placement animation for stickers added by the user (not when a note opens) [DESIGN §11]. */
 export const PLACE_EVENT = "ursa.sticker.place";
 
+/**
+ * Narrow window: a sticker placed in a margin that no longer fits lines up
+ * against the edge, a little smaller if needed, instead of covering the text.
+ * Display only: it goes back to its place when the window widens.
+ */
+export function fitInMargin(box: Box, width: number, g: Pick<Geometry, "colLeft" | "colWidth" | "viewLeft" | "viewRight">, edge: number, minScale: number): { x: number; scale: number } {
+  const colRight = g.colLeft + g.colWidth;
+  const limitRight = g.viewRight - edge;
+  const limitLeft = g.viewLeft + edge;
+  if (box.x >= colRight - 1 && box.x + width > limitRight) {
+    const scale = Math.max(minScale, Math.min(1, (limitRight - colRight) / width));
+    return { x: limitRight - width / 2 - (width * scale) / 2, scale };
+  }
+  if (box.x + width <= g.colLeft + 1 && box.x < limitLeft) {
+    const scale = Math.max(minScale, Math.min(1, (g.colLeft - limitLeft) / width));
+    return { x: limitLeft - width / 2 + (width * scale) / 2, scale };
+  }
+  return { x: box.x, scale: 1 };
+}
+
 /** A sticker whose top-left corner is at `box` (layer coordinates): anchored to the block under it. */
 export function placedAt<T extends Placed>(view: EditorView, geometry: Geometry, p: T, box: Box): T {
   const docY = clamp(box.y - geometry.docTop, 0, Math.max(0, view.contentHeight - 1));
@@ -82,9 +109,10 @@ class StickerLayer implements PluginValue {
   readonly dom: HTMLElement;
   private nodes = new Map<string, HTMLElement>();
   private items: readonly Placed[] = [];
-  private geometry: Geometry = { originX: 0, originY: 0, docTop: 0, colLeft: 0, colWidth: 1 };
-  /** Last drawn top-left corner of each sticker, in layer coordinates. */
+  private geometry: Geometry = { originX: 0, originY: 0, docTop: 0, colLeft: 0, colWidth: 1, viewLeft: 0, viewRight: 0 };
+  /** Top-left corner of each sticker where it belongs, and where it is drawn (narrow window), in layer coordinates. */
   private boxes = new Map<string, Box>();
+  private drawn = new Map<string, Box>();
   private gesture: Gesture | null = null;
   private selected: string | null = null;
   /** Post-it whose text is being edited. */
@@ -107,7 +135,11 @@ class StickerLayer implements PluginValue {
     this.dom.addEventListener("focusout", this.onBlur);
     this.dom.addEventListener("click", this.onClick);
     this.dom.addEventListener("dblclick", this.onDoubleClick);
+    window.addEventListener("keydown", this.onAlt, true);
+    window.addEventListener("keyup", this.onAlt, true);
+    window.addEventListener("blur", this.endPeek);
     this.sync(stickersOf(view.state), false);
+    this.dom.hidden = !stickersVisible(view.state);
     this.measure();
   }
 
@@ -117,13 +149,30 @@ class StickerLayer implements PluginValue {
       const placed = u.transactions.some((tr) => tr.isUserEvent(PLACE_EVENT));
       this.sync(items, placed);
     }
+    const visible = stickersVisible(u.state);
+    if (visible !== !this.dom.hidden) {
+      if (!visible && this.dom.contains(document.activeElement)) this.view.focus();
+      this.dom.hidden = !visible;
+    }
     if (items !== u.startState.field(stickersField) || u.docChanged || u.geometryChanged || u.heightChanged || u.viewportChanged) this.measure();
   }
+
+  /** Holding Alt: stickers turn see-through and let clicks reach the text. AltGr (Ctrl+Alt) is typing, not this. */
+  private readonly onAlt = (e: KeyboardEvent) => {
+    if (e.key !== "Alt") return;
+    if (e.type === "keydown" && !e.ctrlKey) this.dom.classList.add("cm-stickers-peek");
+    else this.endPeek();
+  };
+
+  private readonly endPeek = () => this.dom.classList.remove("cm-stickers-peek");
 
   destroy(): void {
     // Any late focus event must not reach the next note's state.
     this.editing = null;
     this.destroyed = true;
+    window.removeEventListener("keydown", this.onAlt, true);
+    window.removeEventListener("keyup", this.onAlt, true);
+    window.removeEventListener("blur", this.endPeek);
     this.dom.remove();
   }
 
@@ -154,6 +203,7 @@ class StickerLayer implements PluginValue {
       if (hadFocus) this.view.focus();
       this.nodes.delete(id);
       this.boxes.delete(id);
+      this.drawn.delete(id);
       if (this.selected === id) this.selected = null;
       if (this.editing === id) this.editing = null;
     }
@@ -222,9 +272,11 @@ class StickerLayer implements PluginValue {
       read: (view) => {
         const geometry = geometryOf(view);
         const tops = this.items.map((p) => (isHidden(view.state, p.pos) ? null : view.lineBlockAt(p.pos).top));
-        return { geometry, tops };
+        // A collapsed post-it is as wide as its pill.
+        const widths = this.items.map((p) => (p.collapsed ? (this.nodes.get(p.id)?.offsetWidth ?? p.size) : p.size));
+        return { geometry, tops, widths, edge: cssPx("--sticker-edge"), minScale: cssPx("--sticker-fit-min") };
       },
-      write: ({ geometry, tops }) => {
+      write: ({ geometry, tops, widths, edge, minScale }) => {
         this.geometry = geometry;
         this.items.forEach((p, i) => {
           const node = this.nodes.get(p.id);
@@ -233,10 +285,13 @@ class StickerLayer implements PluginValue {
           node.hidden = top === null || top === undefined;
           if (node.hidden) return;
           const box = { x: geometry.colLeft + (p.dx / 100) * geometry.colWidth, y: geometry.docTop + top! + p.dy };
+          const fit = fitInMargin(box, widths[i]!, geometry, edge, minScale);
           this.boxes.set(p.id, box);
+          this.drawn.set(p.id, { x: fit.x, y: box.y });
           if (this.gesture?.id === p.id) return;
-          node.style.left = `${box.x}px`;
+          node.style.left = `${fit.x}px`;
           node.style.top = `${box.y}px`;
+          node.style.setProperty("--sticker-fit", String(fit.scale));
         });
       },
     });
@@ -262,7 +317,8 @@ class StickerLayer implements PluginValue {
     const node = this.nodeOf(e.target);
     if (!node || e.button !== 0) return;
     const p = this.item(node.dataset.id!);
-    const box = this.boxes.get(node.dataset.id!);
+    // Dragging starts from where the sticker is drawn (possibly against the edge).
+    const box = this.drawn.get(node.dataset.id!);
     if (!p || !box) return;
     this.wasDragged = false;
     const target = e.target as Element;

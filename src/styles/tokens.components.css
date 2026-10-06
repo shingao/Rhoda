@@ -432,6 +432,10 @@
   --sticker-layer-z: 2;                    /* (decision) above the text and its selection layer */
   --sticker-rotation: 0deg;                /* set per sticker by the editor */
   --sticker-scale: 1;                      /* set while dragging */
+  --sticker-fit: 1;                        /* set by the editor in a narrow window */
+  --sticker-edge: 8px;                     /* (decision) margin kept from the window edge */
+  --sticker-fit-min: .4;                   /* (decision) smallest size when the margin is too narrow */
+  --sticker-peek-opacity: .3;              /* (decision) holding Alt */
 
   /* Sticker drawer [§10] */
   --drawer-w: 320px;
