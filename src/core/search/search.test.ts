@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { noteFromFile, type Note } from "../note/note";
 import { parseQuery, tokenize } from "./query";
 import { invalidateTextSources, registerTextSource, searchNotes, snippet } from "./search";
+import { postitText } from "../stickers";
 
 const NOW = new Date(2026, 9, 2, 15).getTime();
 let clock = 0;
@@ -116,5 +117,14 @@ describe("search", () => {
     const s = snippet(scan, parseQuery("nara"))!;
     expect(s.source).toBe("ocr");
     expect(s.ranges.map(([a, b]) => s.text.slice(a, b))).toEqual(["NARA"]);
+  });
+
+  it("indexes post-it text from the frontmatter", () => {
+    const decorated = note('---\nstickers:\n  - id: a\n    type: postit\n    text: |-\n      Samedi — marché d\'Aligre\n      avec Inès\n    anchor: { block: paragraph, text: "", index: 0 }\n---\n# Journal\nUne journée calme.\n');
+    registerTextSource({ name: "postit", text: (n) => postitText(n.stickers) || null });
+    invalidateTextSources();
+    expect(run([decorated], "aligre ines")).toEqual(["Journal"]);
+    const s = snippet(decorated, parseQuery("ines"))!;
+    expect(s.source).toBe("postit");
   });
 });

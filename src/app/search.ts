@@ -1,5 +1,6 @@
 import { fold } from "../core/search/fold";
-import { warmIndex } from "../core/search/search";
+import { registerTextSource, warmIndex } from "../core/search/search";
+import { postitText } from "../core/stickers";
 import type { Needle } from "../core/search/query";
 import { editorSelectionText, focusEditor, revealFirstMatch, setFindNeedles } from "../editor/session";
 import { createNote, selectNote } from "./notes";
@@ -98,6 +99,8 @@ function warmUp(): void {
 
 /** Keeps the editor's highlights in sync; a result opened during a search shows its first occurrence. */
 export function connectSearch(): void {
+  // Post-it text is searchable; a match there is marked "Trouvé dans un post-it".
+  registerTextSource({ name: "postit", text: (note) => postitText(note.stickers) || null });
   warmUp();
   let last = "";
   useApp.subscribe((state, previous) => {

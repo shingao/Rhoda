@@ -3,6 +3,7 @@ import { uuidv7 } from "../id";
 import { joinFrontmatter, parseFrontmatter, patchFrontmatter, splitFrontmatter, type FrontmatterData } from "./frontmatter";
 import { applyEol, detectEol, normalizeEol, previewFromBody, titleFromBody, type Eol } from "./text";
 import { extractSyntax, type NoteSyntax } from "../markdown/extract";
+import { parseStickers, type Sticker } from "../stickers";
 
 /** A note file as returned by the backend. */
 export interface NoteFile {
@@ -39,6 +40,8 @@ export interface Note {
   /** Page background and red margin from the frontmatter; null = default setting. */
   paper: Paper | null;
   margin: boolean | null;
+  /** Stickers and post-its from the frontmatter (`stickers:`), in place order. */
+  stickers: Sticker[];
   /** Tags, wiki links and todos; null until indexed (done in the background at startup). */
   syntax: NoteSyntax | null;
 }
@@ -84,6 +87,7 @@ function deriveFromFrontmatter(frontmatter: string | null, file: { created: numb
     pinned: data.pinned === true,
     archived: data.archived === true,
     trashed: data.trashed !== undefined && data.trashed !== false && data.trashed !== null,
+    stickers: parseStickers(data.stickers),
   };
 }
 

@@ -45,7 +45,7 @@ export const fr = {
     noResultsHint: "Vérifie l'orthographe, ou retire un filtre.",
     createNote: (title: string) => `Créer la note « ${title} »`,
     archived: "Archivée",
-    foundIn: { ocr: "Trouvé dans l'image" } as Record<string, string>,
+    foundIn: { ocr: "Trouvé dans l'image", postit: "Trouvé dans un post-it" } as Record<string, string>,
     suggestions: "Suggestions",
     removeChip: (chip: string) => `Retirer ${chip}`,
     operators: {

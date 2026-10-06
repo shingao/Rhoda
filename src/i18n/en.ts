@@ -43,7 +43,7 @@ export const en: Messages = {
     noResultsHint: "Check the spelling, or remove a filter.",
     createNote: (title: string) => `Create the note “${title}”`,
     archived: "Archived",
-    foundIn: { ocr: "Found in image" } as Record<string, string>,
+    foundIn: { ocr: "Found in image", postit: "Found in a sticky note" } as Record<string, string>,
     suggestions: "Suggestions",
     removeChip: (chip: string) => `Remove ${chip}`,
     operators: {
