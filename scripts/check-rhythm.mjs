@@ -31,6 +31,16 @@ try {
     const note = Object.values(useApp.getState().notes).find((n) => n.title === "Rythme vertical");
     revealNote(note.id);
   });
+  // Stickers and post-its are drawn above the text: the rhythm must not move.
+  await page.waitForTimeout(300);
+  const decorations = await page.evaluate(() => ({
+    stickers: document.querySelectorAll(".cm-sticker:not(.cm-postit)").length,
+    postits: document.querySelectorAll(".cm-postit").length,
+  }));
+  if (decorations.stickers === 0 || decorations.postits === 0) {
+    console.error(`✗ stickers and post-its expected on the note (found ${decorations.stickers} / ${decorations.postits})`);
+    failures++;
+  } else console.log(`✓ ${decorations.stickers} stickers and ${decorations.postits} post-its present`);
 
   for (const font of FONTS) {
     for (const size of SIZES) {

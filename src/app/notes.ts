@@ -23,7 +23,9 @@ import { assetsApi } from "../services/assets";
 /** Attachments folder of the vault (the Rust side uses the same name). */
 const ASSETS_DIR = "assets";
 import { editorStickers, editorText, focusEditor, forgetNote, replaceFromDisk, rewriteInEditor, showNote } from "../editor/session";
-import { serializeStickers } from "../core/stickers";
+import { cloneStickers, serializeStickers, stickerId } from "../core/stickers";
+import { patchFrontmatter } from "../core/note/frontmatter";
+import { uuidv7 } from "../core/id";
 import { errorKind } from "../services/errors";
 import { vaultApi } from "../services/vault";
 import { currentMessages } from "./i18n";
@@ -642,6 +644,36 @@ export async function createNote(title?: string): Promise<void> {
   focusEditor(true);
 }
 
+/**
+ * "Duplicate": a new note with the same text and frontmatter (other keys
+ * kept), a new id and creation date, unpinned, its stickers copied with new
+ * ids. Selected afterwards.
+ */
+export async function duplicateNote(id: string): Promise<void> {
+  await flushNote(id);
+  const source = noteById(id);
+  if (!source) return;
+  const untitled = currentMessages().untitled;
+  const copy = await enqueue(async () => {
+    const now = Date.now();
+    const stickers = cloneStickers(editorStickers(id) ?? source.stickers, () => stickerId());
+    const frontmatter = patchFrontmatter(source.frontmatter, {
+      id: uuidv7(now),
+      created: isoLocal(now),
+      pinned: undefined,
+      trashed: undefined,
+      stickers: serializeStickers(stickers),
+    });
+    const content = serializeNote({ frontmatter, body: currentText(id), eol: source.eol });
+    const created = noteFromFile(await vaultApi.create(sanitizeStem(source.title, untitled), content));
+    putNote(created);
+    lastTitles.set(created.id, created.title);
+    return created;
+  });
+  if (!currentList().some((n) => n.id === copy.id)) setState({ filter: { kind: "section", section: "notes" } });
+  selectNote(copy.id);
+}
+
 /** Keeps a sensible selection when a note leaves the current list. */
 function reselectAfter(id: string, listBefore: Note[]): void {
   if (getState().selectedId !== id || currentList().some((n) => n.id === id)) return;
@@ -696,21 +728,28 @@ export async function deleteNotes(ids: string[], op: BulkOperation = "delete-not
   return result;
 }
 
+/** Vault files a note uses: links and images in its text, imported stickers in its frontmatter. */
+function referencesOf(note: Note): Set<string> {
+  const refs = localReferences(note.path, currentText(note.id));
+  for (const s of editorStickers(note.id) ?? note.stickers) if (s.asset?.startsWith(`${ASSETS_DIR}/`)) refs.add(s.asset);
+  return refs;
+}
+
 /**
- * Files of `assets/` that the notes `ids` point to and no other note does
- * (trash and archive included), and that still exist.
+ * Files of `assets/` (images, PDF, imported stickers) that the notes `ids`
+ * point to and no other note does (trash and archive included), and that
+ * still exist.
  */
 async function orphanAssets(ids: string[]): Promise<string[]> {
   const leaving = new Set(ids);
   const theirs = new Set<string>();
   for (const id of ids) {
-    const note = noteById(id)!;
-    for (const path of localReferences(note.path, currentText(id))) if (path.startsWith(`${ASSETS_DIR}/`)) theirs.add(path);
+    for (const path of referencesOf(noteById(id)!)) if (path.startsWith(`${ASSETS_DIR}/`)) theirs.add(path);
   }
   if (theirs.size === 0) return [];
   for (const note of Object.values(getState().notes)) {
     if (leaving.has(note.id)) continue;
-    for (const path of localReferences(note.path, currentText(note.id))) theirs.delete(path);
+    for (const path of referencesOf(note)) theirs.delete(path);
   }
   const candidates = [...theirs];
   const infos = await assetsApi.info(candidates).catch(() => candidates.map(() => null));

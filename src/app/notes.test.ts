@@ -252,6 +252,25 @@ describe("stickers", () => {
   });
 });
 
+describe("duplicate", () => {
+  it("copies text, frontmatter and stickers with new ids", async () => {
+    seed("Journal.md", "---\nid: j\npinned: true\nmood: calme\nstickers:\n  - { id: a1, type: postit, text: Bonjour, anchor: { block: heading, text: journal, index: 0 } }\n---\n# Journal\n\nTexte.\n");
+    await loadNotes(diskFiles());
+    const { duplicateNote } = await import("./notes");
+    await duplicateNote("j");
+    const copy = notes().find((n) => n.id !== "j")!;
+    expect(copy.path).toBe("Journal 2.md");
+    expect(copy.title).toBe("Journal");
+    expect(copy.body).toBe("# Journal\n\nTexte.\n");
+    expect(copy.pinned).toBe(false);
+    expect(copy.stickers).toHaveLength(1);
+    expect(copy.stickers[0]).toMatchObject({ kind: "postit", text: "Bonjour" });
+    expect(copy.stickers[0]!.id).not.toBe("a1");
+    expect(fake.files.get("Journal 2.md")!.content).toContain("mood: calme");
+    expect(getState().selectedId).toBe(copy.id);
+  });
+});
+
 describe("file names", () => {
   it("adds a numeric suffix on case-insensitive collisions", async () => {
     seed("plan.md", "---\nid: p\n---\n# plan\n");
@@ -657,6 +676,21 @@ describe("safety backups before bulk operations", () => {
     expect(await undoBulk(backup!)).toBe("undone");
     expect(fake.files.get("assets/seule.png")?.content).toBe("PNG-A");
     expect(getState().notes.img).toBeDefined();
+  });
+
+  it("treats imported stickers like images: orphans to the recycle bin, kept if another note uses them", async () => {
+    seed("assets/stickers/chat.png", "PNG-CHAT");
+    seed("assets/stickers/etoile.svg", "SVG");
+    const sticker = (asset: string) => `  - { id: s-${asset.length}, type: sticker, asset: ${asset}, anchor: { block: heading, text: x, index: 0 } }`;
+    seed("S.md", `---\nid: s\nstickers:\n${sticker("assets/stickers/chat.png")}\n${sticker("assets/stickers/etoile.svg")}\n  - { id: f, type: sticker, asset: fluent/sun, anchor: { block: heading, text: x, index: 0 } }\n---\n# S\n`);
+    seed("T.md", `---\nid: t\nstickers:\n${sticker("assets/stickers/etoile.svg")}\n---\n# T\n`);
+    await loadNotes(diskFiles());
+    const { backup } = await deleteNotes(["s"]);
+    expect(fake.files.has("assets/stickers/chat.png")).toBe(false);
+    expect(fake.files.has("assets/stickers/etoile.svg")).toBe(true);
+    expect([...fake.backups.get(backup!)!.keys()].sort()).toEqual(["S.md", "assets/stickers/chat.png"]);
+    expect(await undoBulk(backup!)).toBe("undone");
+    expect(fake.files.get("assets/stickers/chat.png")?.content).toBe("PNG-CHAT");
   });
 
   it("purges backups older than 30 days", async () => {

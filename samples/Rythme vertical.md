@@ -3,6 +3,11 @@ id: 0192f3a8-0000-7000-8000-000000000005
 created: 2026-10-02T12:00:00+02:00
 paper: lined
 margin: true
+stickers:
+  - { id: rythme-1, type: sticker, asset: fluent/sparkles, anchor: { block: heading, text: rythme vertical, index: 0 }, dx: 104, dy: -10, rotation: 6, size: 64, z: 0 }
+  - { id: rythme-2, type: sticker, asset: fluent/potted_plant, anchor: { block: paragraph, text: chaque ligne de cette note doit tomber sur la réglure, index: 2 }, dx: 40, dy: 10, rotation: -5, size: 96, z: 1 }
+  - { id: rythme-3, type: postit, text: "Les stickers et post-it ne\ndécalent jamais le texte.", color: green, anchor: { block: paragraph, text: chaque ligne de cette note doit tomber sur la réglure, index: 2 }, dx: 104, dy: 0, rotation: -2, size: 168, z: 0 }
+  - { id: rythme-4, type: postit, text: Replié, color: blue, collapsed: true, anchor: { block: heading, text: images, index: 20 }, dx: 104, dy: 0, rotation: 1.5, size: 148, z: 1 }
 ---
 # Rythme vertical
 #tests/rythme #ursa

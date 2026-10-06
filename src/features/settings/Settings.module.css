@@ -357,3 +357,96 @@
   font-variant-numeric: tabular-nums;
   color: var(--text-3);
 }
+
+/* About and third-party licences (decision P8) */
+.about {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.aboutName {
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+}
+
+.aboutVersion {
+  margin-left: var(--sp-2);
+  color: var(--text-3);
+  font-size: var(--settings-hint-fs);
+  font-weight: var(--fw-regular);
+  font-variant-numeric: tabular-nums;
+}
+
+.aboutText {
+  margin: 0;
+  color: var(--text-2);
+  font-size: var(--settings-label-fs);
+  line-height: var(--lh-ui);
+}
+
+.aboutHeading {
+  margin: var(--sp-3) 0 0;
+  font-size: var(--settings-label-fs);
+  font-weight: var(--fw-semibold);
+}
+
+.credits {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.credit {
+  padding: var(--sp-2) 0;
+  box-shadow: inset 0 -1px 0 var(--separator);
+}
+
+.credit:last-child {
+  box-shadow: none;
+}
+
+.creditHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.creditName {
+  font-size: var(--settings-label-fs);
+  font-weight: var(--fw-semibold);
+}
+
+.creditLicence {
+  flex: none;
+  color: var(--text-2);
+  font-size: var(--settings-hint-fs);
+}
+
+.creditMeta {
+  color: var(--text-3);
+  font-size: var(--settings-hint-fs);
+}
+
+.licence summary {
+  padding: var(--sp-1) 0;
+  color: var(--text-2);
+  font-size: var(--settings-hint-fs);
+  cursor: pointer;
+}
+
+.licence pre {
+  max-height: var(--licence-text-h);
+  margin: var(--sp-1) 0 var(--sp-2);
+  padding: var(--sp-3);
+  overflow: auto;
+  border-radius: var(--r-md);
+  background: var(--bg-sunken);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  line-height: var(--lh-snug);
+  white-space: pre-wrap;
+}

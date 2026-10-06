@@ -1,6 +1,6 @@
 # Ursa — PROGRESS
 
-État : **Phase 5 terminée** (à valider sur Windows) — en attente du « go » pour la phase 6.
+État : **Phase 8 terminée** (à valider sur Windows) — en attente du « go » pour la phase 9.
 
 | Phase | Sujet | État |
 |---|---|---|
@@ -12,7 +12,7 @@
 | 5 | Recherche | ✅ validée |
 | 6 | Thèmes, fonds de page, rythme, réglages | ✅ validée |
 | 7 | Images, aperçus de liens, PDF | ✅ validée |
-| 8 | Stickers et post-it | — |
+| 8 | Stickers et post-it | 🟡 terminée, à valider |
 | 9 | OCR local | — |
 | 10 | Export, raccourcis, palette, packaging | — |
 
@@ -642,6 +642,121 @@ Livrée en sous-étapes : 7a images (import, affichage, rythme), 7b sélection, 
     - hors ligne, la carte s'affiche depuis le cache ;
     - réglage désactivé : plus aucune carte.
 11. **PDF** : glisse un PDF : la carte montre sa 1re page et son nombre de pages, et un clic l'ouvre dans le lecteur par défaut.
+
+## Phase 8 — Stickers et post-it
+
+Livrée en sous-étapes : 8a modèle, ancrage et recherche ; 8b calque et annulation ; 8c tiroir ; 8d post-it ; 8e visibilité, fenêtre étroite, licences, orphelins, duplication, finitions.
+
+### Fait
+- **Modèle** (`src/core/stickers.ts`) :
+  - stockés dans le frontmatter `stickers:` : `id`, `type` (`sticker` | `postit`), `asset`, `text`, `color`, `collapsed`, `anchor { block, text, index }`, `dx`, `dy`, `rotation`, `size`, `z` ;
+  - entrées mal formées ignorées, nombres ramenés dans leurs bornes ;
+  - texte multi-ligne de post-it écrit en bloc YAML (`|-`), testé avec guillemets, deux-points, sauts de ligne, emoji, `#` et tirets.
+- **Ancrage robuste**, même stratégie que les replis :
+  - la clé du bloc est son type, le début normalisé de son texte et son rang ;
+  - la résolution essaie dans l'ordre : même type et même texte au rang le plus proche ; même texte ; texte retouché (même début) ; même rang ; bloc le plus proche ;
+  - un sticker n'est jamais perdu, même si la note est modifiée dans un autre éditeur ou vidée ;
+  - `dx` est en % de la largeur de colonne, `dy` en px depuis le haut du bloc.
+- **Dans l'éditeur** (`src/editor/stickers/`) :
+  - `state.ts` :
+    - les stickers sont dans l'état CodeMirror, ancrés au début de ligne de leur bloc et suivis à chaque frappe ;
+    - poser, déplacer, tourner, redimensionner, supprimer, recolorer ou modifier un post-it sont des effets inversibles, annulés par **Ctrl+Z / Ctrl+Y dans le même historique que le texte** ;
+    - les clés d'ancrage sont recalculées à chaque sauvegarde de la note ;
+    - un rechargement depuis le disque n'entre pas dans l'historique.
+  - `layer.ts` :
+    - calque absolu dans le défilement de la note, coupé sur les côtés, pointeur seulement sur les stickers ;
+    - survol et sélection : cadre pointillé, 4 poignées, poignée de rotation, badge d'angle (Maj = pas de 15°), ombre levée et ×1,06 au glisser ;
+    - clavier : flèches (Maj = 10 px), `[` `]`, Suppr, Échap, menu contextuel ;
+    - ordre d'affichage : post-it au-dessus des stickers ;
+    - menu : Premier plan / Arrière-plan / Dupliquer / Couleur / Supprimer.
+  - `postit.ts` :
+    - Caveat 500 22/28, 4 couleurs, ombre « papier collé », coin ombré, scotch ;
+    - barre au survol gardée horizontale (couleurs, Replier, Supprimer) ;
+    - édition en place (double-clic, Entrée, ou dès la pose) ;
+    - pastille repliée (clic = déplier).
+- **Tiroir** (`src/features/stickers/`, Ctrl+Maj+S ou bouton de la barre) :
+  - catalogue de **209 Fluent Emoji 3D** en WebP 256 px (≈ 1,4 Mo), mots-clés fr/en ;
+  - catégories Récents / Nature / Cuisine / Voyage / Objets / Les miens, recherche insensible aux accents ;
+  - post-it, « Importer une image… » ;
+  - clic = pose au centre de la note ; glisser = pose à l'endroit lâché (fantôme 70 %) ;
+  - fichier de l'Explorateur déposé tiroir ouvert = sticker.
+- **Stickers importés** :
+  - PNG / WebP / SVG copiés dans `assets/stickers/` et dédoublonnés par SHA-256 (Rust `import_stickers`, `list_stickers`) ;
+  - SVG toujours via `<img>` ;
+  - comptés comme pièces jointes : orphelins à la Corbeille Windows lors d'une suppression définitive, inclus dans la sauvegarde, rendus par « Annuler ».
+- **Visibilité** :
+  - bouton œil et Ctrl+Maj+H « Masquer les stickers », mémorisé par note dans `.ursa/view.json` ;
+  - Alt maintenu : transparents et clics vers le texte ;
+  - masqués dans une section repliée ou hors de la section isolée (`visibility.ts`) ;
+  - Réglages › Éditeur : « Afficher les décorations », « Masquer les décorations en mode focus ».
+- **Fenêtre étroite** : les stickers des marges se rangent contre le bord et rétrécissent pour tenir dans la marge au lieu de recouvrir le texte. C'est un simple affichage : ils reprennent leur place quand la fenêtre s'élargit.
+- **Recherche** : le texte des post-it est indexé (source de texte `postit`) ; la carte du résultat porte « Trouvé dans un post-it ».
+- **Dupliquer une note** (menu de la liste et « … » de l'éditeur) : même texte et même frontmatter, nouvel `id`, nouvelle date de création, non épinglée, stickers copiés avec de nouveaux id.
+- **Réglages › À propos** : version, confidentialité, licences tierces avec les textes complets (MIT de Fluent Emoji, OFL des polices, ISC, Apache 2.0).
+- **Tests** :
+  - Vitest 176 (modèle, ancrage, YAML, historique, fenêtre étroite, sauvegarde, orphelins, duplication) ; Rust 28 (+1 ignoré, réseau réel) ;
+  - `test:rhythm` 26/26 avec 2 stickers et 2 post-it sur « Rythme vertical » (le script vérifie leur présence).
+- **Performance**, note de 120 paragraphes avec 50 stickers et post-it (navigateur, coffre factice) :
+  - frappe : 16,7 ms médiane (une image), 22 ms au pire ;
+  - défilement : 16,7 ms médiane, 19 ms au 95e centile ;
+  - fichier : 25 Ko.
+- Notes d'exemple : « Mardi 2 octobre » (`samples/Journal décoré.md`, la page journal de la maquette B) et « Rythme vertical » décorée.
+
+### Décisions (phase 8)
+| # | Sujet | Décision |
+|---|---|---|
+| P8-1 | Taille | Clé `size` (largeur en px : stickers 40–200, post-it 120–240) plutôt que `scale` du brief, plus lisible et bornée par DESIGN. Un champ `z` garde l'ordre d'empilement. |
+| P8-2 | Rang de bloc | Un titre, une règle, une image ou une carte sont un bloc chacun ; un paragraphe, une citation, un tableau ou un bloc de code sont un bloc ; **chaque élément de liste est un bloc** (un sticker posé à côté d'une tâche suit cette tâche). |
+| P8-3 | Ancre en mémoire | Début de la ligne du bloc, suivi à chaque modification ; la clé (type, texte, rang) n'est recalculée qu'à la sauvegarde, pour ne pas coûter à chaque frappe. Si deux paragraphes fusionnent, le sticker suit le bloc qui les contient. |
+| P8-4 | Glisser depuis le tiroir | Fait aux évènements de pointeur, pas en glisser-déposer HTML : sous Windows, le dépôt de fichiers natif de Tauri bloque le glisser-déposer HTML dans la WebView. |
+| P8-5 | Fichier déposé | Tiroir ouvert : un fichier image déposé devient un sticker. Tiroir fermé : il reste une image dans le texte (phase 7). |
+| P8-6 | Post-it | Pas de poignée de rotation (rotation ±3° à la pose, `[` `]` au clavier) ; redimensionnement aux angles. Le scotch est présent sur environ la moitié des post-it, incliné de −4° ou +3°, choisi d'après leur id (stable). Une édition en cours est enregistrée dans sa note avant l'affichage d'une autre. |
+| P8-7 | Mode focus | Option « Masquer les décorations en mode focus » **désactivée par défaut** (les stickers font partie de la note) ; « Afficher les décorations » les masque partout. |
+| P8-8 | Fenêtre étroite | Seuls les stickers posés entièrement dans une marge se rangent ; ceux posés sur le texte restent où l'utilisateur les a mis. Réduction jusqu'à 40 % (`--sticker-fit-min`), à 8 px du bord, et jamais sous le panneau Sommaire ancré. |
+| P8-9 | Alt | Alt seul (pas AltGr, indispensable pour taper `#`, `@` ou `[` sur AZERTY). |
+| P8-10 | Raccourcis | Ctrl+Maj+S tiroir (DESIGN), Ctrl+Maj+H masquer : S et H sont au même endroit en AZERTY et QWERTY. |
+| P8-11 | Orphelins | Une image de « Les miens » utilisée seulement par les notes supprimées définitivement part à la Corbeille avec elles (et revient avec « Annuler » ou Réglages › Sauvegardes). Une image de « Les miens » utilisée par aucune note reste dans la bibliothèque. |
+| P8-12 | Catalogue | 209 emoji : Nature 55, Cuisine 54, Voyage 50, Objets 50 ; identifiant `fluent/<nom Fluent>` (ex. `fluent/hot_beverage`) ; source : paquet `@lobehub/fluent-emoji-3d` (MIT), copié tel quel. |
+| P8-13 | Récents | 16 derniers stickers posés, dans les réglages de l'app (pas dans le coffre) ; les images importées d'un autre coffre n'y apparaissent pas. |
+
+### Comparaison avec la maquette « Paper and Stickers » (B1, B2, C)
+Captures : `docs/captures/phase-8/` — 01 et 02 page journal claire (coral, tiroir ouvert et sticker survolé, comme B1), 03 et 04 page journal sombre (graphite, post-it survolé, comme B2), 05 à 15 états, fenêtre étroite, recherche, réglages. Le canevas HTML de la maquette ne se rend pas hors ligne (moteur de gabarit distant) : comparaison faite sur ses cotes et les PNG fournis.
+
+**Conforme** :
+- fond ligné, marge rouge, café à droite du titre, feuille dans la marge gauche à hauteur de « Petites choses », étincelles en bas à droite ;
+- post-it jaune scotché (« Samedi — marché d'Aligre… ») et post-it rose ;
+- tiroir : place et taille, titre, recherche, puces, grille 4 colonnes de 68 px, carrés post-it inclinés, pied « Importer une image… » et texte d'aide ;
+- états : cadre pointillé et poignées, tige de rotation, badge « −2° » sombre sous le sticker, barre du post-it (pastilles, double anneau, Replier, Supprimer), anneau d'édition, pastille repliée.
+
+**Écarts** :
+- la maquette aligne la colonne à 160 px du bord ; Ursa la centre (réglage existant) : les stickers gardent leur position par rapport à la colonne ;
+- les puces françaises (Récents… Les miens) tiennent sur deux lignes dans 320 px (une en anglais, comme la maquette) ;
+- le bouton œil (masquer les stickers) est en plus dans la barre de l'éditeur, visible seulement si la note a des stickers ;
+- dans une fenêtre très étroite, les post-it rangés deviennent petits (jusqu'à 40 %) : leur texte n'est lisible qu'en élargissant la fenêtre, en masquant la liste ou en les déplaçant.
+
+### Checklist de test manuel (phase 8, Windows)
+1. Ouvre « Mardi 2 octobre » : la page ressemble à la maquette. Ctrl+Maj+S ouvre le tiroir, Échap le ferme.
+2. **Poser et annuler** :
+   - clique un sticker, puis glisse-en un autre sur la note : chacun est posé incliné ;
+   - déplace-en un, tourne-le (Maj = 15°), redimensionne-le, supprime-le (Suppr) ;
+   - Ctrl+Z annule chaque étape dans l'ordre, intercalée avec la frappe ; Ctrl+Y rétablit.
+3. **Post-it** :
+   - clique un carré jaune : le post-it s'ouvre en édition. Tape `Dit : "oui"`, Entrée, `2e ligne 🌻`, Échap ;
+   - ouvre le `.md` dans le Bloc-notes : le texte est intact dans le frontmatter et le Markdown sous le frontmatter est inchangé ;
+   - change sa couleur, replie-le, déplie-le ; Ctrl+Z annule chaque étape.
+4. **Ancrage** : dans le Bloc-notes, ajoute des paragraphes au-dessus de « Petites choses » et modifie un mot du titre, puis enregistre. Dans Ursa, chaque sticker reste à côté de son bloc. Supprime le bloc d'un sticker : le sticker passe au bloc le plus proche, il n'est pas perdu.
+5. **Les miens** :
+   - « Importer une image… » avec une PNG et une SVG : elles apparaissent dans « Les miens » et dans `assets/stickers/`. Réimporte la même : pas de doublon ;
+   - tiroir ouvert, glisse une PNG depuis l'Explorateur sur la note : elle devient un sticker à cet endroit.
+6. **Visibilité** :
+   - Ctrl+Maj+H masque les stickers de cette note seulement, et l'état est retrouvé au redémarrage ;
+   - maintiens Alt : les stickers deviennent transparents et un clic place le curseur dans le texte dessous ;
+   - AltGr+3 tape toujours `#` ;
+   - replie une section : ses stickers disparaissent.
+7. **Fenêtre étroite** : réduis la fenêtre avec la liste ouverte. Les post-it de droite se rangent contre le bord, plus petits, sans couvrir le texte. Élargis : ils reviennent.
+8. **Recherche** : cherche un mot d'un post-it. La carte du résultat indique « Trouvé dans un post-it ».
+9. **Dupliquer** la note (clic droit dans la liste) : la copie a ses stickers, avec de nouveaux `id` dans le frontmatter. Supprime définitivement une note qui utilise seule une image de « Les miens » : l'image va à la Corbeille Windows et « Annuler » la ramène.
+10. **Performance** : sur une note avec une cinquantaine de stickers, la frappe et le défilement restent fluides. Réglages › À propos montre les licences (Fluent Emoji MIT, Caveat OFL).
 
 ---
 

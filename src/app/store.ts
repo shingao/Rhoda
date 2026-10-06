@@ -52,7 +52,7 @@ interface AppState {
   stickerMenu: { noteId: string; id: string; at: { x: number; y: number } } | null;
 }
 
-export type SettingsPage = "general" | "editor" | "backups";
+export type SettingsPage = "general" | "editor" | "backups" | "about";
 
 export interface SearchInput {
   chips: string[];

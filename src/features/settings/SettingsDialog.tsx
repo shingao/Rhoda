@@ -1,9 +1,10 @@
 import { useId, useRef } from "react";
-import { ArchiveRestore, PenLine, SlidersHorizontal, type LucideIcon } from "lucide-react";
+import { ArchiveRestore, Info, PenLine, SlidersHorizontal, type LucideIcon } from "lucide-react";
 import { useT } from "../../app/i18n";
 import { setState, useApp, type SettingsPage } from "../../app/store";
 import { Dialog } from "../../components/Dialog";
 import { CloseButton } from "../../components/Modal";
+import { AboutPage } from "./AboutPage";
 import { BackupsPage } from "./BackupsPage";
 import { EditorPage } from "./EditorPage";
 import { GeneralPage } from "./GeneralPage";
@@ -13,6 +14,7 @@ const PAGES: ReadonlyArray<{ id: SettingsPage; icon: LucideIcon }> = [
   { id: "general", icon: SlidersHorizontal },
   { id: "editor", icon: PenLine },
   { id: "backups", icon: ArchiveRestore },
+  { id: "about", icon: Info },
 ];
 
 const close = () => setState({ settingsPage: null });
@@ -58,6 +60,7 @@ function SettingsContent({ page }: { page: SettingsPage }) {
           {page === "general" && <GeneralPage />}
           {page === "editor" && <EditorPage />}
           {page === "backups" && <BackupsPage />}
+          {page === "about" && <AboutPage />}
         </div>
       </div>
     </Dialog>

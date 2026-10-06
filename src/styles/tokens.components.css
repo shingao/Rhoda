@@ -417,6 +417,9 @@
   /* Empty states (decision) */
   --empty-icon: 28px;
 
+  /* Settings › About (decision P8) */
+  --licence-text-h: 240px;
+
   /* Stickers [§8] */
   --sticker-frame-gap: 6px;                /* dashed frame 6 px around */
   --sticker-frame-w: 1px;
