@@ -309,6 +309,18 @@ export const fr = {
     pdfMissing: (name: string) => `PDF introuvable : ${name}`,
     units: ["o", "Ko", "Mo", "Go"] as readonly [string, string, string, string],
   },
+  stickers: {
+    sticker: "Sticker",
+    postit: "Post-it",
+    menu: "Options du sticker",
+    front: "Premier plan",
+    back: "Arrière-plan",
+    duplicate: "Dupliquer",
+    remove: "Supprimer",
+    missing: "Image du sticker introuvable",
+    colors: { yellow: "Jaune", pink: "Rose", green: "Vert", blue: "Bleu" },
+    angle: (deg: number) => `${deg < 0 ? "−" : ""}${Math.abs(deg)}°`,
+  },
   remote: {
     title: "Image distante",
     download: "Télécharger localement",

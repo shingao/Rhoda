@@ -299,6 +299,18 @@ export const en: Messages = {
     pdfMissing: (name: string) => `PDF not found: ${name}`,
     units: ["B", "KB", "MB", "GB"] as readonly [string, string, string, string],
   },
+  stickers: {
+    sticker: "Sticker",
+    postit: "Sticky note",
+    menu: "Sticker options",
+    front: "Bring forward",
+    back: "Send back",
+    duplicate: "Duplicate",
+    remove: "Delete",
+    missing: "Sticker image not found",
+    colors: { yellow: "Yellow", pink: "Pink", green: "Green", blue: "Blue" },
+    angle: (deg: number) => `${deg < 0 ? "−" : ""}${Math.abs(deg)}°`,
+  },
   remote: {
     title: "Remote image",
     download: "Download locally",

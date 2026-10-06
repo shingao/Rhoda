@@ -9,6 +9,7 @@ import { CloseDialog } from "../close/CloseDialog";
 import { SettingsDialog } from "../settings/SettingsDialog";
 import { CropDialog } from "../editor/CropDialog";
 import { CardMenu } from "../editor/CardMenu";
+import { StickerMenu } from "../stickers/StickerMenu";
 import { EditorPane } from "../editor/EditorPane";
 import { NoteList } from "../notelist/NoteList";
 import { Sidebar } from "../sidebar/Sidebar";
@@ -55,6 +56,7 @@ export function AppLayout() {
       <SettingsDialog />
       <CropDialog />
       <CardMenu />
+      <StickerMenu />
       <CloseDialog />
       <ConfirmHost />
       <Toast />

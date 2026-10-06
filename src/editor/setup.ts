@@ -5,6 +5,8 @@ import { cssMs } from "../app/cssTokens";
 import { currentMessages } from "../app/i18n";
 import { backlinks } from "./backlinks";
 import { embeds } from "./embeds/field";
+import { stickerLayer } from "./stickers/layer";
+import { stickerState } from "./stickers/state";
 import { completions } from "./completion";
 import { markdownLanguage } from "./language";
 import { linkPreview } from "./linkPreview";
@@ -63,6 +65,9 @@ export function editorExtensions(): Extension {
     markdownLanguage(),
     rawMarkdown ? [] : livePreview,
     rawMarkdown ? [] : [linkPreview(), backlinks, embeds],
+    // Always in the state (saved with the note); drawn unless showing raw Markdown.
+    stickerState,
+    rawMarkdown ? [] : stickerLayer,
     completions(),
     folding,
     isolationField,

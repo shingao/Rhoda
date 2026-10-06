@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { NoteFile } from "../core/note/note";
+import type { Sticker } from "../core/stickers";
 
 /**
  * In-memory vault mimicking the Rust commands (case-insensitive collisions,
@@ -98,13 +99,19 @@ vi.mock("../services/assets", () => ({
   assetsApi: { info: async (paths: string[]) => paths.map((p) => (fake.files.has(p) ? { width: 1, height: 1, bytes: 1 } : null)) },
 }));
 /** Stand-in for the editor: one "open" note whose text lives here, as in CodeMirror. */
-const editor = vi.hoisted(() => ({ openId: null as string | null, text: "", rewrites: [] as Array<{ id: string; changes: unknown }> }));
+const editor = vi.hoisted(() => ({
+  openId: null as string | null,
+  text: "",
+  rewrites: [] as Array<{ id: string; changes: unknown }>,
+  stickers: null as Sticker[] | null,
+}));
 vi.mock("../editor/session", () => ({
   showNote: vi.fn(),
   replaceFromDisk: vi.fn(),
   forgetNote: vi.fn(),
   focusEditor: vi.fn(),
   editorText: (id: string) => (id === editor.openId ? editor.text : null),
+  editorStickers: (id: string) => (id === editor.openId ? editor.stickers : null),
   rewriteInEditor: (id: string, changes: Array<{ from: number; to: number; insert: string }>) => {
     if (id !== editor.openId) return "none";
     editor.rewrites.push({ id, changes });
@@ -169,6 +176,7 @@ beforeEach(async () => {
   editor.openId = null;
   editor.text = "";
   editor.rewrites = [];
+  editor.stickers = null;
   vi.mocked(session.replaceFromDisk).mockClear();
 });
 
@@ -209,6 +217,38 @@ describe("own changes echoed by the watcher", () => {
     expect(paths()).toEqual(["Sans titre.md"]);
     expect(await echoWatcher()).toBe(0);
     expect(notes()).toHaveLength(1);
+  });
+});
+
+describe("stickers", () => {
+  it("saves the editor's stickers in the frontmatter, keeping other keys", async () => {
+    seed("J.md", "---\nid: j\nmood: calme\n---\n# Journal\n\nTexte.\n");
+    await loadNotes(diskFiles());
+    editor.openId = "j";
+    editor.text = "# Journal\n\nTexte.\n";
+    editor.stickers = [
+      { id: "s1", kind: "postit", text: 'Dit : "oui"\n2e ligne 🌻', color: "pink", anchor: { type: "paragraph", text: "texte.", index: 1 }, dx: 105, dy: 0, rotation: -2, size: 168, z: 0 },
+    ];
+    editNote("j", editor.text);
+    await vi.advanceTimersByTimeAsync(600);
+    const content = fake.files.get("J.md")!.content;
+    expect(content).toContain("mood: calme");
+    expect(getState().notes.j?.stickers[0]?.text).toBe('Dit : "oui"\n2e ligne 🌻');
+    expect(content.endsWith("# Journal\n\nTexte.\n")).toBe(true);
+    // Removing the last sticker removes the key.
+    editor.stickers = [];
+    editNote("j", editor.text);
+    await vi.advanceTimersByTimeAsync(600);
+    expect(fake.files.get("J.md")!.content).not.toContain("stickers");
+    expect(await echoWatcher()).toBe(0);
+  });
+
+  it("passes stickers edited elsewhere to the editor", async () => {
+    seed("K.md", "---\nid: k\n---\n# K\n");
+    await loadNotes(diskFiles());
+    fake.files.set("K.md", { ...fake.files.get("K.md")!, content: "---\nid: k\nstickers:\n  - { id: x, type: sticker, asset: fluent/sun, anchor: { block: heading, text: k, index: 0 } }\n---\n# K\n" });
+    await handleDiskChanges(["K.md"]);
+    expect(session.replaceFromDisk).toHaveBeenCalledWith("k", "# K\n", [expect.objectContaining({ id: "x", asset: "fluent/sun" })]);
   });
 });
 
@@ -352,7 +392,7 @@ describe("external edits", () => {
     fake.files.set("A.md", { content: "---\nid: a\n---\n# A\nfrom Notepad\n", mtime: 5000, created: 1 });
     await handleDiskChanges(["A.md"]);
     expect(getState().notes.a?.body).toContain("from Notepad");
-    expect(session.replaceFromDisk).toHaveBeenCalledWith("a", "# A\nfrom Notepad\n");
+    expect(session.replaceFromDisk).toHaveBeenCalledWith("a", "# A\nfrom Notepad\n", []);
   });
 });
 
@@ -521,7 +561,7 @@ describe("safety backups before bulk operations", () => {
     expect(toast.action?.label).toBe("Annuler");
     const backup = [...fake.backups.keys()].find((k) => k.endsWith("-update-links"))!;
     expect(await undoBulk(backup)).toBe("undone");
-    expect(session.replaceFromDisk).toHaveBeenCalledWith("l", "# L\nVoir [[Voyage]]\n");
+    expect(session.replaceFromDisk).toHaveBeenCalledWith("l", "# L\nVoir [[Voyage]]\n", []);
   });
 
   it("emptying the trash can be undone: the notes come back, in the trash", async () => {

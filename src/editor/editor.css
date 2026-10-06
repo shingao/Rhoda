@@ -1143,3 +1143,215 @@
 .cm-find-current {
   box-shadow: 0 0 0 var(--find-current-ring) var(--accent);
 }
+
+/* Stickers [§8]: an absolute layer above the text; only the stickers take the pointer */
+.cm-stickers {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: var(--sticker-layer-z);
+  width: 100%;
+  height: 0;
+
+  /* A sticker past the edge never makes the note scroll sideways */
+  overflow: clip visible;
+  pointer-events: none;
+  user-select: none;
+}
+
+.cm-sticker {
+  position: absolute;
+  transform: rotate(var(--sticker-rotation)) scale(var(--sticker-scale));
+  outline: none;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.cm-sticker[hidden] {
+  display: none;
+}
+
+.cm-sticker-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: var(--sticker-shadow);
+  transition: filter var(--dur-fast) var(--ease-out);
+}
+
+.cm-sticker-missing {
+  border-radius: var(--r-md);
+  background: var(--bg-sunken);
+}
+
+.cm-sticker-missing .cm-sticker-img {
+  visibility: hidden;
+}
+
+/* Hover / selection: dashed frame, corner handles and rotation handle, turning with the sticker */
+.cm-sticker-frame {
+  position: absolute;
+  inset: calc(-1 * var(--sticker-frame-gap));
+  border: var(--sticker-frame-w) dashed var(--accent);
+  border-radius: var(--r-xs);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.cm-sticker-selected .cm-sticker-frame,
+.cm-sticker:hover .cm-sticker-frame {
+  visibility: visible;
+}
+
+.cm-sticker-handle {
+  position: absolute;
+  width: var(--sticker-handle);
+  height: var(--sticker-handle);
+  border: var(--sticker-handle-border) solid var(--accent);
+  border-radius: var(--sticker-handle-r);
+  background: var(--bg-2);
+  pointer-events: auto;
+}
+
+.cm-sticker-nw,
+.cm-sticker-ne {
+  top: calc(var(--sticker-handle) / -2);
+}
+
+.cm-sticker-sw,
+.cm-sticker-se {
+  bottom: calc(var(--sticker-handle) / -2);
+}
+
+.cm-sticker-nw,
+.cm-sticker-sw {
+  left: calc(var(--sticker-handle) / -2);
+}
+
+.cm-sticker-ne,
+.cm-sticker-se {
+  right: calc(var(--sticker-handle) / -2);
+}
+
+.cm-sticker-nw,
+.cm-sticker-se {
+  cursor: nwse-resize;
+}
+
+.cm-sticker-ne,
+.cm-sticker-sw {
+  cursor: nesw-resize;
+}
+
+/* Rotation handle: 20 px stem + 10 px circle above the frame */
+.cm-sticker-rotate {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  width: var(--sticker-knob);
+  height: calc(var(--sticker-stem) + var(--sticker-knob));
+  transform: translateX(-50%);
+  pointer-events: auto;
+  cursor: grab;
+}
+
+.cm-sticker-rotate::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: var(--sticker-frame-w);
+  height: var(--sticker-stem);
+  background: var(--accent);
+}
+
+.cm-sticker-rotate::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--sticker-knob);
+  height: var(--sticker-knob);
+  box-sizing: border-box;
+  border: var(--sticker-handle-border) solid var(--accent);
+  border-radius: var(--r-pill);
+  background: var(--bg-2);
+}
+
+/* Angle badge while rotating ("−2°") */
+.cm-sticker-angle {
+  position: absolute;
+  top: calc(100% + var(--sticker-badge-gap));
+  left: 50%;
+  display: none;
+  height: var(--sticker-badge-h);
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-pill);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-pop);
+  color: var(--text-2);
+  font-family: var(--font-ui);
+  font-size: var(--sticker-badge-fs);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--sticker-badge-h);
+  white-space: nowrap;
+  transform: translateX(-50%) rotate(calc(-1 * var(--sticker-rotation)));
+}
+
+.cm-sticker-rotating .cm-sticker-angle {
+  display: block;
+}
+
+/* Dragging: lifted shadow and a little larger */
+.cm-sticker-lifted,
+.cm-sticker-rotating {
+  --sticker-scale: var(--sticker-lift-scale);
+
+  cursor: grabbing;
+}
+
+.cm-sticker-lifted .cm-sticker-img,
+.cm-sticker-rotating .cm-sticker-img {
+  filter: var(--sticker-shadow-lift);
+}
+
+/* Placement [§11]: scale .9 → 1 and fade in (not when a note opens) */
+.cm-sticker-placed {
+  animation: cm-sticker-in var(--dur-base) var(--ease-out);
+}
+
+@keyframes cm-sticker-in {
+  from {
+    opacity: 0;
+    scale: var(--sticker-place-scale);
+  }
+}
+
+/* Post-its [§9] (detailed in 8d) */
+.cm-postit {
+  border-radius: var(--postit-r);
+  background: var(--postit-yellow);
+  box-shadow: var(--postit-shadow);
+  color: var(--postit-text);
+}
+
+.cm-postit[data-color="pink"] {
+  background: var(--postit-pink);
+}
+
+.cm-postit[data-color="green"] {
+  background: var(--postit-green);
+}
+
+.cm-postit[data-color="blue"] {
+  background: var(--postit-blue);
+}
+
+.cm-postit-text {
+  padding: var(--postit-pad);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

@@ -54,6 +54,10 @@ export interface EditorHooks {
   pasteClipboardImage(pos: number): void;
   /** Files pasted or dropped in the editor (images, PDF); true if taken care of. */
   attachFiles(files: File[], pos: number): boolean;
+  /** URL of a sticker image (`fluent/<code>` built in, or a vault path), or null if missing. */
+  stickerUrl(asset: string): string | null;
+  /** Right-click (or context menu key) on a sticker or post-it. */
+  openStickerMenu(id: string, at: { x: number; y: number }): void;
 }
 
 export interface Backlink {
@@ -86,6 +90,8 @@ let hooks: EditorHooks = {
   pdfCard: () => null,
   openAttachment: () => undefined,
   openCardMenu: () => undefined,
+  stickerUrl: () => null,
+  openStickerMenu: () => undefined,
 };
 
 export function setEditorHooks(next: Partial<EditorHooks>): void {

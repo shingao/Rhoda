@@ -416,6 +416,27 @@
 
   /* Empty states (decision) */
   --empty-icon: 28px;
+
+  /* Stickers [§8] */
+  --sticker-frame-gap: 6px;                /* dashed frame 6 px around */
+  --sticker-frame-w: 1px;
+  --sticker-handle: 8px;                   /* corner handles 8×8 */
+  --sticker-handle-border: 1.5px;
+  --sticker-handle-r: 2px;
+  --sticker-stem: 20px;                    /* rotation handle: stem + circle */
+  --sticker-knob: 10px;
+  --sticker-lift-scale: 1.06;              /* while dragging */
+  --sticker-place-scale: .9;               /* [§11] placement .9 → 1 */
+  --sticker-badge-h: 20px;                 /* (decision) angle badge, like the fold badge */
+  --sticker-badge-fs: 12px;
+  --sticker-badge-gap: var(--sp-2);
+  --sticker-layer-z: 2;                    /* (decision) above the text and its selection layer */
+  --sticker-rotation: 0deg;                /* set per sticker by the editor */
+  --sticker-scale: 1;                      /* set while dragging */
+
+  /* Post-its [§9] */
+  --postit-r: 2px;
+  --postit-pad: 20px 14px 0;
 }
 
 /* Reduced motion [§4]: everything instant except opacity fades (80 ms). */

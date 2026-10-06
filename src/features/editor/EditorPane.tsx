@@ -60,7 +60,8 @@ export function EditorPane() {
     const view = mountEditor(host.current, editorExtensions(), editNote);
     const detach = attachAutoHideScrollbar(view.scrollDOM);
     const { selectedId: id, notes } = useApp.getState();
-    showNote(id, id ? (notes[id]?.body ?? "") : "");
+    const note = id ? notes[id] : undefined;
+    showNote(id, note?.body ?? "", note?.stickers ?? []);
     return () => {
       detach();
       unmountEditor();

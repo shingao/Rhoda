@@ -231,3 +231,10 @@ export function placementRotation(kind: StickerKind, random = Math.random): numb
   const max = kind === "postit" ? 3 : 8;
   return round((random() * 2 - 1) * max);
 }
+
+/** Short id for a new sticker (unique within a note). */
+export function stickerId(random = Math.random): string {
+  let id = "";
+  for (let i = 0; i < 10; i++) id += Math.floor(random() * 36).toString(36);
+  return id;
+}

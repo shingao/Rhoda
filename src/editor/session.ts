@@ -1,7 +1,7 @@
 import { isolateHistory } from "@codemirror/commands";
 import { imageMarkdown, parseEmbedLine } from "../core/markdown/embeds";
 import type { Compartment} from "@codemirror/state";
-import { Annotation, EditorSelection, EditorState, type Extension, type StateEffect } from "@codemirror/state";
+import { Annotation, EditorSelection, EditorState, Transaction, type Extension, type StateEffect } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { cssPx } from "../app/cssTokens";
 import { foldKeys, matchFoldKeys, type FoldKey } from "../core/folds";
@@ -11,6 +11,9 @@ import { isolatedSection, toggleIsolation } from "./sections/focus";
 import { findField, findInfo, goToMatch, replaceAll, replaceCurrent, setNeedles, stepMatch } from "./find/find";
 import type { Needle } from "../core/search/query";
 import { headingsIn } from "./sections/headings";
+import { serializeStickers, type Sticker } from "../core/stickers";
+import { placeSticker, runStickerCommand, type NewSticker, type StickerCommand } from "./stickers/commands";
+import { changesStickers, loadStickers, placeStickers, stickersField, storedStickers } from "./stickers/state";
 
 /**
  * Owns the single EditorView and one EditorState per note (keyed by note id),
@@ -83,7 +86,9 @@ export function mountEditor(parent: HTMLElement, ext: Extension, onEdit: (id: st
   extensions = [
     ext,
     EditorView.updateListener.of((u) => {
-      if (u.docChanged && currentId && !u.transactions.some((t) => t.annotation(fromDisk))) {
+      // Sticker changes are saved with the note's frontmatter, through the same autosave.
+      const edited = (u.docChanged && !u.transactions.some((t) => t.annotation(fromDisk))) || u.transactions.some(changesStickers);
+      if (edited && currentId) {
         onEdit(currentId, u.state.doc.toString());
       }
       if (u.startState.field(findField) !== u.state.field(findField)) editorHooks().findChanged(findInfo(u.state));
@@ -113,7 +118,7 @@ export function resetEditor(): void {
 }
 
 /** Shows a note instantly (no animation, DESIGN §4). */
-export function showNote(id: string | null, body: string): void {
+export function showNote(id: string | null, body: string, stickers: readonly Sticker[]): void {
   if (!view || id === currentId) return;
   if (currentId) {
     states.set(currentId, view.state);
@@ -131,7 +136,10 @@ export function showNote(id: string | null, body: string): void {
   applyDynamic();
   view.dispatch({ effects: setNeedles.of(needles) });
   editorHooks().findChanged(findInfo(view.state));
-  if (!kept && id) restoreFolds(editorHooks().savedFolds(id));
+  if (!kept && id) {
+    restoreFolds(editorHooks().savedFolds(id));
+    loadFromDisk(stickers);
+  }
   // A kept state may show stale links or backlinks.
   refreshEditor();
 }
@@ -141,14 +149,28 @@ export function refreshEditor(): void {
   view?.dispatch({ effects: refreshPreview.of(null) });
 }
 
+/** Puts the stickers read from the file in the open note (not undoable, not saved back). */
+function loadFromDisk(stickers: readonly Sticker[]): void {
+  if (!view) return;
+  const same = JSON.stringify(serializeStickers(storedStickers(view.state))) === JSON.stringify(serializeStickers(stickers));
+  if (same) return;
+  view.dispatch({
+    effects: loadStickers.of(placeStickers(stickers, view.state.doc)),
+    annotations: [fromDisk.of(true), Transaction.addToHistory.of(false)],
+  });
+}
+
 /** Applies a change made outside Ursa, keeping the cursor where it can. */
-export function replaceFromDisk(id: string, body: string): void {
+export function replaceFromDisk(id: string, body: string, stickers: readonly Sticker[]): void {
   if (id !== currentId || !view) {
     states.delete(id);
     return;
   }
   const { state } = view;
-  if (state.doc.toString() === body) return;
+  if (state.doc.toString() === body) {
+    loadFromDisk(stickers);
+    return;
+  }
   const keys = currentFoldKeys(state);
   const clamp = (n: number) => Math.min(n, body.length);
   view.dispatch({
@@ -157,6 +179,30 @@ export function replaceFromDisk(id: string, body: string): void {
     annotations: [fromDisk.of(true)],
   });
   restoreFolds(keys);
+  loadFromDisk(stickers);
+}
+
+/** Stickers of a note as they should be saved (anchors from its current text), or null if the editor does not hold it. */
+export function editorStickers(id: string): Sticker[] | null {
+  const state = id === currentId && view ? view.state : states.get(id);
+  return state?.field(stickersField, false) ? storedStickers(state) : null;
+}
+
+/** Places a sticker or post-it in the open note (drawer click or drop). */
+export function addSticker(noteId: string, spec: NewSticker, at?: { x: number; y: number }): string | null {
+  if (!view || currentId !== noteId) return null;
+  return placeSticker(view, spec, at);
+}
+
+/** A sticker of the open note (for its menu). */
+export function stickerInfo(noteId: string, id: string): Sticker | null {
+  if (!view || currentId !== noteId) return null;
+  return view.state.field(stickersField, false)?.find((p) => p.id === id) ?? null;
+}
+
+/** Context menu of a sticker of the open note. */
+export function stickerCommand(noteId: string, id: string, command: StickerCommand): void {
+  if (view && currentId === noteId) runStickerCommand(view, id, command);
 }
 
 /** Latest text of a note in the editor (open or kept in memory), or null. */

@@ -8,6 +8,7 @@ import { openCrop } from "./crops";
 import { openCardMenu, urlCard } from "./previews";
 import { openAttachment, pdfCard } from "./pdfs";
 import { rememberFolds, savedFolds } from "./folds";
+import { openStickerMenu, stickerUrl } from "./stickers";
 import { currentMessages } from "./i18n";
 import { noteIndex, resolveTitle } from "./noteIndex";
 import { createNote, revealNote, setFilter } from "./notes";
@@ -56,6 +57,8 @@ export function connectEditor(): void {
     pdfCard,
     openAttachment,
     openCardMenu,
+    stickerUrl,
+    openStickerMenu,
     linkExists: (target) => resolve(target) !== null,
     openWikiLink: (target) => {
       const id = resolve(target);

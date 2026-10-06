@@ -22,7 +22,8 @@ import { assetsApi } from "../services/assets";
 
 /** Attachments folder of the vault (the Rust side uses the same name). */
 const ASSETS_DIR = "assets";
-import { editorText, focusEditor, forgetNote, replaceFromDisk, rewriteInEditor, showNote } from "../editor/session";
+import { editorStickers, editorText, focusEditor, forgetNote, replaceFromDisk, rewriteInEditor, showNote } from "../editor/session";
+import { serializeStickers } from "../core/stickers";
 import { errorKind } from "../services/errors";
 import { vaultApi } from "../services/vault";
 import { currentMessages } from "./i18n";
@@ -93,9 +94,18 @@ function nextRetryDelay(key: string): number {
   return RETRY_DELAYS[Math.min(count, RETRY_DELAYS.length - 1)]!;
 }
 
+/** The note with the stickers of its editor state (anchors recomputed from the text). */
+function withEditorStickers(note: Note): Note {
+  const list = editorStickers(note.id);
+  if (!list) return note;
+  const next = serializeStickers(list);
+  if (JSON.stringify(next) === JSON.stringify(serializeStickers(note.stickers))) return note;
+  return withFrontmatter(note, { stickers: next });
+}
+
 /** Writes a note (adding its id to the frontmatter if needed). Runs inside the queue; may throw. */
 async function persist(note: Note): Promise<Note> {
-  const toWrite = withStoredId(note);
+  const toWrite = withStoredId(withEditorStickers(note));
   const content = serializeNote(toWrite);
   if (content === toWrite.diskContent) {
     putNote(toWrite);
@@ -314,7 +324,7 @@ async function restoreItems(name: string, items: UndoItem[]): Promise<Note[]> {
     const note = noteFromFile(file, id);
     putNote(note);
     lastTitles.set(note.id, note.title);
-    if (existed) replaceFromDisk(id, note.body);
+    if (existed) replaceFromDisk(id, note.body, note.stickers);
     return note;
   });
 }
@@ -573,7 +583,7 @@ export async function flushAll(): Promise<void> {
 export function unsavedNotes(): Array<{ id: string; title: string; content: string }> {
   return [...pendingBodies].flatMap(([id, body]) => {
     const note = noteById(id);
-    return note ? [{ id, title: note.title, content: serializeNote(withStoredId(withBody(note, body))) }] : [];
+    return note ? [{ id, title: note.title, content: serializeNote(withStoredId(withEditorStickers(withBody(note, body)))) }] : [];
   });
 }
 
@@ -612,7 +622,8 @@ export function selectNote(id: string | null): void {
   if (previous === id) return;
   if (previous) void flushNote(previous);
   setState({ selectedId: id });
-  showNote(id, id ? (noteById(id)?.body ?? "") : "");
+  const note = id ? noteById(id) : undefined;
+  showNote(id, note?.body ?? "", note?.stickers ?? []);
 }
 
 /** New note, empty or with a title (e.g. from a link to a note that does not exist yet). */
@@ -819,7 +830,7 @@ export function handleDiskChanges(paths: string[]): Promise<void> {
         if (updated.id === existing.id) {
           putNote(updated);
           lastTitles.set(updated.id, updated.title);
-          replaceFromDisk(existing.id, updated.body);
+          replaceFromDisk(existing.id, updated.body, updated.stickers);
         } else {
           // Its id was edited by hand: treat as a different note.
           vanished.set(existing.id, existing);
@@ -834,11 +845,11 @@ export function handleDiskChanges(paths: string[]): Promise<void> {
       if (holder && vanished.has(note.id)) {
         vanished.delete(note.id);
         putNote(note);
-        if (holder.body !== note.body) replaceFromDisk(note.id, note.body);
+        replaceFromDisk(note.id, note.body, note.stickers);
       } else if (holder && (await vaultApi.read(holder.path)) === null) {
         // Moved outside Ursa, the old path being reported in another batch.
         putNote(note);
-        if (holder.body !== note.body) replaceFromDisk(note.id, note.body);
+        replaceFromDisk(note.id, note.body, note.stickers);
       } else if (holder) {
         await reidentify(note);
       } else {
@@ -848,7 +859,7 @@ export function handleDiskChanges(paths: string[]): Promise<void> {
     }
 
     const selectedVanished = vanished.has(getState().selectedId ?? "");
-    if (selectedVanished) showNote(null, "");
+    if (selectedVanished) showNote(null, "", []);
     for (const id of vanished.keys()) forget(id);
     removeNotes([...vanished.keys()]);
     if (selectedVanished) selectNote(currentList()[0]?.id ?? null);
