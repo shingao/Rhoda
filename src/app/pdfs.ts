@@ -5,6 +5,7 @@ import type { PdfState } from "../editor/embeds/pdfCard";
 import { refreshEditor } from "../editor/session";
 import { assetsApi } from "../services/assets";
 import { currentMessages } from "./i18n";
+import { openPdf } from "./pdfjs";
 import { getState } from "./store";
 
 /**
@@ -15,10 +16,7 @@ const states = new Map<string, PdfState>();
 
 /** Draws page 1 to a PNG about 2× the card preview. */
 async function drawFirstPage(url: string): Promise<{ png: Uint8Array; pages: number }> {
-  const pdfjs = await import("pdfjs-dist");
-  const worker = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
-  pdfjs.GlobalWorkerOptions.workerSrc = worker;
-  const doc = await pdfjs.getDocument({ url, isEvalSupported: false }).promise;
+  const doc = await openPdf(url);
   try {
     const page = await doc.getPage(1);
     const base = page.getViewport({ scale: 1 });

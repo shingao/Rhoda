@@ -4676,6 +4676,7 @@ dependencies = [
  "tokio",
  "trash",
  "url",
+ "windows",
 ]
 
 [[package]]

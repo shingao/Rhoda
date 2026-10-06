@@ -2,6 +2,7 @@ mod assets;
 mod backup;
 mod preview;
 mod error;
+mod ocr;
 mod settings;
 mod snapshots;
 mod vault;
@@ -26,6 +27,7 @@ pub fn run() {
                 .build(),
         )
         .manage(vault::VaultState::default())
+        .manage(ocr::OcrState::default())
         // Attachments and caches of the open vault, for <img> and pdf.js.
         .register_asynchronous_uri_scheme_protocol("vault", |ctx, request, responder| {
             // Thumbnails can take a moment: never on the main thread.
@@ -71,6 +73,12 @@ pub fn run() {
             assets::import_stickers,
             assets::pick_stickers,
             assets::list_stickers,
+            ocr::ocr_status,
+            ocr::ocr_cached,
+            ocr::ocr_image,
+            ocr::ocr_page,
+            ocr::ocr_store,
+            ocr::ocr_clear,
             assets::asset_info,
             preview::link_preview,
             preview::download_image,

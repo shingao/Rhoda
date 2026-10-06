@@ -20,6 +20,7 @@ export interface Settings {
     /** Contents panel open (remembered globally) [DESIGN §2.15]. */
     outlineOpen: boolean;
   };
+  ocr: OcrSettings;
   stickers: {
     /** Last stickers placed, most recent first (drawer › Recent). */
     recent: string[];
@@ -62,6 +63,17 @@ export interface EditorSettings {
   linkPreviews: boolean;
 }
 
+export interface OcrSettings {
+  /** Text of images and scanned PDF pages read in the background, for search. */
+  enabled: boolean;
+  /** Windows OCR languages (BCP 47 tags); null = French and English when installed. */
+  languages: string[] | null;
+  /** PDF pages read at most per file (text layer or OCR). */
+  pdfPages: number;
+}
+
+export const PDF_PAGES = { min: 5, max: 500, step: 5, default: 50 } as const;
+
 export const FONT_SIZE = { min: 14, max: 20, step: 0.5, default: 16.5 } as const;
 export const COLUMN_WIDTH = { min: 560, max: 860, step: 20, default: 660 } as const;
 
@@ -82,6 +94,7 @@ export const DEFAULT_SETTINGS: Settings = {
     linkPreviews: true,
   },
   layout: { sidebarWidth: null, listWidth: null, sidebarCollapsed: false, listCollapsed: false, outlineOpen: false },
+  ocr: { enabled: true, languages: null, pdfPages: PDF_PAGES.default },
   stickers: { recent: [], show: true, hideInFocus: false },
 };
 
@@ -126,6 +139,11 @@ export function sanitizeSettings(s: Settings): Settings {
       fontSize: Math.round(clamp(e.fontSize, FONT_SIZE.min, FONT_SIZE.max) / FONT_SIZE.step) * FONT_SIZE.step,
       columnWidth: Math.round(clamp(e.columnWidth, COLUMN_WIDTH.min, COLUMN_WIDTH.max) / COLUMN_WIDTH.step) * COLUMN_WIDTH.step,
       paper: oneOf(e.paper, PAPERS, "plain"),
+    },
+    ocr: {
+      enabled: s.ocr.enabled,
+      languages: Array.isArray(s.ocr.languages) ? s.ocr.languages.filter((l): l is string => typeof l === "string") : null,
+      pdfPages: Math.round(clamp(s.ocr.pdfPages, PDF_PAGES.min, PDF_PAGES.max)),
     },
     stickers: {
       ...s.stickers,

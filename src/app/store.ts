@@ -6,6 +6,7 @@ import { sortNotes, type SortKey } from "../core/note/sort";
 import { isEmptyQuery, parseQuery, type SearchQuery } from "../core/search/query";
 import { searchNotes } from "../core/search/search";
 import type { VaultErrorKind } from "../services/errors";
+import type { OcrStatus } from "../services/ocr";
 import { matchesFilter, type ListFilter } from "./sections";
 import { DEFAULT_SETTINGS, type Settings } from "../services/settings";
 
@@ -46,13 +47,15 @@ interface AppState {
   /** Sticker drawer open (not persisted) and the vault's imported stickers ("Mine"). */
   stickerDrawer: boolean;
   stickerLibrary: string[];
+  /** OCR: engine and languages, files left to read, and a counter bumped when results arrive. */
+  ocr: { status: OcrStatus | null; remaining: number; version: number };
   /** Notes whose stickers are hidden ("Hide stickers", `.ursa/view.json`). */
   hiddenStickers: Record<string, true>;
   /** Context menu of a sticker or post-it of the open note. */
   stickerMenu: { noteId: string; id: string; at: { x: number; y: number } } | null;
 }
 
-export type SettingsPage = "general" | "editor" | "backups" | "about";
+export type SettingsPage = "general" | "editor" | "ocr" | "backups" | "about";
 
 export interface SearchInput {
   chips: string[];
@@ -98,6 +101,7 @@ export const useApp = create<AppState>()(() => ({
   stickerDrawer: false,
   stickerLibrary: [],
   hiddenStickers: {},
+  ocr: { status: null, remaining: 0, version: 0 },
   focusMode: false,
 }));
 

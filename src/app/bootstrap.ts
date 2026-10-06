@@ -8,6 +8,7 @@ import { connectSearch } from "./search";
 import { flushAll, handleDiskChanges, prepareClose } from "./notes";
 import { getState, setState, useApp } from "./store";
 import { connectAttachments } from "./attachments";
+import { connectOcr } from "./ocr";
 import { connectPreviews } from "./previews";
 import { connectTagConfig } from "./tagOps";
 import { openVault } from "./vault";
@@ -32,6 +33,7 @@ export async function bootstrap(): Promise<void> {
     connectSearch();
     connectTagConfig();
     connectAttachments();
+    connectOcr();
     connectPreviews();
 
     await vaultApi.onChanged((paths) => void handleDiskChanges(paths));

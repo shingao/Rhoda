@@ -45,6 +45,7 @@ export const fr = {
     noResultsHint: "Vérifie l'orthographe, ou retire un filtre.",
     createNote: (title: string) => `Créer la note « ${title} »`,
     archived: "Archivée",
+    foundInPage: (page: number) => `Trouvé page ${page}`,
     foundIn: { ocr: "Trouvé dans l'image", postit: "Trouvé dans un post-it" } as Record<string, string>,
     suggestions: "Suggestions",
     removeChip: (chip: string) => `Retirer ${chip}`,
@@ -241,8 +242,21 @@ export const fr = {
     menu: "Réglages…",
     title: "Réglages",
     close: "Fermer les réglages",
-    pages: { general: "Général", editor: "Éditeur", backups: "Sauvegardes", about: "À propos" },
-    headings: { general: "Général et apparence", editor: "Éditeur", backups: "Sauvegardes", about: "À propos et licences tierces" },
+    pages: { general: "Général", editor: "Éditeur", ocr: "OCR", backups: "Sauvegardes", about: "À propos" },
+    headings: { general: "Général et apparence", editor: "Éditeur", ocr: "Texte des images (OCR)", backups: "Sauvegardes", about: "À propos et licences tierces" },
+    ocrEnabled: "Lire le texte des images et des PDF",
+    ocrEnabledHint: "En arrière-plan, sur cet ordinateur, pour que la recherche le trouve. Rien n'est envoyé sur Internet.",
+    ocrUnavailable:
+      "La reconnaissance de texte de Windows n'est pas disponible sur cet ordinateur. Ursa fonctionne normalement : seul le texte des images n'est pas lu (celui des PDF qui en contiennent l'est).",
+    ocrLanguages: "Langues de reconnaissance",
+    ocrNoLanguage: "Aucune langue de reconnaissance n'est installée dans Windows.",
+    ocrInstallHint:
+      "Il manque une langue ? Paramètres Windows › Heure et langue › Langue et région › Ajouter une langue, en cochant « Reconnaissance optique de caractères » (ou dans les options d'une langue déjà installée). Redémarrez ensuite Ursa.",
+    ocrPdfPages: "Pages lues par PDF",
+    ocrPdfPagesHint: "Les pages sans texte (scans) passent par l'OCR ; au-delà de cette limite, un PDF n'est pas lu.",
+    ocrProgress: "Avancement",
+    ocrUpToDate: "Tout est lu",
+    ocrReindex: "Réindexer",
     version: (v: string) => `version ${v}`,
     aboutText:
       "Vos notes restent des fichiers Markdown dans votre dossier. Ursa n'envoie rien : aucune télémétrie ; la seule requête réseau est l'aperçu des liens, désactivable dans Éditeur.",
@@ -337,6 +351,9 @@ export const fr = {
     pdfMeta: (pages: number | null, size: string) => (pages === null ? size : `${pages} page${pages > 1 ? "s" : ""} · ${size}`),
     pdfMissing: (name: string) => `PDF introuvable : ${name}`,
     units: ["o", "Ko", "Mo", "Go"] as readonly [string, string, string, string],
+  },
+  ocr: {
+    remaining: (n: number) => `OCR : ${n} fichier${n > 1 ? "s" : ""} restant${n > 1 ? "s" : ""}`,
   },
   stickers: {
     sticker: "Sticker",

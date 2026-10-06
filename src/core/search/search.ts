@@ -20,7 +20,16 @@ import type { Needle, Operator, SearchQuery } from "./query";
 export interface TextSource {
   /** Shown with the match ("Trouvé dans l'image" for "ocr"). */
   name: string;
-  text(note: Note): string | null;
+  /** One text, or several parts telling where each comes from (an image, a PDF page). */
+  text(note: Note): string | TextPart[] | null;
+}
+
+export interface TextPart {
+  text: string;
+  /** Vault path of the file the text was read from. */
+  file?: string;
+  /** PDF page (from 1). */
+  page?: number;
 }
 
 const sources: TextSource[] = [];
@@ -43,7 +52,7 @@ interface Entry {
   /** Folded tag keys, for #tag filters. */
   tagKeys: string[];
   body: string;
-  extra: Array<{ name: string; raw: string; text: string }>;
+  extra: Array<{ name: string; raw: string; text: string; file?: string; page?: number }>;
   images: boolean;
   pdf: boolean;
 }
@@ -59,7 +68,9 @@ function entry(note: Note): Entry {
   const tags = note.syntax?.tags.map((t) => t.name) ?? [];
   const extra = sources.flatMap((s) => {
     const raw = s.text(note);
-    return raw ? [{ name: s.name, raw, text: fold(raw) }] : [];
+    if (!raw) return [];
+    const parts = typeof raw === "string" ? [{ text: raw }] : raw;
+    return parts.filter((p) => p.text).map((p) => ({ name: s.name, raw: p.text, text: fold(p.text), file: p.file, page: p.page }));
   });
   const e: Entry = {
     version: sourcesVersion,
@@ -169,6 +180,9 @@ export interface Snippet {
   ranges: Array<[number, number]>;
   /** Text source of the match when it is not the note itself ("ocr"…). */
   source: string | null;
+  /** File and PDF page of the match, when the source tells. */
+  file?: string;
+  page?: number;
 }
 
 const LIST_MARK = /^\s*(?:>\s*)*(?:[-*+]|\d+[.)])?\s*(?:\[[ xX]\]\s+)?/;
@@ -219,7 +233,7 @@ export function snippet(note: Note, q: SearchQuery, before = 40, max = 200): Sni
   for (const x of e.extra) {
     if (!q.include.some((n) => contains(x.text, n.text, n.wordStart))) continue;
     const text = x.raw.replace(/\s+/g, " ").trim();
-    return { ...around(text, matchRanges(text, needles), before, max), source: x.name };
+    return { ...around(text, matchRanges(text, needles), before, max), source: x.name, ...(x.file && { file: x.file }), ...(x.page && { page: x.page }) };
   }
   return null;
 }

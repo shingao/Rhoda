@@ -450,3 +450,14 @@
   line-height: var(--lh-snug);
   white-space: pre-wrap;
 }
+
+/* OCR page: unavailable engine, missing language (decision P9) */
+.notice {
+  margin: 0;
+  padding: var(--sp-3);
+  border-radius: var(--r-md);
+  background: var(--bg-sunken);
+  color: var(--text-2);
+  font-size: var(--settings-hint-fs);
+  line-height: var(--lh-ui);
+}

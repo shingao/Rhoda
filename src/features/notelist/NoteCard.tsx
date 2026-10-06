@@ -6,7 +6,9 @@ import { firstImage } from "../../core/markdown/embeds";
 import { assetsApi } from "../../services/assets";
 import type { Note } from "../../core/note/note";
 import type { SearchQuery } from "../../core/search/query";
-import { highlights, snippet } from "../../core/search/search";
+import { highlights, snippet, type Snippet } from "../../core/search/search";
+import { coverOn, isOcrImage } from "../../core/ocr";
+import { ocrMatches } from "../../app/ocr";
 import s from "./NoteCard.module.css";
 
 interface NoteCardProps {
@@ -22,6 +24,8 @@ interface NoteCardProps {
   onContextMenu: (e: MouseEvent) => void;
   /** Active search: excerpt around the match, occurrences highlighted [DESIGN §2.3]. */
   query: SearchQuery | null;
+  /** Bumped when OCR results arrive (they change excerpts). */
+  textVersion: number;
 }
 
 /** Text with `<mark>` on the given ranges. */
@@ -48,12 +52,17 @@ function Marked({
   return <>{parts}</>;
 }
 
-/** First image of the note, 64×64 cover [DESIGN §2.4]; hidden if it cannot be shown. */
-function Thumb({ path }: { path: string }) {
-  return (
+/**
+ * First image of the note, 64×64 cover [DESIGN §2.4]; hidden if it cannot be
+ * shown. A match found by OCR shows that image, with the zone framed [§2.3].
+ */
+function Thumb({ path, zone }: { path: string; zone?: ReturnType<typeof coverOn> | null }) {
+  const img = (
     <img
       className={s.thumb}
-      src={assetsApi.thumbUrl(path)}
+      // Framed on the zone: the whole image (the cached thumbnail is already cropped to its centre).
+      src={zone ? assetsApi.url(path) : assetsApi.thumbUrl(path)}
+      style={zone ? { objectPosition: `${zone.position.x}% ${zone.position.y}%` } : undefined}
       alt=""
       loading="lazy"
       decoding="async"
@@ -62,6 +71,13 @@ function Thumb({ path }: { path: string }) {
         e.currentTarget.hidden = true;
       }}
     />
+  );
+  if (!zone) return img;
+  return (
+    <span className={s.thumbFrame}>
+      {img}
+      <span className={s.zone} style={{ left: `${zone.box.x}%`, top: `${zone.box.y}%`, width: `${zone.box.w}%`, height: `${zone.box.h}%` }} />
+    </span>
   );
 }
 
@@ -79,6 +95,7 @@ export const NoteCard = memo(
       onSelect,
       onContextMenu,
       query,
+      textVersion,
     },
     ref,
   ) {
@@ -94,12 +111,24 @@ export const NoteCard = memo(
           source: null,
         },
       };
-    }, [note, query]);
+      // textVersion: OCR results arrived since.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [note, query, textVersion]);
     const time = dateKind === "created" ? note.created : note.mtime;
     const image = useMemo(
       () => firstImage(note.path, note.body),
       [note.path, note.body],
     );
+    const excerpt = found?.excerpt as Snippet | undefined;
+    // Found in an image: that image, with the zone of the first match.
+    const ocrImage = excerpt?.source === "ocr" && excerpt.file && isOcrImage(excerpt.file) ? excerpt.file : null;
+    const zone = useMemo(() => {
+      if (!ocrImage || !query) return null;
+      const hit = ocrMatches(ocrImage, query.include.map((n) => n.text));
+      return hit ? coverOn(hit.boxes[0]!, hit) : null;
+      // textVersion: results arrived since.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [ocrImage, query, textVersion]);
     return (
       <div
         ref={ref}
@@ -139,7 +168,7 @@ export const NoteCard = memo(
                 ) : (
                   <ScanText className={s.metaIcon} aria-hidden />
                 )}
-                {t.search.foundIn[found.excerpt.source] ?? found.excerpt.source}
+                {excerpt?.page ? t.search.foundInPage(excerpt.page) : (t.search.foundIn[found.excerpt.source] ?? found.excerpt.source)}
               </span>
             )}
           </div>
@@ -165,7 +194,7 @@ export const NoteCard = memo(
               )
             : note.preview && <div className={s.preview}>{note.preview}</div>}
         </div>
-        {image && <Thumb path={image} />}
+        {(ocrImage ?? image) && <Thumb path={(ocrImage ?? image)!} zone={zone} />}
       </div>
     );
   }),

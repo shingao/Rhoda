@@ -35,7 +35,13 @@ export function NoteList() {
   // Deferred: typing in the search field stays fluid while the list catches up.
   const search = useDeferredValue(useApp((st) => st.search));
   const query = activeQuery(search);
-  const list = useMemo(() => listedNotes(notes, sort, filter, now, query), [notes, sort, filter, now, query]);
+  // OCR results arriving can add search results.
+  const textVersion = useApp((st) => st.ocr.version);
+  const list = useMemo(
+    () => listedNotes(notes, sort, filter, now, query),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [notes, sort, filter, now, query, query ? textVersion : 0],
+  );
   // Cards are added by pages as the list scrolls (1 000 notes stay fast; virtualisation in phase 10).
   const page = cssPx("--results-page");
   // The page count restarts with every new search or view.
@@ -177,6 +183,7 @@ export function NoteList() {
                 selected={note.id === selectedId}
                 focusable={note.id === focusId}
                 query={query}
+                textVersion={textVersion}
                 onSelect={() => selectNote(note.id)}
                 onContextMenu={(e) => {
                   e.preventDefault();

@@ -1,5 +1,5 @@
 import { lazy, Suspense, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
-import { Archive, CalendarDays, Inbox, NotebookText, Pencil, Pin, PinOff, Shapes, SquareCheck, Trash2, type LucideIcon } from "lucide-react";
+import { Archive, CalendarDays, Inbox, NotebookText, Pencil, Pin, PinOff, ScanText, Shapes, SquareCheck, Trash2, type LucideIcon } from "lucide-react";
 import { confirmAction } from "../../app/confirm";
 import { useT } from "../../app/i18n";
 import { noteIndex } from "../../app/noteIndex";
@@ -35,6 +35,7 @@ export function Sidebar() {
   const notes = useApp((st) => st.notes);
   const filter = useApp((st) => st.filter);
   const tagConfig = useApp((st) => st.tagConfig);
+  const ocrRemaining = useApp((st) => (st.settings.ocr.enabled ? st.ocr.remaining : 0));
   const t = useT();
   const now = useNow();
   const counts = useMemo(() => sectionCounts(Object.values(notes), now), [notes, now]);
@@ -187,6 +188,13 @@ export function Sidebar() {
         </>
       )}
 
+      {ocrRemaining > 0 && (
+        // Discreet progress of the background text reading (phase 9).
+        <div className={s.ocr} role="status">
+          <ScanText className={s.ocrIcon} aria-hidden />
+          {t.ocr.remaining(ocrRemaining)}
+        </div>
+      )}
       {menu && <Menu at={menu.at} label={formatTag(menu.node.path)} entries={menuEntries(menu.node)} onClose={() => setMenu(null)} />}
       {picker && (
         <Suspense fallback={null}>

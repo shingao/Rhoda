@@ -3,6 +3,7 @@ import { errorMessage } from "../services/errors";
 import { vaultApi } from "../services/vault";
 import { closeFolds, loadFolds } from "./folds";
 import { closeNoteView, loadNoteView } from "./noteView";
+import { closeOcr } from "./ocr";
 import { currentMessages } from "./i18n";
 import { closeVault, loadNotes, purgeOldBackups } from "./notes";
 import { getState, setState, showToast, updateSettings } from "./store";
@@ -50,6 +51,7 @@ export async function switchVault(path: string): Promise<void> {
     return;
   }
   await Promise.all([closeTagConfig(), closeFolds(), closeNoteView()]);
+  closeOcr();
   resetEditor();
   setState({
     vault: { kind: "loading" },

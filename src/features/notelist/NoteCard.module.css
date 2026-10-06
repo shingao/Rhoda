@@ -116,3 +116,26 @@
     border: 1px solid CanvasText;
   }
 }
+
+/* Match found by OCR: the zone on the thumbnail [§2.3] */
+.thumbFrame {
+  position: relative;
+  flex: none;
+  align-self: flex-start;
+  overflow: hidden;
+  border-radius: var(--r-md);
+}
+
+.zone {
+  position: absolute;
+  min-width: var(--ocr-zone-min);
+  min-height: var(--ocr-zone-min);
+  border-radius: var(--r-xs);
+  background: var(--match);
+  box-shadow: 0 0 0 var(--ocr-zone-ring) var(--accent);
+  mix-blend-mode: multiply;
+}
+
+.thumbFrame .thumb {
+  display: block;
+}

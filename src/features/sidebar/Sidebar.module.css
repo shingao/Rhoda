@@ -225,3 +225,23 @@
     0 0 0 var(--focus-gap) var(--ring-bg),
     0 0 0 var(--focus-outer) var(--focus-ring);
 }
+
+/* Background OCR progress (decision P9): last line of the sidebar, chrome text */
+.ocr {
+  position: sticky;
+  bottom: calc(-1 * var(--sidebar-pad));
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+  padding: var(--sp-2);
+  background: var(--bg-0);
+  color: var(--chrome-text-3);
+  font-size: var(--fs-xs);
+}
+
+.ocrIcon {
+  width: var(--ocr-status-icon);
+  height: var(--ocr-status-icon);
+  flex: none;
+}

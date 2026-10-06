@@ -43,6 +43,7 @@ export const en: Messages = {
     noResultsHint: "Check the spelling, or remove a filter.",
     createNote: (title: string) => `Create the note “${title}”`,
     archived: "Archived",
+    foundInPage: (page: number) => `Found on page ${page}`,
     foundIn: { ocr: "Found in image", postit: "Found in a sticky note" } as Record<string, string>,
     suggestions: "Suggestions",
     removeChip: (chip: string) => `Remove ${chip}`,
@@ -232,8 +233,21 @@ export const en: Messages = {
     menu: "Settings…",
     title: "Settings",
     close: "Close settings",
-    pages: { general: "General", editor: "Editor", backups: "Backups", about: "About" },
-    headings: { general: "General & appearance", editor: "Editor", backups: "Backups", about: "About and third-party licences" },
+    pages: { general: "General", editor: "Editor", ocr: "OCR", backups: "Backups", about: "About" },
+    headings: { general: "General & appearance", editor: "Editor", ocr: "Text in images (OCR)", backups: "Backups", about: "About and third-party licences" },
+    ocrEnabled: "Read the text of images and PDFs",
+    ocrEnabledHint: "In the background, on this computer, so that search finds it. Nothing is sent over the Internet.",
+    ocrUnavailable:
+      "Windows text recognition is not available on this computer. Ursa works normally: only the text of images is not read (PDFs that contain text still are).",
+    ocrLanguages: "Recognition languages",
+    ocrNoLanguage: "No recognition language is installed in Windows.",
+    ocrInstallHint:
+      "A language is missing? Windows Settings › Time & language › Language & region › Add a language, with “Optical character recognition” checked (or in the options of an installed language). Then restart Ursa.",
+    ocrPdfPages: "Pages read per PDF",
+    ocrPdfPagesHint: "Pages without text (scans) go through OCR; beyond this limit, a PDF is not read.",
+    ocrProgress: "Progress",
+    ocrUpToDate: "Everything is read",
+    ocrReindex: "Reindex",
     version: (v: string) => `version ${v}`,
     aboutText:
       "Your notes stay Markdown files in your folder. Ursa sends nothing: no telemetry; the only network request is link previews, which you can turn off in Editor.",
@@ -327,6 +341,9 @@ export const en: Messages = {
     pdfMeta: (pages: number | null, size: string) => (pages === null ? size : `${pages} page${pages === 1 ? "" : "s"} · ${size}`),
     pdfMissing: (name: string) => `PDF not found: ${name}`,
     units: ["B", "KB", "MB", "GB"] as readonly [string, string, string, string],
+  },
+  ocr: {
+    remaining: (n: number) => `OCR: ${n} file${n > 1 ? "s" : ""} left`,
   },
   stickers: {
     sticker: "Sticker",

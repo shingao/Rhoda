@@ -127,4 +127,15 @@ describe("search", () => {
     const s = snippet(decorated, parseQuery("ines"))!;
     expect(s.source).toBe("postit");
   });
+
+  it("tells which file and PDF page a source match comes from", () => {
+    const doc = note("# Devis\n[devis](assets/devis.pdf)\n");
+    registerTextSource({
+      name: "ocr",
+      text: (n) => (n.id === doc.id ? [{ text: "Page de garde", file: "assets/devis.pdf", page: 1 }, { text: "Total TTC 4 200 €", file: "assets/devis.pdf", page: 3 }] : null),
+    });
+    invalidateTextSources();
+    expect(run([doc], "ttc")).toEqual(["Devis"]);
+    expect(snippet(doc, parseQuery("ttc"))).toMatchObject({ source: "ocr", file: "assets/devis.pdf", page: 3 });
+  });
 });

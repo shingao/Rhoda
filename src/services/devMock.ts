@@ -9,6 +9,21 @@ import journalNote from "../../samples/Journal décoré.md?raw";
 import { generateNotes } from "../dev/generateNotes";
 import { setMockAssetUrl } from "./assets";
 
+/** Words of the ticket sample (samples/assets/billet-train.png) as Windows OCR returns them. */
+function fakeOcr(path: string) {
+  const line = (y: number, h: number, words: Array<[string, number, number]>) => ({ words: words.map(([text, x, w]) => ({ text, x, y, w, h })) });
+  const lines = path.endsWith("billet-train.png")
+    ? [
+        line(75, 22, [["JR", 83, 30], ["WEST", 122, 70], ["·", 202, 10], ["RESERVED", 222, 130], ["SEAT", 362, 82]]),
+        line(122, 50, [["SHINKANSEN", 83, 420], ["15", 520, 62], ["APR", 600, 140]]),
+        line(198, 40, [["KYOTO", 83, 167], ["→", 266, 46], ["NARA", 320, 138]]),
+        line(262, 24, [["CAR", 83, 52], ["7", 144, 14], ["SEAT", 170, 62], ["12A", 244, 46], ["·", 298, 8], ["13:05", 316, 76]]),
+      ]
+    : [];
+  const text = lines.map((l) => l.words.map((w) => w.text).join(" ")).join("\n");
+  return { source: "ocr", width: 1000, height: 420, lines, text };
+}
+
 /** Sample attachments of the demo vault (samples/assets), served by Vite. */
 const SAMPLE_ASSETS = import.meta.glob<string>("../../samples/assets/*", { query: "?url", import: "default", eager: true });
 
@@ -74,6 +89,7 @@ function seed(now: number): Array<[string, string, number]> {
     ["Maquette éditeur.md", mockupNote, now - 90_000],
     ["Maquette sommaire.md", outlineNote, now - 30_000],
     ["Journal décoré.md", journalNote, now - 20_000],
+    ["Billets JR — scans.md", "# Billets JR — scans\n\n#voyages/japon-2026\n\nLe billet du 15 avril, scanné :\n\n![](assets/billet-train.png){width=480}\n\nÀ imprimer avant le départ.\n", now - 15_000],
     ["Rythme vertical.md", rhythmNote, now - 20_000],
     ["Lien vers le rythme.md", "# Lien vers le rythme\n\nVoir [[Rythme vertical]] pour le panneau des rétroliens.\n", now - 25_000],
     ["Note longue (5000 lignes).md", longNote, now - 30 * DAY],
@@ -143,6 +159,7 @@ export function installDevMock(): void {
     }
   };
 
+  const ocrCache = new Map<string, unknown>();
   mockWindows("main");
   mockIPC((cmd, payload) => {
     const args = (payload ?? {}) as Record<string, string>;
@@ -230,6 +247,36 @@ export function installDevMock(): void {
           return { status: "ok", path, format: ext, width: null, height: null, reused: false };
         });
       }
+      // OCR (phase 9): canned result for the ticket sample; localStorage "ursa-dev-ocr" = "off" (no engine) or "en" (English only).
+      case "ocr_status": {
+        const mode = localStorage.getItem("ursa-dev-ocr");
+        const languages = [{ tag: "fr-FR", name: "Français (France)" }, { tag: "en-US", name: "English (United States)" }].filter((l) => mode !== "en" || l.tag === "en-US");
+        return mode === "off" ? { available: false, languages: [], maxDimension: 0 } : { available: true, languages, maxDimension: 2600 };
+      }
+      case "ocr_cached": {
+        const { paths, langs } = payload as { paths: string[]; langs: string[] };
+        return paths.map((p) => ocrCache.get(`${vaultPath}|${p}|${langs.join(",")}`) ?? null);
+      }
+      case "ocr_image": {
+        const { path, langs } = payload as { path: string; langs: string[] };
+        return new Promise((resolve) =>
+          setTimeout(() => {
+            const doc = { version: 1, langs, pages: [fakeOcr(path)] };
+            ocrCache.set(`${vaultPath}|${path}|${langs.join(",")}`, doc);
+            resolve(doc);
+          }, 600),
+        );
+      }
+      case "ocr_page":
+        return { source: "ocr", width: 1000, height: 1400, lines: [], text: "Page numérisée — tampon REÇU LE 2 OCTOBRE" };
+      case "ocr_store": {
+        const { path, doc } = payload as { path: string; doc: { langs: string[] } };
+        ocrCache.set(`${vaultPath}|${path}|${doc.langs.join(",")}`, doc);
+        return null;
+      }
+      case "ocr_clear":
+        ocrCache.clear();
+        return null;
       case "list_stickers":
         return [...assetsOf(vaultPath).keys()].filter((p) => p.startsWith("assets/stickers/")).reverse();
       case "list_backups":

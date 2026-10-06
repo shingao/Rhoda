@@ -1,5 +1,5 @@
 import { useId, useRef } from "react";
-import { ArchiveRestore, Info, PenLine, SlidersHorizontal, type LucideIcon } from "lucide-react";
+import { ArchiveRestore, Info, PenLine, ScanText, SlidersHorizontal, type LucideIcon } from "lucide-react";
 import { useT } from "../../app/i18n";
 import { setState, useApp, type SettingsPage } from "../../app/store";
 import { Dialog } from "../../components/Dialog";
@@ -8,11 +8,13 @@ import { AboutPage } from "./AboutPage";
 import { BackupsPage } from "./BackupsPage";
 import { EditorPage } from "./EditorPage";
 import { GeneralPage } from "./GeneralPage";
+import { OcrPage } from "./OcrPage";
 import s from "./Settings.module.css";
 
 const PAGES: ReadonlyArray<{ id: SettingsPage; icon: LucideIcon }> = [
   { id: "general", icon: SlidersHorizontal },
   { id: "editor", icon: PenLine },
+  { id: "ocr", icon: ScanText },
   { id: "backups", icon: ArchiveRestore },
   { id: "about", icon: Info },
 ];
@@ -59,6 +61,7 @@ function SettingsContent({ page }: { page: SettingsPage }) {
         <div className={s.page}>
           {page === "general" && <GeneralPage />}
           {page === "editor" && <EditorPage />}
+          {page === "ocr" && <OcrPage />}
           {page === "backups" && <BackupsPage />}
           {page === "about" && <AboutPage />}
         </div>
