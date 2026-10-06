@@ -1,8 +1,10 @@
 // Checks that the code uses DESIGN.md tokens exactly (npm run check:tokens).
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = new URL("..", import.meta.url).pathname;
+// fileURLToPath: on Windows, URL.pathname would be "/D:/…".
+const root = fileURLToPath(new URL("..", import.meta.url));
 const read = (p) => readFileSync(join(root, p), "utf8");
 const errors = [];
 const info = [];
@@ -45,7 +47,7 @@ for (const [, k] of reduced.matchAll(/(--[\w-]+)\s*:/g)) {
 const files = [];
 const walk = (d) => readdirSync(d).forEach((f) => { const p = join(d, f); statSync(p).isDirectory() ? walk(p) : files.push(p); });
 walk(join(root, "src"));
-const code = files.filter((f) => /\.(css|tsx?|)$/.test(f) && !/\.test\.ts$/.test(f) && !/styles\/tokens/.test(f));
+const code = files.filter((f) => /\.(css|tsx?|)$/.test(f) && !/\.test\.ts$/.test(f) && !/styles[\\/]tokens/.test(f));
 const locallyDefined = new Set();
 for (const f of code) {
   const text = readFileSync(f, "utf8");
