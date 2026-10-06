@@ -828,6 +828,9 @@ Captures : `docs/captures/phase-9/` (avancement, recherche image et PDF, Ctrl+F,
 - **Images de test difficiles** (`scripts/make-ocr-fixtures.mjs`, rendu Chromium) :
   - `ocr-photo.jpg` : billet photographié incliné de 4° sur une table en bois, JPEG enregistré de côté avec l'orientation EXIF 6. Vérifié : dimensions affichées 1600 × 1067, HAKONE, ODAWARA et TOGENDAI lus, centres des zones à moins de 16 px des positions mesurées dans le navigateur ;
   - `ocr-words.png` : quatre mots posés sur une image de `MaxImageDimension` + 2 500 px (12 500 px sur le runner). Un mot dans la seule 1re tuile, un dans le chevauchement, un à cheval sur le bord de la 1re tuile, un au-delà de 10 000 px. Vérifié : exactement 4 mots (aucun morceau de mot coupé), positions à 12 px près, KUSHIRO entier de part et d'autre de x = 10 000.
+- **Résultat sur le runner Windows** (run 6, `en-US` seul, `MaxImageDimension` = 10 000) : `3 passed; 0 failed; 0 ignored`.
+  - Photo : 1600 × 1067 ; « HAKONE FREE PASS / ODAWARA — TOGENDAI / 2 DAYS • ADULT • VALID 12 MAY / No 004518 ». HAKONE est centré à (441, 334) pour (440, 334) attendu ; TOGENDAI à (879, 451) pour (880, 451).
+  - Grande image : 12 500 × 1 000, exactement SAPPORO, HAKODATE, KUSHIRO, OTARU. KUSHIRO occupe x = 9 876–10 168, entier, une seule fois ; OTARU est à x = 11 926.
 - Deux corrections révélées par ces cas :
   - partage des tuiles par le milieu du chevauchement (P9-4) ;
   - zones du texte incliné ramenées dans l'image (`TextAngle`).
