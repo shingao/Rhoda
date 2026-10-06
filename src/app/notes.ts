@@ -613,7 +613,7 @@ export async function closeVault(): Promise<boolean> {
   failures.clear();
   lastTitles.clear();
   undoRecords.clear();
-  setState({ notes: {}, saveErrors: {} });
+  setState({ notes: {}, saveErrors: {}, stickerDrawer: false, stickerLibrary: [] });
   return true;
 }
 

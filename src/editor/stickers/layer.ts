@@ -137,7 +137,10 @@ class StickerLayer implements PluginValue {
     });
     for (const [id, node] of this.nodes) {
       if (seen.has(id)) continue;
+      // The focused sticker went away (deleted, undone): keyboard focus goes back to the text, so Ctrl+Z keeps working.
+      const hadFocus = node.contains(document.activeElement);
       node.remove();
+      if (hadFocus) this.view.focus();
       this.nodes.delete(id);
       this.boxes.delete(id);
       if (this.selected === id) this.selected = null;

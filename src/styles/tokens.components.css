@@ -434,6 +434,41 @@
   --sticker-rotation: 0deg;                /* set per sticker by the editor */
   --sticker-scale: 1;                      /* set while dragging */
 
+  /* Sticker drawer [§10] */
+  --drawer-w: 320px;
+  --drawer-top: 8px;
+  --drawer-right: 16px;
+  --drawer-bottom: 16px;
+  --drawer-head-pad: 14px 16px 10px;
+  --drawer-close-icon: 15px;
+  --drawer-search-h: 32px;
+  --drawer-search-fs: 13.5px;
+  --drawer-search-icon: 14px;
+  --drawer-search-pad-x: 10px;
+  --drawer-chip-pad-x: 10px;
+  --drawer-section-pad: 10px 16px 4px;
+  --drawer-postit-section-pad: 14px 16px 6px;
+  --drawer-grid-pad-x: 10px;
+  --drawer-z: 30;                          /* (decision) above the outline (20) and find (25) panels */
+  --drawer-ghost-z: 950;                   /* (decision) above menus while dragging */
+  --drawer-chip-h: 26px;
+  --drawer-chip-fs: 12.5px;
+  --drawer-chip-gap: 6px;
+  --drawer-section-fs: 11.5px;
+  --drawer-grid-gap: 4px;
+  --drawer-cell: 68px;
+  --drawer-cell-img: 48px;
+  --drawer-postit: 48px;
+  --drawer-postit-gap: 10px;
+  --drawer-postit-icon: 16px;
+  --drawer-import-h: 34px;
+  --drawer-import-fs: 13.5px;
+  --drawer-import-icon: 15px;
+  --drawer-shift: 8px;                     /* [§11] opens with translateX 8 px */
+  --dur-drawer-in: var(--dur-base);        /* [§11] 160 ms */
+  --dur-drawer-out: var(--dur-fast);       /* [§11] 100 ms */
+  --drawer-ghost-opacity: .7;              /* dragging a cell onto the note */
+
   /* Post-its [§9] */
   --postit-r: 2px;
   --postit-pad: 20px 14px 0;

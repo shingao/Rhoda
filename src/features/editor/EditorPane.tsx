@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { ChevronsDownUp, ChevronsUpDown, CircleAlert, Ellipsis, Expand, Focus, ImagePlus, Info, ListTree, Notebook, PanelLeftClose, PanelLeftOpen, Settings } from "lucide-react";
+import { ChevronsDownUp, ChevronsUpDown, CircleAlert, Ellipsis, Expand, Focus, ImagePlus, Info, ListTree, Notebook, PanelLeftClose, PanelLeftOpen, Settings, Sticker } from "lucide-react";
 import { useT } from "../../app/i18n";
 import { cssPx } from "../../app/cssTokens";
 import { insertFromDialog } from "../../app/attachments";
@@ -26,6 +26,8 @@ import { PaperPicker } from "./PaperPicker";
 import paperStyles from "./paper.module.css";
 import { FindPill } from "./FindPill";
 import { OutlinePanel } from "../outline/OutlinePanel";
+import { StickerDrawer } from "../stickers/StickerDrawer";
+import { toggleStickerDrawer } from "../../app/stickers";
 import s from "./EditorPane.module.css";
 
 /**
@@ -41,6 +43,7 @@ export function EditorPane() {
   const saveError = useApp((st) => (st.selectedId ? st.saveErrors[st.selectedId] : undefined));
   const typewriterOn = useApp((st) => st.settings.editor.typewriter);
   const outlineOpen = useApp((st) => st.settings.layout.outlineOpen);
+  const drawerOpen = useApp((st) => st.stickerDrawer);
   const findOpen = useApp((st) => st.find.open);
   const body = useRef<HTMLDivElement>(null);
   const docked = useDocking(body);
@@ -101,6 +104,16 @@ export function EditorPane() {
           </Tooltip>
         )}
         <IconButton
+          icon={Sticker}
+          label={t.stickers.open}
+          shortcut={shortcutLabel("stickers.drawer", t)}
+          active={drawerOpen}
+          activeTone="accent"
+          aria-pressed={drawerOpen}
+          disabled={!selectedId}
+          onClick={() => toggleStickerDrawer()}
+        />
+        <IconButton
           icon={ListTree}
           label={outlineOpen ? t.outline.hide : t.outline.show}
           shortcut={shortcutLabel("outline.toggle", t)}
@@ -127,6 +140,7 @@ export function EditorPane() {
         <div ref={host} className={s.host} hidden={!selectedId} />
         {outlineOpen && selectedId && !(findOpen && !docked) && <OutlinePanel docked={docked} />}
         {findOpen && selectedId && <FindPanel />}
+        {selectedId && <StickerDrawer />}
         {!selectedId && (
           <div className={s.empty}>
             <p className={s.emptyTitle}>{t.editor.noSelection}</p>

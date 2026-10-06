@@ -34,6 +34,11 @@ export const assetsApi = {
   downloadImage: (url: string) => invoke<Imported>("download_image", { url }),
   pick: (title: string) => invoke<string[]>("pick_attachments", { title }),
   info: (paths: string[]) => invoke<Array<AssetInfo | null>>("asset_info", { paths }),
+  /** Sticker images (PNG, WebP, SVG) copied to `assets/stickers/`, identical files reused. */
+  importStickers: (paths: string[]) => invoke<Imported[]>("import_stickers", { paths }),
+  pickStickers: (title: string) => invoke<string[]>("pick_stickers", { title }),
+  /** Imported stickers of the vault, newest first. */
+  listStickers: () => invoke<string[]>("list_stickers"),
   /** URL for <img> / pdf.js of a vault-relative file, served by the `vault:` protocol. */
   url: (path: string): string => mockUrl?.(path) ?? convertFileSrc(path, "vault"),
   /** Size of a PDF, and its first-page preview and page count once drawn. */

@@ -7,6 +7,7 @@ import { assetsApi, type Imported } from "../services/assets";
 import { errorMessage } from "../services/errors";
 import { currentMessages } from "./i18n";
 import { getState, showToast } from "./store";
+import { dropStickerFiles } from "./stickers";
 
 /**
  * Images and PDFs added to the open note: pasted (a Win+Shift+S capture…),
@@ -90,6 +91,11 @@ export function connectAttachments(): void {
         return;
       }
       const ratio = window.devicePixelRatio || 1;
+      // With the sticker drawer open, a dropped image becomes a sticker where it falls [DESIGN §10].
+      if (getState().stickerDrawer) {
+        void dropStickerFiles(paths, { x: position.x / ratio, y: position.y / ratio });
+        return;
+      }
       const pos = editorPosAt(position.x / ratio, position.y / ratio) ?? undefined;
       void run(() => assetsApi.importFiles(paths), pos);
     })

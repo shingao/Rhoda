@@ -26,6 +26,12 @@
   background: var(--active);
 }
 
+.default.accentActive,
+.default.accentActive:hover {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
 .chrome {
   color: var(--chrome-text-2);
 }

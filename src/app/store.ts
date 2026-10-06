@@ -43,6 +43,9 @@ interface AppState {
   cardMenu: { noteId: string; url: string; lineFrom: number; at: { x: number; y: number } } | null;
   /** Crop dialog of an image of the open note. */
   crop: CropRequest | null;
+  /** Sticker drawer open (not persisted) and the vault's imported stickers ("Mine"). */
+  stickerDrawer: boolean;
+  stickerLibrary: string[];
   /** Context menu of a sticker or post-it of the open note. */
   stickerMenu: { noteId: string; id: string; at: { x: number; y: number } } | null;
 }
@@ -90,6 +93,8 @@ export const useApp = create<AppState>()(() => ({
   crop: null,
   cardMenu: null,
   stickerMenu: null,
+  stickerDrawer: false,
+  stickerLibrary: [],
   focusMode: false,
 }));
 

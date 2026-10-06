@@ -20,6 +20,10 @@ export interface Settings {
     /** Contents panel open (remembered globally) [DESIGN §2.15]. */
     outlineOpen: boolean;
   };
+  stickers: {
+    /** Last stickers placed, most recent first (drawer › Recent). */
+    recent: string[];
+  };
 }
 
 export const LIGHT_PALETTES = ["coral", "sage", "ink", "kraft"] as const;
@@ -74,7 +78,11 @@ export const DEFAULT_SETTINGS: Settings = {
     linkPreviews: true,
   },
   layout: { sidebarWidth: null, listWidth: null, sidebarCollapsed: false, listCollapsed: false, outlineOpen: false },
+  stickers: { recent: [] },
 };
+
+/** Stickers kept in Recent. */
+export const RECENT_STICKERS = 16;
 
 function isObject(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
@@ -114,6 +122,9 @@ export function sanitizeSettings(s: Settings): Settings {
       fontSize: Math.round(clamp(e.fontSize, FONT_SIZE.min, FONT_SIZE.max) / FONT_SIZE.step) * FONT_SIZE.step,
       columnWidth: Math.round(clamp(e.columnWidth, COLUMN_WIDTH.min, COLUMN_WIDTH.max) / COLUMN_WIDTH.step) * COLUMN_WIDTH.step,
       paper: oneOf(e.paper, PAPERS, "plain"),
+    },
+    stickers: {
+      recent: Array.isArray(s.stickers.recent) ? s.stickers.recent.filter((r): r is string => typeof r === "string").slice(0, RECENT_STICKERS) : [],
     },
   };
 }

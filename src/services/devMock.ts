@@ -213,6 +213,25 @@ export function installDevMock(): void {
       case "import_files":
       case "pick_attachments":
         return [];
+      // Stickers: the picker returns the sample SVG / PNG ("ursa-dev-pick-stickers" = comma-separated sample names).
+      case "pick_stickers":
+        return (localStorage.getItem("ursa-dev-pick-stickers") ?? "schema.svg").split(",").map((n) => `C:\\Users\\dev\\Images\\${n}`);
+      case "import_stickers": {
+        const store = assetsOf(vaultPath);
+        return ((payload as { paths: string[] }).paths ?? []).map((p) => {
+          const name = p.split(/[\\/]/).pop()!;
+          const sample = store.get(`assets/${name}`) ?? assetsOf(DEFAULT_VAULT).get(`assets/${name}`);
+          const ext = name.split(".").pop()!.toLowerCase();
+          if (!sample || !["png", "webp", "svg"].includes(ext)) return { status: "refused", name, reason: "unsupported" };
+          const same = [...store].find(([path, a]) => path.startsWith("assets/stickers/") && a.url === sample.url);
+          if (same) return { status: "ok", path: same[0], format: ext, width: null, height: null, reused: true };
+          const path = `assets/stickers/${name.toLowerCase()}`;
+          store.set(path, sample);
+          return { status: "ok", path, format: ext, width: null, height: null, reused: false };
+        });
+      }
+      case "list_stickers":
+        return [...assetsOf(vaultPath).keys()].filter((p) => p.startsWith("assets/stickers/")).reverse();
       case "list_backups":
         return [...backups].map(([name, copies]) => ({ name, notes: copies.size })).sort((a, b) => b.name.localeCompare(a.name));
       case "read_backup": {

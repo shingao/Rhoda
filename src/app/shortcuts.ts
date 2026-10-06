@@ -32,6 +32,8 @@ export const SHORTCUTS = {
   // Maquette 03: Ctrl Maj F or F11; Escape also leaves it (see App).
   "focus.toggle": { keys: "Ctrl+Shift+F", scope: "global" },
   "focus.toggleKey": { keys: "F11", scope: "global" },
+  // Sticker drawer [DESIGN §10]; S is the same key on AZERTY and QWERTY.
+  "stickers.drawer": { keys: "Ctrl+Shift+S", scope: "global" },
 } as const satisfies Record<string, { keys: string; scope: ShortcutScope }>;
 
 /** "editor" shortcuts run inside CodeMirror (see `editorKey`). */

@@ -7,6 +7,7 @@ import { createNote } from "./app/notes";
 import { openFindFromSelection } from "./app/search";
 import { useGlobalShortcuts, type ShortcutHandlers } from "./app/shortcuts";
 import { getState, setState, useApp } from "./app/store";
+import { toggleStickerDrawer } from "./app/stickers";
 import { changeVaultFolder } from "./app/vault";
 import { Button } from "./components/Button";
 import { AppLayout } from "./features/layout/AppLayout";
@@ -23,6 +24,7 @@ const globalHandlers: ShortcutHandlers = {
   "settings.open": () => setState({ settingsPage: getState().settingsPage ?? "general" }),
   "focus.toggle": toggleFocusMode,
   "focus.toggleKey": toggleFocusMode,
+  "stickers.drawer": () => toggleStickerDrawer(),
 };
 
 export function App() {

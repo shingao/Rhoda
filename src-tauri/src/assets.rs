@@ -192,20 +192,31 @@ pub enum Imported {
     },
 }
 
+/// Imported sticker images ("Mine" in the drawer), inside the attachments folder.
+pub(crate) const STICKERS_DIR: &str = "assets/stickers";
+/// Formats accepted as stickers (SVG is always shown through `<img>`).
+const STICKER_FORMATS: [Format; 3] = [Format::Png, Format::Webp, Format::Svg];
+
 /// Writes `bytes` into `assets/` (or finds the identical file already there).
 pub(crate) fn import(root: &Path, name: &str, bytes: &[u8]) -> CmdResult<Imported> {
+    import_into(root, ASSETS_DIR, name, bytes, None)
+}
+
+/// Same as `import`, into the folder `sub` (vault-relative), optionally limited to some formats.
+fn import_into(root: &Path, sub: &str, name: &str, bytes: &[u8], only: Option<&[Format]>) -> CmdResult<Imported> {
     let refused = |reason| Ok(Imported::Refused { name: name.to_string(), reason });
     if bytes.len() as u64 > MAX_BYTES {
         return refused(Refusal::TooLarge);
     }
     let format = match detect(&bytes[..bytes.len().min(4096)]) {
-        Detected::Ok(f) => f,
+        Detected::Ok(f) if only.map_or(true, |list| list.contains(&f)) => f,
+        Detected::Ok(_) => return refused(Refusal::Unsupported),
         Detected::Refused(r) => return refused(r),
     };
     let (width, height) = dimensions(format, bytes).map_or((None, None), |(w, h)| (Some(w), Some(h)));
-    let dir = root.join(ASSETS_DIR);
+    let dir = root.join(sub);
     fs::create_dir_all(&dir)?;
-    let rel = |p: &Path| format!("{ASSETS_DIR}/{}", p.file_name().unwrap_or_default().to_string_lossy());
+    let rel = |p: &Path| format!("{sub}/{}", p.file_name().unwrap_or_default().to_string_lossy());
     if let Some(existing) = find_same(&dir, bytes) {
         return Ok(Imported::Ok { path: rel(&existing), format, width, height, reused: true });
     }
@@ -288,6 +299,59 @@ pub async fn pick_attachments(app: AppHandle, title: String) -> CmdResult<Vec<St
         .blocking_pick_files()
         .unwrap_or_default();
     Ok(picked.into_iter().filter_map(|p| p.into_path().ok()).map(|p| p.to_string_lossy().into_owned()).collect())
+}
+
+/// Images imported as stickers ("Import image…" in the drawer, or dropped while it is open):
+/// copied to `assets/stickers/`, PNG / WebP / SVG only, identical files reused.
+#[tauri::command]
+pub async fn import_stickers(state: State<'_, VaultState>, paths: Vec<String>) -> CmdResult<Vec<Imported>> {
+    let root = current_root(&state)?;
+    paths
+        .iter()
+        .map(|p| {
+            let path = Path::new(p);
+            let name = path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+            import_into(&root, STICKERS_DIR, &name, &read_limited(path)?, Some(&STICKER_FORMATS))
+        })
+        .collect()
+}
+
+/// Native picker for sticker images; absolute paths, empty if cancelled.
+#[tauri::command]
+pub async fn pick_stickers(app: AppHandle, title: String) -> CmdResult<Vec<String>> {
+    use tauri_plugin_dialog::DialogExt;
+    let picked = app
+        .dialog()
+        .file()
+        .set_title(title)
+        .add_filter("PNG, WebP, SVG", &["png", "webp", "svg"])
+        .blocking_pick_files()
+        .unwrap_or_default();
+    Ok(picked.into_iter().filter_map(|p| p.into_path().ok()).map(|p| p.to_string_lossy().into_owned()).collect())
+}
+
+pub(crate) fn sticker_files(root: &Path) -> Vec<String> {
+    let Ok(entries) = fs::read_dir(root.join(STICKERS_DIR)) else {
+        return Vec::new();
+    };
+    let mut files: Vec<(std::time::SystemTime, String)> = entries
+        .flatten()
+        .filter_map(|e| {
+            let meta = e.metadata().ok()?;
+            let name = e.file_name().to_string_lossy().into_owned();
+            let ext = Path::new(&name).extension()?.to_str()?.to_ascii_lowercase();
+            (meta.is_file() && !name.starts_with('.') && ["png", "webp", "svg"].contains(&ext.as_str()))
+                .then(|| (meta.modified().unwrap_or(std::time::UNIX_EPOCH), format!("{STICKERS_DIR}/{name}")))
+        })
+        .collect();
+    files.sort_by(|a, b| b.0.cmp(&a.0).then_with(|| a.1.cmp(&b.1)));
+    files.into_iter().map(|(_, rel)| rel).collect()
+}
+
+/// Imported stickers of the vault ("Mine"), newest first (vault-relative paths).
+#[tauri::command]
+pub async fn list_stickers(state: State<'_, VaultState>) -> CmdResult<Vec<String>> {
+    Ok(sticker_files(&current_root(&state)?))
 }
 
 #[derive(Debug, Serialize)]
@@ -548,6 +612,23 @@ mod tests {
         let renamed = import(v.path(), "fake.gif", b"%PDF-1.4 rest").unwrap();
         assert!(matches!(&renamed, Imported::Ok { path, format: Format::Pdf, .. } if path == "assets/fake.pdf"));
         assert!(matches!(import(v.path(), "IMG_0001.HEIC", b"\0\0\0\x18ftypheic\0\0\0\0").unwrap(), Imported::Refused { reason: Refusal::Heic, .. }));
+    }
+
+    #[test]
+    fn stickers_go_to_their_folder_png_webp_svg_only() {
+        let v = tempfile::tempdir().unwrap();
+        let svg = b"<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10'/>";
+        let first = import_into(v.path(), STICKERS_DIR, "Chat.svg", svg, Some(&STICKER_FORMATS)).unwrap();
+        assert!(matches!(&first, Imported::Ok { path, reused: false, .. } if path == "assets/stickers/chat.svg"));
+        let again = import_into(v.path(), STICKERS_DIR, "copie.svg", svg, Some(&STICKER_FORMATS)).unwrap();
+        assert!(matches!(&again, Imported::Ok { path, reused: true, .. } if path == "assets/stickers/chat.svg"));
+        let png = import_into(v.path(), STICKERS_DIR, "Étoile.png", PNG_1X1, Some(&STICKER_FORMATS)).unwrap();
+        assert!(matches!(&png, Imported::Ok { path, .. } if path == "assets/stickers/etoile.png"));
+        let pdf = import_into(v.path(), STICKERS_DIR, "devis.pdf", b"%PDF-1.4 rest", Some(&STICKER_FORMATS)).unwrap();
+        assert!(matches!(pdf, Imported::Refused { reason: Refusal::Unsupported, .. }));
+        let mut listed = sticker_files(v.path());
+        listed.sort();
+        assert_eq!(listed, ["assets/stickers/chat.svg", "assets/stickers/etoile.png"]);
     }
 
     #[test]
