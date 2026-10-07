@@ -6,6 +6,8 @@ import { DEFAULT_LANGUAGE, isLanguage, type Language } from "../i18n";
 export interface Settings {
   /** Absolute path of the notes folder; null = default (Documents/Ursa). */
   vaultPath: string | null;
+  /** The welcome note was offered (first launch only). */
+  welcomed: boolean;
   /** UI language (French by default). */
   language: Language;
   appearance: Appearance;
@@ -105,6 +107,7 @@ export const COLUMN_WIDTH = { min: 560, max: 860, step: 20, default: 660 } as co
 
 export const DEFAULT_SETTINGS: Settings = {
   vaultPath: null,
+  welcomed: false,
   language: DEFAULT_LANGUAGE,
   appearance: { mode: "light", light: "coral", dark: "graphite" },
   sort: "modified",
@@ -200,9 +203,12 @@ export async function loadSettings(): Promise<Settings> {
     const stored = await invoke<unknown>("load_settings");
     // A record of any keys: `merge` keeps only the keys of the defaults.
     const shortcuts = isObject(stored) ? stringRecord(stored.shortcuts) : {};
-    return sanitizeSettings({ ...merge(DEFAULT_SETTINGS, stored), shortcuts });
+    // Settings saved before the welcome note existed: not a first launch.
+    const welcomed = isObject(stored) ? stored.welcomed !== false : false;
+    return sanitizeSettings({ ...merge(DEFAULT_SETTINGS, stored), shortcuts, welcomed });
   } catch {
-    return DEFAULT_SETTINGS;
+    // Unreadable settings: never a reason to add a welcome note again.
+    return { ...DEFAULT_SETTINGS, welcomed: true };
   }
 }
 

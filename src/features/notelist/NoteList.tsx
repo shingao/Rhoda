@@ -1,20 +1,22 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { ChevronDown, Plus, Share } from "lucide-react";
+import { ChevronDown, Hash, Plus, SearchX, Share } from "lucide-react";
 import { openExport } from "../../app/export";
 import { cssPx } from "../../app/cssTokens";
 import { createFromSearch } from "../../app/search";
 import { noteIndex } from "../../app/noteIndex";
 import { formatTag } from "../../core/tags";
 import { Button } from "../../components/Button";
+import { EmptyState } from "../../components/EmptyState";
 import { useT } from "../../app/i18n";
-import { selectNote, trashedNoteIds, trashNote } from "../../app/notes";
-import { matchShortcut } from "../../app/shortcuts";
+import { createNote, selectNote, trashedNoteIds, trashNote } from "../../app/notes";
+import { matchShortcut, shortcutLabel } from "../../app/shortcuts";
 import { activeQuery, listedNotes, searchText, updateSettings, useApp } from "../../app/store";
 import { useNow } from "../../app/useNow";
 import type { SortKey } from "../../core/note/sort";
 import { focusEditor } from "../../editor/session";
 import { Menu, type MenuEntry } from "../../components/Menu";
 import { useAutoHideScrollbar } from "../../components/useAutoHideScrollbar";
+import { SECTION_ICONS } from "../sidebar/sectionIcons";
 import { NoteCard } from "./NoteCard";
 import { confirmDeleteNotes, noteMenuEntries } from "./noteActions";
 import s from "./NoteList.module.css";
@@ -61,7 +63,6 @@ export function NoteList() {
   const tagNode = filter.kind === "tag" ? noteIndex(notes).tags.byKey.get(filter.key) : undefined;
   const viewTitle = filter.kind === "section" ? t.sidebar.sections[filter.section] : tagNode ? formatTag(tagNode.path) : t.list.title;
   const title = query ? t.search.resultsTitle : viewTitle;
-  const emptyText = filter.kind === "section" ? t.list.emptySection[filter.section] : t.list.emptyTag;
   const scroller = useRef<HTMLDivElement>(null);
   const cards = useRef(new Map<string, HTMLDivElement>());
   const [menu, setMenu] = useState<MenuState | null>(null);
@@ -164,17 +165,33 @@ export function NoteList() {
       </header>
       <div ref={scroller} className={s.scroller}>
         {list.length === 0 && query ? (
-          <div className={s.noResults}>
-            <p className={s.empty}>{t.search.noResults(query.text)}</p>
-            <p className={s.noResultsHint}>{t.search.noResultsHint}</p>
-            {query.text && (
-              <Button icon={Plus} onClick={() => void createFromSearch(query.text)}>
-                {t.search.createNote(query.text)}
+          <EmptyState
+            icon={SearchX}
+            title={t.search.noResults(query.text)}
+            hint={t.search.noResultsHint}
+            action={
+              query.text && (
+                <Button icon={Plus} onClick={() => void createFromSearch(query.text)}>
+                  {t.search.createNote(query.text)}
+                </Button>
+              )
+            }
+          />
+        ) : list.length === 0 && filter.kind === "tag" ? (
+          <EmptyState icon={Hash} title={t.list.emptyTag} hint={t.list.emptyTagHint(viewTitle)} />
+        ) : list.length === 0 && filter.kind === "section" && filter.section === "notes" ? (
+          <EmptyState
+            icon={SECTION_ICONS.notes}
+            title={t.list.emptySection.notes}
+            hint={t.list.emptyHint.notes(shortcutLabel("note.new", t))}
+            action={
+              <Button variant="primary" icon={Plus} onClick={() => void createNote()}>
+                {t.titlebar.newNote}
               </Button>
-            )}
-          </div>
-        ) : list.length === 0 ? (
-          <p className={s.empty}>{emptyText}</p>
+            }
+          />
+        ) : list.length === 0 && filter.kind === "section" ? (
+          <EmptyState icon={SECTION_ICONS[filter.section]} title={t.list.emptySection[filter.section]} hint={filter.section === "notes" ? undefined : t.list.emptyHint[filter.section]} />
         ) : (
           <div role="listbox" aria-label={title} className={s.cards} onKeyDown={onKeyDown}>
             {list.slice(0, limit).map((note) => (

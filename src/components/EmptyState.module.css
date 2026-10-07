@@ -1,0 +1,46 @@
+/* Empty states (decision P10-14): icon in --text-faint (decorative, §5), title --text-2, hint --text-3 */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: var(--empty-pad-top) var(--sp-4) var(--sp-6);
+  text-align: center;
+}
+
+.centered {
+  flex: 1;
+  justify-content: center;
+  padding-top: var(--sp-6);
+}
+
+.icon {
+  width: var(--empty-icon);
+  height: var(--empty-icon);
+  margin-bottom: var(--sp-2);
+  color: var(--text-faint);
+  stroke-width: var(--empty-icon-stroke);
+}
+
+.title {
+  margin: 0;
+  max-width: var(--empty-text-max);
+  color: var(--text-2);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-ui);
+  overflow-wrap: anywhere;
+}
+
+.hint {
+  margin: 0;
+  max-width: var(--empty-text-max);
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-ui);
+}
+
+.action {
+  margin-top: var(--sp-4);
+}

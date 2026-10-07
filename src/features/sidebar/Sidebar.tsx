@@ -1,10 +1,10 @@
 import { lazy, Suspense, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
-import { Archive, CalendarDays, Inbox, NotebookText, Pencil, Pin, PinOff, ScanText, Shapes, Share, SquareCheck, Trash2, type LucideIcon } from "lucide-react";
+import { Pencil, Pin, PinOff, ScanText, Shapes, Share, Trash2 } from "lucide-react";
 import { confirmAction } from "../../app/confirm";
 import { useT } from "../../app/i18n";
 import { noteIndex } from "../../app/noteIndex";
 import { BackupFailedError, setFilter, undoAction, type BulkResult } from "../../app/notes";
-import { SECTIONS, UNCOUNTED, sectionCounts, type SectionId } from "../../app/sections";
+import { SECTIONS, UNCOUNTED, sectionCounts } from "../../app/sections";
 import { showToast, useApp } from "../../app/store";
 import { deleteTag, noteIdsWithTag, notesWithTag, renameTag, updateTagSettings } from "../../app/tagOps";
 import { openExport } from "../../app/export";
@@ -15,19 +15,10 @@ import { Menu, type MenuEntry } from "../../components/Menu";
 import { TagIcon } from "../../components/TagIcon";
 import { tagColor } from "./tagColor";
 import { TagTree } from "./TagTree";
+import { SECTION_ICONS } from "./sectionIcons";
 import s from "./Sidebar.module.css";
 
 const IconPicker = lazy(() => import("./IconPicker"));
-
-const SECTION_ICONS: Record<SectionId, LucideIcon> = {
-  notes: NotebookText,
-  untagged: Inbox,
-  todo: SquareCheck,
-  today: CalendarDays,
-  pinned: Pin,
-  archive: Archive,
-  trash: Trash2,
-};
 
 type Point = { x: number; y: number };
 

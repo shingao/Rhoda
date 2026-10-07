@@ -154,6 +154,16 @@ export const en: Messages = {
       archive: "No archived notes",
       trash: "Trash is empty",
     },
+    emptyHint: {
+      notes: (shortcut: string) => `Create your first note with ${shortcut}, or the button below.`,
+      untagged: "Notes without a #tag show up here.",
+      todo: "Notes with unchecked tasks show up here.",
+      today: "Notes edited today show up here.",
+      pinned: "Pin a note from its menu to keep it at the top of the list.",
+      archive: "An archived note leaves the list without being deleted.",
+      trash: "Deleted notes land here; you can restore them until the trash is emptied.",
+    },
+    emptyTagHint: (tag: string) => `Write ${tag} in a note to find it here.`,
     emptyTag: "No note with this tag",
     deleteTitle: (n) => (n === 1 ? "Delete this note permanently?" : `Delete ${n} notes permanently?`),
     deleteBody: (n) => `${n === 1 ? "The file goes" : "The files go"} to the Windows Recycle Bin: gone from Ursa, still recoverable from Windows.`,
@@ -622,6 +632,47 @@ export const en: Messages = {
     standardBody: (keys) => `${keys} is a standard Windows shortcut (copy, paste, cut, undo, redo, select all or save). In Ursa, it will no longer do that.`,
     standardConfirm: "Replace anyway",
     saved: (name, keys) => `“${name}”: ${keys}`,
+  },
+  welcome: {
+    title: "Welcome to Ursa",
+    body: (k: Record<"newNote" | "palette" | "search" | "find" | "task" | "stickers" | "focus" | "export" | "settings", string>) =>
+      `# Welcome to Ursa
+
+Ursa keeps your notes in a folder, one Markdown file per note: they stay readable in any other editor. This is a note like any other: edit it, then delete it when you no longer need it. #ursa/welcome
+
+## Writing
+
+Just type. Markdown formatting shows live: **bold**, *italic*, ==highlight==, \`code\`.
+
+- [x] Open Ursa
+- [ ] Create a note with ${k.newNote}
+- [ ] Tick a task with a click, or with ${k.task}
+
+## Tags
+
+A tag starts with #: \`#ideas\`, or \`#travel/japan\` for a nested tag (written as code here so they do not become tags). Tags show in the sidebar; right-click one to give it an icon and a colour.
+
+## Links between notes
+
+Put a title in double brackets: [[My first idea]]. If the note does not exist yet, a click creates it. At the bottom of each note, "Mentioned in" lists the notes that link to it.
+
+## Page backgrounds and stickers
+
+The editor's … menu offers a page background (lines, grid, dots, red margin): this note uses lines. ${k.stickers} opens the drawer of stickers and sticky notes; place them anywhere, they follow the text.
+
+## Finding things
+
+- ${k.search}: search all notes, including the text in pictures
+- ${k.find}: search the open note
+- ${k.palette}: the command palette, for everything else
+
+## Handy shortcuts
+
+- ${k.focus}: focus mode
+- ${k.export}: export the note (PDF, Word, HTML, image…)
+- ${k.settings}: settings, including Settings › Shortcuts to customize them all
+`,
+    postit: "A sticky note! Hover it to change its colour or delete it.",
   },
   crash: {
     title: "Something went wrong",

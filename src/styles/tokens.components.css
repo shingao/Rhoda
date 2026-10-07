@@ -416,8 +416,11 @@
   --fold-badge-fs: 12px;
   --fold-badge-gap: var(--sp-2);
 
-  /* Empty states (decision) */
+  /* Empty states (decision P10-14): decorative icon, title, hint, optional action */
   --empty-icon: 28px;
+  --empty-icon-stroke: 1.5;
+  --empty-pad-top: 72px;                   /* list column: below the header, not centered */
+  --empty-text-max: 240px;
 
   /* OCR [§2.3]: zone found in an image (thumbnail of the result, image in the note) */
   --ocr-zone-ring: 1.5px;

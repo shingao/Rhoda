@@ -13,6 +13,7 @@ import { connectOcr } from "./ocr";
 import { connectPreviews } from "./previews";
 import { connectTagConfig } from "./tagOps";
 import { openVault } from "./vault";
+import { welcomeOnFirstLaunch } from "./welcome";
 
 const SETTINGS_SAVE_DELAY = 300;
 let started = false;
@@ -41,6 +42,7 @@ export async function bootstrap(): Promise<void> {
     await vaultApi.onChanged((paths) => void handleDiskChanges(paths));
     const path = settings.vaultPath ?? (await vaultApi.defaultPath());
     await openVault(path);
+    await welcomeOnFirstLaunch();
 
     window.addEventListener("blur", () => void flushAll());
     await appWindow.onCloseRequested(async () => {

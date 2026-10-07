@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { ChevronsDownUp, ChevronsUpDown, CircleAlert, Ellipsis, Expand, Focus, ImagePlus, Info, ListTree, Notebook, PanelLeftClose, PanelLeftOpen, Eye, EyeOff, Settings, Share, Sticker } from "lucide-react";
+import { ChevronsDownUp, ChevronsUpDown, CircleAlert, Ellipsis, Expand, Focus, ImagePlus, Info, ListTree, Notebook, NotebookPen, PanelLeftClose, PanelLeftOpen, Eye, EyeOff, Settings, Share, Sticker } from "lucide-react";
 import { openExport } from "../../app/export";
 import { useT } from "../../app/i18n";
 import { cssPx } from "../../app/cssTokens";
@@ -7,6 +7,7 @@ import { insertFromDialog } from "../../app/attachments";
 import { toggleColumn, toggleFocusMode, toggleOutline } from "../../app/layout";
 import { editNote, trashNote } from "../../app/notes";
 import { shortcutLabel } from "../../app/shortcuts";
+import { EmptyState } from "../../components/EmptyState";
 import { setState, updateSettings, useApp } from "../../app/store";
 import { useNow } from "../../app/useNow";
 import { relativeDate } from "../../core/dates";
@@ -166,10 +167,7 @@ export function EditorPane() {
         {findOpen && selectedId && <FindPanel />}
         {selectedId && <StickerDrawer />}
         {!selectedId && (
-          <div className={s.empty}>
-            <p className={s.emptyTitle}>{t.editor.noSelection}</p>
-            <p className={s.emptyHint}>{t.editor.noSelectionHint(shortcutLabel("note.new", t))}</p>
-          </div>
+          <EmptyState centered icon={NotebookPen} title={t.editor.noSelection} hint={t.editor.noSelectionHint(shortcutLabel("note.new", t))} />
         )}
       </div>
       {focusMode && stats && (

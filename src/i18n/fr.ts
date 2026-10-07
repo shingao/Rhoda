@@ -49,9 +49,9 @@ export const fr = {
     results: (n: number) => `${n} résultat${n > 1 ? "s" : ""}`,
     resultsTitle: "Résultats",
     notesCount: (n: number) => `${n} note${n > 1 ? "s" : ""}`,
-    noResults: (q: string) => (q ? `Aucune note ne correspond à « ${q} ».` : "Aucune note ne correspond à ces filtres."),
-    noResultsHint: "Vérifie l'orthographe, ou retire un filtre.",
-    createNote: (title: string) => `Créer la note « ${title} »`,
+    noResults: (q: string) => (q ? `Aucune note ne correspond à «\u00a0${q}\u00a0».` : "Aucune note ne correspond à ces filtres."),
+    noResultsHint: "Vérifiez l'orthographe, ou retirez un filtre.",
+    createNote: (title: string) => `Créer la note «\u00a0${title}\u00a0»`,
     archived: "Archivée",
     foundInPage: (page: number) => `Trouvé page ${page}`,
     foundIn: { ocr: "Trouvé dans l'image", postit: "Trouvé dans un post-it" } as Record<string, string>,
@@ -151,7 +151,7 @@ export const fr = {
     emptyTrash: "Vider la corbeille",
     todos: (done: number, total: number) => `${done} tâche${done > 1 ? "s" : ""} faite${done > 1 ? "s" : ""} sur ${total}`,
     emptySection: {
-      notes: "Aucune note",
+      notes: "Aucune note pour l'instant",
       untagged: "Toutes les notes ont un tag",
       todo: "Aucune tâche en cours",
       today: "Aucune note modifiée aujourd'hui",
@@ -159,6 +159,16 @@ export const fr = {
       archive: "Aucune note archivée",
       trash: "La corbeille est vide",
     },
+    emptyHint: {
+      notes: (shortcut: string) => `Créez votre première note avec ${shortcut}, ou le bouton ci-dessous.`,
+      untagged: "Les notes sans #tag apparaissent ici.",
+      todo: "Les notes qui ont des tâches non cochées apparaissent ici.",
+      today: "Les notes modifiées aujourd'hui apparaissent ici.",
+      pinned: "Épinglez une note depuis son menu pour la garder en haut de la liste.",
+      archive: "Une note archivée quitte la liste sans être supprimée.",
+      trash: "Les notes supprimées arrivent ici ; vous pouvez les restaurer tant que la corbeille n'est pas vidée.",
+    },
+    emptyTagHint: (tag: string) => `Écrivez ${tag} dans une note pour la retrouver ici.`,
     emptyTag: "Aucune note avec ce tag",
     deleteTitle: (n: number) => (n === 1 ? "Supprimer définitivement cette note ?" : `Supprimer définitivement ${n} notes ?`),
     deleteBody: (n: number) =>
@@ -633,6 +643,47 @@ export const fr = {
     standardBody: (keys: string) => `${keys} est un raccourci standard de Windows (copier, coller, couper, annuler, rétablir, tout sélectionner ou enregistrer). Dans Ursa, il ne fera plus son action habituelle.`,
     standardConfirm: "Remplacer quand même",
     saved: (name: string, keys: string) => `« ${name} » : ${keys}`,
+  },
+  welcome: {
+    title: "Bienvenue dans Ursa",
+    body: (k: Record<"newNote" | "palette" | "search" | "find" | "task" | "stickers" | "focus" | "export" | "settings", string>) =>
+      `# Bienvenue dans Ursa
+
+Ursa range vos notes dans un dossier, une note par fichier Markdown : elles restent lisibles dans n'importe quel autre éditeur. Cette note est une note comme les autres : modifiez-la, puis supprimez-la quand vous n'en avez plus besoin. #ursa/bienvenue
+
+## Écrire
+
+Tapez simplement. La mise en forme Markdown s'affiche en direct : **gras**, *italique*, ==surlignage==, \`code\`.
+
+- [x] Ouvrir Ursa
+- [ ] Créer une note avec ${k.newNote}
+- [ ] Cocher une tâche d'un clic, ou avec ${k.task}
+
+## Tags
+
+Un tag commence par # : \`#idées\`, ou \`#voyages/japon\` pour un sous-tag (écrits ici en code pour ne pas créer ces tags). Les tags apparaissent dans la barre latérale ; un clic droit sur un tag permet de lui donner une icône et une couleur.
+
+## Liens entre notes
+
+Entourez un titre de doubles crochets : [[Ma première idée]]. Si la note n'existe pas encore, un clic la crée. En bas de chaque note, « Mentionnée dans » liste les notes qui y renvoient.
+
+## Fonds de page et stickers
+
+Le menu … de l'éditeur propose un fond de page (lignes, quadrillage, pointillés, marge rouge) : cette note utilise les lignes. ${k.stickers} ouvre le tiroir à stickers et à post-it ; posez-les où vous voulez, ils suivent le texte.
+
+## Retrouver
+
+- ${k.search} : rechercher dans toutes les notes, y compris le texte des images
+- ${k.find} : rechercher dans la note ouverte
+- ${k.palette} : la palette de commandes, pour tout le reste
+
+## Raccourcis utiles
+
+- ${k.focus} : mode focus
+- ${k.export} : exporter la note (PDF, Word, HTML, image…)
+- ${k.settings} : réglages, dont Réglages › Raccourcis pour tout personnaliser
+`,
+    postit: "Un post-it ! Survolez-le pour changer sa couleur ou le supprimer.",
   },
   crash: {
     title: "Un problème est survenu",

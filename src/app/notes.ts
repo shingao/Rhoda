@@ -633,16 +633,21 @@ export function selectNote(id: string | null): void {
   showNote(id, note?.body ?? "", note?.stickers ?? []);
 }
 
-/** New note, empty or with a title (e.g. from a link to a note that does not exist yet). */
-export async function createNote(title?: string): Promise<void> {
+/** Writes a new note file (name made unique on disk) and adds it to the index. */
+export function addNote(title: string, content: string): Promise<Note> {
   const untitled = currentMessages().untitled;
-  const note = await enqueue(async () => {
-    const file = await vaultApi.create(sanitizeStem(title ?? "", untitled), newNoteContent(Date.now(), title));
+  return enqueue(async () => {
+    const file = await vaultApi.create(sanitizeStem(title, untitled), content);
     const created = noteFromFile(file);
     putNote(created);
     lastTitles.set(created.id, created.title);
     return created;
   });
+}
+
+/** New note, empty or with a title (e.g. from a link to a note that does not exist yet). */
+export async function createNote(title?: string): Promise<void> {
+  const note = await addNote(title ?? "", newNoteContent(Date.now(), title));
   // A note created from a filtered view must be visible: fall back to "Notes".
   if (!currentList().some((n) => n.id === note.id)) setState({ filter: { kind: "section", section: "notes" } });
   selectNote(note.id);
