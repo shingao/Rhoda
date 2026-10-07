@@ -1105,6 +1105,19 @@ Captures `30-maquette-vs-app-*.png` (maquette à gauche, app à droite, même fe
   - `scripts/ci/installer-shots.ps1` : captures des vraies pages de l'installeur et du désinstalleur (artefact `installer-captures`, étape non bloquante) ;
   - un tag `v*` crée une **release GitHub brouillon** avec l'installeur et la section correspondante de `CHANGELOG.md`.
 - **CHANGELOG.md** (1.0.0), README (installation, mise à jour, désinstallation, migration), CLAUDE.md (nom public / nom de code, packaging).
+- **Corrigé grâce au test d'installation** : fermer l'app dans les toutes premières secondes ne faisait rien écrire (le gestionnaire de fermeture n'était branché qu'après l'ouverture du coffre et la note de bienvenue), et un réglage modifié moins de 300 ms avant une fermeture était perdu. La fermeture est désormais prise en charge dès que la fenêtre apparaît : elle attend la fin du démarrage (5 s au plus), la file d'écriture (note en cours de création comprise), puis écrit aussitôt les réglages en attente (P10-25).
+
+### Résultats CI (10d, run 24, Windows)
+
+Test d'installation, tout vert en 26 s :
+- installation silencieuse en 2,7 s, `%LOCALAPPDATA%\Bullshit`, version 1.0.0 dans HKCU, raccourcis menu Démarrer et bureau, aucune association `.md` ;
+- fenêtre « Bullshit » visible 2,1 s après le lancement ; `Documents\Ursa` → `Documents\Bullshit`, notes identiques ;
+- second lancement : quitte aussitôt, une seule instance ;
+- fermeture immédiate : note de bienvenue et réglages écrits (3 fichiers) ;
+- désinstallation silencieuse : raccourcis et entrée retirés, dossier des notes présent, **3 notes identiques octet pour octet**, réglages gardés ;
+- 0.9.0 installée et lancée, réglages modifiés (anglais, tri par titre), 1.0.0 par-dessus : une seule entrée en 1.0.0, réglages gardés par l'installeur puis par l'app, notes identiques, aussi après la désinstallation finale.
+
+Captures de l'installeur réel (artefact `installer-captures` du run, 7 images) : 4 pages de l'installeur (503 × 390), l'app au premier lancement, 2 pages du désinstalleur. Le conteneur de développement ne peut pas télécharger les artefacts (stockage bloqué par son proxy) : elles sont à récupérer sur la page du run et ne sont pas copiées dans `docs/captures/phase-10d/`.
 
 ### Décisions (10d)
 
@@ -1115,6 +1128,7 @@ Captures `30-maquette-vs-app-*.png` (maquette à gauche, app à droite, même fe
 | P10-22 | Noms internes gardés | `.ursa/` dans le coffre, clés `ursa-*` (localStorage de dev, événements de performance), protocole `ursa-export:`, `URSA_PDF_SMOKE`, crate `ursa_lib`, journal `ursa.log`, branche Git : invisibles pour l'utilisateur, et renommer `.ursa/` obligerait à migrer chaque coffre. |
 | P10-23 | Migration non destructive | Réglages copiés (pas déplacés) ; dossier de notes renommé seulement vers un dossier inexistant, sinon laissé tel quel ; aucune migration du cache WebView (le thème mis en cache se reconstruit au premier lancement : au pire un clignement du thème par défaut, une seule fois). |
 | P10-24 | Raccourci bureau | Proposé (case cochée) sur la dernière page de l'installeur ; une installation silencieuse le crée, comme le fait le modèle de Tauri. |
+| P10-25 | Fermeture pendant le démarrage | Elle attend le démarrage au plus 5 s (un disque lent ou absent ne bloque jamais la fermeture), puis la file d'écriture ; les réglages en attente sont écrits sans attendre leur délai de 300 ms. |
 
 ### Captures (10d)
 
@@ -1122,7 +1136,7 @@ Captures `30-maquette-vs-app-*.png` (maquette à gauche, app à droite, même fe
 - `01-icone-toutes-tailles.png` : l'icône de 16 à 256 px sur fond clair, sombre et bleu Windows, puis 16 et 32 px agrandis ×8 et 256 px ;
 - `02-premier-lancement-bienvenue.png` : premier lancement, note « Bienvenue dans Bullshit » ;
 - `03-a-propos.png`, `04-a-propos-sombre.png` : Réglages › À propos, « Bullshit version 1.0.0 » ;
-- `installeur-*.png`, `desinstalleur-*.png`, `app-premier-lancement.png` : pages réelles de l'installeur et du désinstalleur prises par la CI sur Windows.
+- `installeur-*.png`, `desinstalleur-*.png`, `app-premier-lancement.png` : pages réelles de l'installeur et du désinstalleur prises par la CI sur Windows, dans l'artefact `installer-captures` (voir « Résultats CI »).
 
 ### Fusion dans `main` (à faire après validation, pas faite)
 
