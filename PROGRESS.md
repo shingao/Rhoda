@@ -1103,7 +1103,7 @@ Captures `30-maquette-vs-app-*.png` (maquette à gauche, app à droite, même fe
   - `scripts/ci/installer-test.ps1` (refuse de tourner hors CI) : installation silencieuse, exécutable dans `%LOCALAPPDATA%\Bullshit`, version 1.0.0 enregistrée, raccourcis, pas d'association `.md`, lancement et **fenêtre visible** titrée « Bullshit » (montrée par l'interface une fois thémée, donc l'interface a démarré), migration `Documents\Ursa` → `Documents\Bullshit` notes intactes, second lancement qui quitte (une seule instance), désinstallation silencieuse : raccourcis et entrée retirés, **chaque note identique octet pour octet** (SHA-256), réglages gardés ;
   - mise à jour : installation 0.9.0, lancement, réglages modifiés (langue anglaise, tri par titre), installation 1.0.0 par-dessus : une seule entrée en 1.0.0, réglages et notes conservés, puis lancement de la 1.0.0 et nouvelle vérification ;
   - `scripts/ci/installer-shots.ps1` : captures des vraies pages de l'installeur et du désinstalleur (artefact `installer-captures`, étape non bloquante) ;
-  - un tag `v*` crée une **release GitHub brouillon** avec l'installeur et la section correspondante de `CHANGELOG.md`.
+  - *Run workflow* avec « release » coché : après tous les tests, la CI pose le tag `v<version>` sur le commit et crée une **release GitHub brouillon** avec l'installeur et la section correspondante de `CHANGELOG.md` (un tag `v*` poussé à la main fait de même). Le proxy Git de l'environnement de développement refuse de pousser un tag : c'est donc la CI qui le pose.
 - **CHANGELOG.md** (1.0.0), README (installation, mise à jour, désinstallation, migration), CLAUDE.md (nom public / nom de code, packaging).
 - **Corrigé grâce au test d'installation** : fermer l'app dans les toutes premières secondes ne faisait rien écrire (le gestionnaire de fermeture n'était branché qu'après l'ouverture du coffre et la note de bienvenue), et un réglage modifié moins de 300 ms avant une fermeture était perdu. La fermeture est désormais prise en charge dès que la fenêtre apparaît : elle attend la fin du démarrage (5 s au plus), la file d'écriture (note en cours de création comprise), puis écrit aussitôt les réglages en attente (P10-25).
 
@@ -1153,7 +1153,7 @@ Si une branche `main` existe déjà d'ici là, ouvrir une pull request `claude/u
 
 Ensuite :
 - le badge du README pointe sur la branche de travail (`?branch=claude/ursa-notes-app-j3yanr`) : le passer à `?branch=main` ;
-- le tag `v1.0.0` crée la release brouillon : la relire dans *Releases*, puis *Publish release*. Le tag est posé sur le commit qui a fait passer la CI au vert ; le déplacer si la validation demande des corrections.
+- le tag `v1.0.0` et la release brouillon ont été créés par la CI (lancement manuel avec « release ») sur le dernier commit de la branche : relire la release dans *Releases*, puis *Publish release*. Si la validation demande des corrections : supprimer la release brouillon et le tag, puis relancer le workflow avec « release » sur le nouveau commit.
 
 ### Checklist de test manuel finale (10d, Windows)
 1. Télécharge `Bullshit_1.0.0_x64-setup.exe` (release brouillon ou artefact `bullshit-setup`), débloque-le (Propriétés › Débloquer) et lance-le : **aucune demande d'administrateur**, pages en français, icône du coquelicot sur l'installeur.

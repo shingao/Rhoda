@@ -8,7 +8,7 @@ Application de prise de notes locale pour Windows : notes Markdown dans un dossi
 - Design : [`DESIGN.md`](DESIGN.md)
 - Guide du projet et commandes : [`CLAUDE.md`](CLAUDE.md)
 
-L'intégration continue (`.github/workflows/windows.yml`) tourne sur Windows à chaque push : `npm run check`, clippy, tests Rust, build Tauri complet, puis installation, lancement, mise à jour et désinstallation réelles de l'installeur. L'installeur est disponible en artefact du workflow ; un tag `v*` en fait une release GitHub brouillon.
+L'intégration continue (`.github/workflows/windows.yml`) tourne sur Windows à chaque push : `npm run check`, clippy, tests Rust, build Tauri complet, puis installation, lancement, mise à jour et désinstallation réelles de l'installeur. L'installeur est disponible en artefact du workflow ; un lancement manuel du workflow avec « release » (ou un tag `v*`) en fait une release GitHub brouillon.
 
 ## Tester une build
 
