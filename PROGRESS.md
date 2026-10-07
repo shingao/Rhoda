@@ -1,6 +1,6 @@
 # Ursa — PROGRESS
 
-État : **Phase 9 terminée** (à valider sur Windows) — en attente du « go » pour la phase 10.
+État : **Phase 10a (export) terminée** (à valider sur Windows) — en attente du « go » pour 10b.
 
 | Phase | Sujet | État |
 |---|---|---|
@@ -13,8 +13,8 @@
 | 6 | Thèmes, fonds de page, rythme, réglages | ✅ validée |
 | 7 | Images, aperçus de liens, PDF | ✅ validée |
 | 8 | Stickers et post-it | ✅ validée |
-| 9 | OCR local | 🟡 terminée, à valider |
-| 10 | Export, raccourcis, palette, packaging | — |
+| 9 | OCR local | ✅ validée |
+| 10 | Export, raccourcis, palette, packaging | 🟡 10a export terminé, à valider ; 10b–10d à venir |
 
 ---
 
@@ -848,6 +848,96 @@ Captures : `docs/captures/phase-9/` (avancement, recherche image et PDF, Ctrl+F,
 8. **Cache** : relance Ursa : rien n'est relu (aucune ligne « OCR : … »). Remplace une image par une autre sous le même nom : seule celle-ci est relue. « Réindexer » relit tout.
 9. Supprime une image ou une note en attente : elle disparaît de la file.
 10. Image sélectionnée › bouton « Texte » : le texte lu s'affiche et « Copier le texte » fonctionne. Interrupteur OCR coupé : plus de lecture, et la recherche garde les résultats déjà obtenus.
+
+---
+
+## Phase 10 — Export, raccourcis et palette, finitions, packaging
+
+Découpée en quatre sous-étapes, chacune avec son commit, un run CI vert et le « go » de l'utilisateur : **10a export**, 10b raccourcis et palette, 10c polish / accessibilité / perf, 10d packaging et release.
+
+### 10a — Export : fait
+- **Modale** [DESIGN §2.17, maquette 08] (`src/features/export/`) :
+  - 5 tuiles (Markdown, HTML, PDF, DOCX, Image) ;
+  - options selon le format : format de page A4 / Letter (PDF), PNG / JPG (image), inclure les images, inclure les tags, stickers et post-it, fond de page, thème actuel ;
+  - destination en mono avec « Modifier… » ; bouton « Exporter en PDF » selon le format ; avancement « Export… 2 / 5 » ;
+  - toast « Note exportée · Afficher » (ouvre l'Explorateur sur le fichier).
+- **Où l'ouvrir** :
+  - bouton `share` de la barre de l'éditeur (maquette) ;
+  - Ctrl+Maj+E ;
+  - « Exporter… » dans les menus de note (liste et « … » de l'éditeur) ;
+  - « Exporter la liste (N notes)… » dans le menu d'en-tête de la liste (liste affichée, donc aussi après une recherche) ;
+  - « Exporter les notes du tag… » dans le menu d'un tag.
+- **Un seul modèle de document** (`src/core/export/model.ts`) lu avec la grammaire d'Ursa (`syntax.ts`) : blocs, styles, liens, wiki-links, tags, tâches, tableaux, images, cartes. Chaque bloc garde sa ligne (les stickers suivent leur bloc) et les lignes vides de la note (même espacement que dans l'éditeur). Le HTML brut d'une note est toujours échappé, jamais interprété.
+- **HTML** (`core/export/html.ts`, `app/export/page.ts`) : fichier autonome.
+  - Polices (sous-ensembles latins), images, stickers, vignettes de cartes en data URL ; aucun script, aucune requête.
+  - Rendu du live preview, construit avec les mêmes tokens (`features/export/export.css`, intégré en texte).
+  - Les wiki-links vers une autre note du même export pointent vers son fichier.
+- **PDF** : `PrintToPdf` de WebView2 depuis une fenêtre cachée (`src-tauri/src/export/`), sans boîte d'impression.
+  - Page servie par le protocole `ursa-export:`, qui ne sert que cette page, sans script ni requête extérieure.
+  - Attente des polices et des images, puis impression A4 (ou Letter).
+  - Polices embarquées par Chromium.
+  - Jamais de coupure dans une image, un bloc de code, un tableau, une carte ou un post-it (`break-inside: avoid`) ; un titre reste avec la suite.
+  - Le fond de page (lignes, quadrillage, points, marge rouge) est répété entier sur chaque page.
+- **Stickers et post-it** : positions recalculées à la largeur d'export.
+  - Stickers dans les marges, réduits à la largeur de la marge. Ce sont des flottants à marge négative : jamais sur le texte, jamais superposés, ils suivent leur bloc d'une page à l'autre.
+  - Post-it dans la colonne, le texte coulant autour, du côté où ils étaient.
+  - « Masquer les stickers » d'une note est respecté.
+- **DOCX** (`app/export/docx.ts`, bibliothèque `docx`, MIT, chargée à la demande) :
+  - titres 1–6 avec signets ;
+  - images intégrées (SVG / WebP converties en PNG) à leur largeur ;
+  - tâches ☐ / ☑ ; surlignage (ombrage `--highlight`) ; code en Consolas ; tags en texte ;
+  - wiki-links vers un titre de la note (lien interne) ou vers un autre fichier de l'export, sinon texte ;
+  - tableaux, citations, listes numérotées ou à puces ;
+  - post-it en paragraphe ombré après leur bloc.
+  - Couleurs lues dans les tokens du thème clair.
+- **PNG / JPG** (`app/export/raster.ts`) : page mise en page dans un cadre hors écran, dessinée sur un canvas via un SVG `foreignObject` (×2).
+  - Au-delà de 16 000 px de haut, découpage entre deux blocs en images numérotées « Note (1-20).jpg », avec un toast explicite.
+  - 5 000 lignes → 20 images en 9 s (navigateur de dev).
+- **Markdown** : la note telle qu'écrite, sans les clés gérées par Ursa (`id`, `created`, `pinned`, `archived`, `trashed`, `paper`, `margin`, `page`, `stickers` ; les autres clés sont gardées).
+  - Images et fichiers copiés dans `assets/` à côté du fichier, liens réécrits ; un fichier identique déjà copié est réutilisé.
+  - Options « images » (lignes d'image retirées) et « tags » (retirés hors titres et code).
+- **Plusieurs notes** : un fichier par note dans le dossier choisi.
+  - Noms nettoyés comme les noms de notes (`sanitizeStem`, règles Windows).
+  - Jamais d'écrasement : « Note (2).pdf ».
+  - Dernier dossier mémorisé (`settings.export.folder`) ; par défaut `Documents\Exports Ursa`.
+- **Côté Rust, écriture limitée au dossier choisi par l'utilisateur** : dossier choisi dans la boîte de dialogue, ou celui des réglages, relu par Rust (pas fourni par la page).
+  - Nom simple uniquement, extension d'export uniquement, création exclusive.
+- **Tests** :
+  - Vitest 204 (modèle, espacement, HTML échappé, liens sûrs, ancres, stickers, Markdown : liens, images, tags) ; Rust 3 nouveaux (noms, non-écrasement, formats de page).
+  - Le code WebView2 a été vérifié par `clippy` pour la cible Windows.
+  - **Test réel en CI** : `ursa.exe` (build de release) imprime une page d'export de 3 pages A4 (`URSA_PDF_SMOKE`, fixture `src-tauri/tests/fixtures/export-page.html`). L'étape vérifie que le fichier est un PDF, qu'il a plusieurs pages et que ses polices sont embarquées.
+- Réglages › À propos : `docx` (MIT) ajouté.
+
+### Décisions (10a)
+| # | Sujet | Décision |
+|---|---|---|
+| P10-1 | Export de plusieurs notes | La liste n'a pas de multi-sélection : on exporte la liste affichée (section, tag, résultat de recherche) ou les notes d'un tag. Un dossier (pas de .zip), un fichier par note. |
+| P10-2 | Mise en page d'export | Page de 794 px (A4 à 96 dpi) ou la largeur du papier choisi ; marges latérales de 104 px pour les stickers ; haut et bas de chaque page sur le rythme (56 px). Police et taille de l'éditeur reprises. |
+| P10-3 | Thème | Clair par défaut (la palette claire choisie) ; « Utiliser le thème actuel » prend la palette affichée. Le DOCX est toujours en clair (fond blanc de Word). |
+| P10-4 | DOCX | Polices présentes sur tout Windows (Segoe UI, Consolas, Segoe UI Symbol pour ☐ ☑) : celles de l'app ne sont pas installées chez le destinataire. Les stickers (décoratifs) ne sont pas repris, les post-it oui. |
+| P10-5 | Images distantes | Jamais téléchargées par l'export (la seule requête réseau reste l'aperçu de lien) : leur texte alternatif à la place. Les cartes de lien utilisent le cache d'aperçus si l'option est active. |
+| P10-6 | Image trop haute | 16 000 px par image (×2, donc 8 000 px CSS) : sous la limite de 32 767 px de Chromium et raisonnable en mémoire. Coupure au début d'un bloc. |
+| P10-7 | Newsreader | La police serif n'est pas embarquée dans l'app (repli Cambria / Georgia) : à traiter en 10c, l'export suivra. |
+
+### Comparaison avec la maquette 08 (modale d'export)
+- Titre, sous-titre (titre de la note), 5 tuiles de 84 px, sélection `--accent-soft` + anneau `--accent`, lignes d'options de 40 px, segmented A4 / Letter, champ destination en mono avec « Modifier… », boutons Annuler / « Exporter en PDF » : **conformes**.
+- Écarts :
+  - tuile « Image » libellée avec le type choisi (PNG ou JPG), décision D13 ;
+  - options supplémentaires « Stickers et post-it » et « Fond de page », avec une ligne d'aide sous le libellé, demandées pour la phase 10.
+
+Captures : `docs/captures/phase-10a/` (modale PDF, image, DOCX, Markdown ; menu « Exporter la liste » ; export de plusieurs notes ; toast ; HTML autonome dans un navigateur).
+
+### Checklist de test manuel (10a, Windows)
+1. Ctrl+Maj+E sur une note avec images, tâches, code et un tableau → PDF. Le PDF s'ouvre en A4, le texte est sélectionnable dans la police d'Ursa, et aucune image ni aucun bloc de code n'est coupé entre deux pages.
+2. Même note, « Format de page » Letter, puis « Utiliser le thème actuel » en thème sombre : fond sombre sur toute la page, sur chaque page.
+3. Le journal décoré (stickers, post-it, papier ligné, marge rouge) en PDF puis en PNG : stickers dans les marges, jamais sur le texte ; post-it à côté du texte ; lignes sur toute la page.
+4. Export HTML : ouvre le fichier dans Edge sans connexion ; tout s'affiche (polices, images, stickers). Les liens vers d'autres notes ne fonctionnent qu'après un export de plusieurs notes.
+5. Export DOCX : ouvre-le dans Word. Titres, cases ☐ / ☑, surlignage, code en Consolas, image à la bonne taille. Un lien `[[#Titre]]` mène au titre.
+6. Export Markdown d'une note avec image : le dossier contient la note et `assets/` avec l'image ; le fichier s'ouvre proprement dans un autre éditeur, sans `id:` ni `stickers:`.
+7. Une note très longue (« Note longue (5000 lignes) ») en JPG : plusieurs images numérotées et un toast qui le dit.
+8. Menu de la liste › « Exporter la liste (N notes)… » en PDF : un fichier par note, noms propres, aucun fichier écrasé si tu recommences (« (2) »).
+9. « Modifier… » : choisis un autre dossier, quitte et relance Ursa ; la modale propose ce dossier.
+10. Toast › « Afficher » : l'Explorateur s'ouvre sur le fichier exporté.
 
 ---
 
