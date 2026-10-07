@@ -7,7 +7,6 @@
 .dots {
   --paper-image: none;
   --paper-size: auto;
-  --paper-position: 0 0;
 }
 
 .lined {
@@ -18,7 +17,6 @@
 .grid {
   --paper-image: var(--paper-grid-image);
   --paper-size: var(--paper-grid-size);
-  --paper-position: 0 var(--paper-grid-offset);
 }
 
 .dots {
@@ -28,12 +26,13 @@
 
 .surface :global(.cm-scroller) {
   background-image: var(--paper-image);
-  background-position: var(--paper-position);
   background-size: var(--paper-size);
   background-attachment: local;
 }
 
-/* Red margin: 36 px left of the text column, follows the column (width, docked outline) */
+/* Red margin: 36 px left of the text column, follows the column (width,
+   docked outline). A box: Chromium places it on whole physical pixels at
+   every Windows scale (decision P10-15). */
 .surface :global(.cm-content) {
   position: relative;
 }
@@ -68,7 +67,6 @@
   width: calc(100% / var(--paper-thumb-scale));
   height: calc(100% / var(--paper-thumb-scale));
   background-image: var(--paper-image);
-  background-position: var(--paper-position);
   background-size: var(--paper-size);
   transform: scale(var(--paper-thumb-scale));
   transform-origin: 0 0;

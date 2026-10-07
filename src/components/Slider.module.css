@@ -23,7 +23,7 @@
   margin-top: calc((var(--slider-track-h) - var(--slider-thumb)) / 2);
   border-radius: 50%;
   background: var(--toggle-handle-color);
-  box-shadow: var(--toggle-handle-shadow), 0 0 0 1px var(--separator);
+  box-shadow: var(--toggle-handle-shadow), 0 0 0 var(--hairline) var(--separator);
   appearance: none;
 }
 

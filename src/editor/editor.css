@@ -415,7 +415,7 @@
 
 /* Horizontal rule [§3]: a 1 px line in the middle of its rhythm line */
 .cm-editor .cm-line.cm-hr:not(.cm-hr-revealed) {
-  background: linear-gradient(var(--separator), var(--separator)) center / 100% var(--hr-thickness) no-repeat;
+  background: linear-gradient(var(--separator), var(--separator)) 0 round(calc((var(--rhythm) - var(--hr-thickness)) / 2), var(--device-px)) / 100% var(--hr-thickness) no-repeat;
 }
 
 /* Focus mode (maquette 03): other paragraphs fade */
@@ -1522,7 +1522,7 @@
 }
 
 .cm-postit-sep {
-  width: 1px;
+  width: var(--hairline);
   height: var(--postit-sep-h);
   margin: 0 var(--postit-dot-gap);
   background: var(--separator);

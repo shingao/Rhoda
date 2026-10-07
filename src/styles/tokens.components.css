@@ -3,9 +3,16 @@
    so that no size, colour or duration is hard-coded in component styles.
    Decisions not covered by DESIGN.md are marked "(decision)" and logged in PROGRESS.md. */
 :root {
+  /* Physical pixels (decision P10-15): Windows scales by 125 %, 150 %, 175 %…
+     --dpr is set by the app (src/app/devicePixels.ts) and follows the screen
+     the window is on. Thin lines are whole physical pixels: never blurred. */
+  --dpr: 1;
+  --device-px: calc(1px / var(--dpr));
+  --hairline: calc(max(1, round(var(--dpr))) * var(--device-px));
+
   /* Focus ring [§2] — gap colour comes from --ring-bg, set by each zone */
-  --focus-gap: 2px;
-  --focus-outer: 4px;
+  --focus-gap: round(2px, var(--device-px));
+  --focus-outer: round(4px, var(--device-px));
   --ring-bg: var(--bg-2);
 
   /* Disabled state [§2] */
@@ -25,7 +32,7 @@
   --search-h: 32px;
   --search-icon: 15px;
   --search-fs: 13.5px;
-  --search-focus-ring: 1.5px;
+  --search-focus-ring: round(1.5px, var(--device-px));
   --search-clear: 22px;
   --search-clear-icon: 14px;              /* (decision) */
   --search-chip-fs: 12px;                  /* [§2.3] jetons mono 12/500 */
@@ -33,7 +40,7 @@
   --search-chip-max: 160px;
   --search-count-fs: 12px;                 /* [§2.3] « N résultats » 12 */
   --mark-pad: 0 1px;
-  --find-current-ring: 1.5px;              /* [§2.3] occurrence courante */
+  --find-current-ring: round(1.5px, var(--device-px));              /* [§2.3] occurrence courante */
   --find-pill-h: 28px;                     /* [§2.3] barre « 3 occurrences ↑ ↓ » */
   --find-pill-fs: 12px;
   --find-pill-btn: 22px;
@@ -87,9 +94,9 @@
   --h1-tracking: -0.015em;
   --inline-code-pad: 1px 5px;
   --highlight-pad: 0 2px;
-  --link-underline: 1.5px;
+  --link-underline: round(1.5px, var(--device-px));
   --link-underline-offset: 3px;
-  --wikilink-underline: 1.5px;
+  --wikilink-underline: round(1.5px, var(--device-px));
 
   /* Tag pill [§2.5, §6]: 22 px tall, centred in the 28 px line */
   --tag-fs: var(--fs-sm);
@@ -103,7 +110,7 @@
   --checkbox-size: 18px;
   --checkbox-gap: 12px;
   --task-indent: calc(var(--checkbox-size) + var(--checkbox-gap));
-  --checkbox-ring: 1.5px;
+  --checkbox-ring: round(1.5px, var(--device-px));
   --checkbox-check: 12px;
   --checkbox-from-scale: .6;
   --dur-check: 140ms;                      /* [§4] */
@@ -123,7 +130,7 @@
   --code-copied-ms: 1200;                  /* [§2.8] unitless, read by TS */
 
   /* Horizontal rule [§3] */
-  --hr-thickness: 1px;
+  --hr-thickness: var(--hairline);
 
   /* Typewriter mode (decision): room so the first and last lines can reach the centre */
   --typewriter-pad: round(down, 50vh, var(--rhythm)); /* a whole number of units: paper stays aligned [§7] */
@@ -206,7 +213,7 @@
   --image-ring: 2px;                       /* [§2.12] ring 0 0 0 2px accent, 3 px from the image */
   --image-ring-offset: 3px;
   --image-handle: 10px;                    /* [§2.12] corner handles 10×10, border 1.5, radius 2 */
-  --image-handle-border: 1.5px;
+  --image-handle-border: round(1.5px, var(--device-px));
   --image-handle-radius: 2px;
   --image-side-handle-w: 6px;              /* [§2.12] side handles 6×28 */
   --image-side-handle-h: 28px;
@@ -342,7 +349,7 @@
   --breadcrumb-chevron: 12px;
 
   /* Inline rename field [§2.5] */
-  --rename-ring: 1.5px;
+  --rename-ring: round(1.5px, var(--device-px));
 
   /* Toast (decision): short non-blocking message */
   --toast-offset: var(--sp-6);
@@ -358,7 +365,7 @@
   --backlinks-snippet-fs: var(--fs-sm);
 
   /* Broken wiki link [§3] */
-  --broken-link-underline: 1.5px;
+  --broken-link-underline: round(1.5px, var(--device-px));
 
   /* Wiki link hover preview [§3]: "survol 400 ms = aperçu flottant" */
   --link-preview-delay: 400ms;
@@ -392,15 +399,27 @@
 
   /* Page backgrounds [§7]: patterns painted on the editor's scroller, rule at
      --paper-rule-y in each 28 px unit; grid at half a unit, offset 10 px so its
-     lines meet the rules; dots at 14/24 in each unit. */
-  --paper-lined-image: linear-gradient(to bottom, transparent var(--paper-rule-y), var(--paper-line) var(--paper-rule-y) calc(var(--paper-rule-y) + 1px), transparent calc(var(--paper-rule-y) + 1px));
+     lines meet the rules; dots at 14/24 in each unit.
+     Crisp at every Windows scale (decision P10-15): one 28 px tile holds every
+     line (28 px is a whole number of physical pixels at 100–175 %, every 25 %
+     step), positions inside it are rounded to the physical pixel and line
+     widths are whole physical pixels; the tile starts on the scroller, which
+     Chromium places on a physical pixel. --dpr is set by the app. */
+  --paper-line-w: var(--hairline);
+  --paper-y: round(var(--paper-rule-y), var(--device-px));
+  --paper-y2: round(calc(var(--paper-rule-y) - var(--paper-grid)), var(--device-px));
+  --paper-x2: round(var(--paper-grid), var(--device-px));
+  --paper-lined-image: linear-gradient(to bottom, transparent var(--paper-y), var(--paper-line) var(--paper-y) calc(var(--paper-y) + var(--paper-line-w)), transparent calc(var(--paper-y) + var(--paper-line-w)));
   --paper-lined-size: 100% var(--paper-pitch);
-  --paper-grid-image: linear-gradient(to bottom, var(--paper-grid-line) 1px, transparent 1px), linear-gradient(to right, var(--paper-grid-line) 1px, transparent 1px);
-  --paper-grid-size: var(--paper-grid) var(--paper-grid);
-  --paper-grid-offset: calc(var(--paper-rule-y) - var(--paper-grid));
-  --paper-dots-image: radial-gradient(circle at calc(var(--paper-pitch) / 2) var(--paper-rule-y), var(--paper-dot) 1.1px, transparent 1.7px);
+  --paper-grid-image:
+    linear-gradient(to bottom, transparent var(--paper-y2), var(--paper-grid-line) var(--paper-y2) calc(var(--paper-y2) + var(--paper-line-w)), transparent calc(var(--paper-y2) + var(--paper-line-w))),
+    linear-gradient(to bottom, transparent var(--paper-y), var(--paper-grid-line) var(--paper-y) calc(var(--paper-y) + var(--paper-line-w)), transparent calc(var(--paper-y) + var(--paper-line-w))),
+    linear-gradient(to right, var(--paper-grid-line) var(--paper-line-w), transparent var(--paper-line-w)),
+    linear-gradient(to right, transparent var(--paper-x2), var(--paper-grid-line) var(--paper-x2) calc(var(--paper-x2) + var(--paper-line-w)), transparent calc(var(--paper-x2) + var(--paper-line-w)));
+  --paper-grid-size: var(--paper-pitch) var(--paper-pitch);
+  --paper-dots-image: radial-gradient(circle at round(calc(var(--paper-pitch) / 2), var(--device-px)) var(--paper-y), var(--paper-dot) 1.1px, transparent 1.7px);
   --paper-dots-size: var(--paper-pitch) var(--paper-pitch);
-  --paper-margin-w: 1.5px;
+  --paper-margin-w: round(1.5px, var(--device-px)); /* [§7] 1.5 px, whole physical pixels */
   --paper-popover-w: 288px;                /* [§7] popover */
   --paper-thumb-h: 52px;                   /* [§7] vignettes */
   --paper-thumb-margin-x: 10px;            /* (decision) margin inside a thumbnail */
@@ -423,7 +442,7 @@
   --empty-text-max: 240px;
 
   /* OCR [§2.3]: zone found in an image (thumbnail of the result, image in the note) */
-  --ocr-zone-ring: 1.5px;
+  --ocr-zone-ring: round(1.5px, var(--device-px));
   --ocr-zone-min: 4px;                     /* (decision) visible even for a tiny word */
   --ocr-status-icon: 14px;                 /* (decision) sidebar progress line */
   --ocr-text-w: 320px;                     /* (decision) "Text" popover of an image */
@@ -434,9 +453,9 @@
 
   /* Stickers [§8] */
   --sticker-frame-gap: 6px;                /* dashed frame 6 px around */
-  --sticker-frame-w: 1px;
+  --sticker-frame-w: var(--hairline);
   --sticker-handle: 8px;                   /* corner handles 8×8 */
-  --sticker-handle-border: 1.5px;
+  --sticker-handle-border: round(1.5px, var(--device-px));
   --sticker-handle-r: 2px;
   --sticker-stem: 20px;                    /* rotation handle: stem + circle */
   --sticker-knob: 10px;
@@ -539,7 +558,7 @@
   /* Settings › Shortcuts (decision P10-8): rows like the option rows of §2.17 */
   --shortcut-row-h: 40px;
   --shortcut-keys-min: 120px;
-  --shortcut-recording-ring: 1.5px;
+  --shortcut-recording-ring: round(1.5px, var(--device-px));
   /* Keyboard access to editor widgets [§2.7, §2.8]: the copy button shows when focused */
   --widget-focus-offset: 2px;
 
@@ -547,7 +566,7 @@
   --export-tile-h: 84px;
   --export-tile-icon: 22px;
   --export-tile-fs: var(--fs-sm);
-  --export-tile-ring: 1.5px;               /* selected: ring inset 1.5 px --accent */
+  --export-tile-ring: round(1.5px, var(--device-px));               /* selected: ring inset 1.5 px --accent */
   --export-row-h: 40px;
   --export-dest-fs: var(--fs-xs);          /* destination path in mono */
   /* Export page (decision P10-2): A4 at 96 dpi; text column with margins

@@ -21,6 +21,7 @@ import "./styles/global.css";
 import { App } from "./App";
 import { ErrorBoundary } from "./app/ErrorBoundary";
 import { connectLog } from "./app/log";
+import { connectDevicePixels } from "./app/devicePixels";
 
 async function start() {
   // Outside Tauri (plain browser during development), serve an in-memory vault.
@@ -30,6 +31,7 @@ async function start() {
     installDevMock();
   }
   connectLog();
+  connectDevicePixels();
   createRoot(document.getElementById("root")!, {
     // The error boundary writes these to the journal itself: no second report.
     onCaughtError: (error) => {
