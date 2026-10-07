@@ -4,7 +4,7 @@ created: 2026-10-02T12:00:00+02:00
 ---
 # Démo éditeur
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 

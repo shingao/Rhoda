@@ -3,7 +3,7 @@ id: 0192f3a8-0000-7000-8000-000000000002
 created: 2026-10-02T12:00:00+02:00
 ---
 # Synchronisation des fichiers
-#projets/ursa #recherche
+#projets/bullshit #recherche
 
 L'index reste **local** : chaque note est un fichier `.md` dans le dossier choisi. On surveille le disque avec _notify_ et on ==réindexe uniquement les fichiers modifiés==.
 

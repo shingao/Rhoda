@@ -1,6 +1,6 @@
-# Ursa — PROGRESS
+# Bullshit (nom de code Ursa) — PROGRESS
 
-État : **Phase 10c (finitions, accessibilité, performances) terminée** (à valider sur Windows) — en attente du « go » pour 10d.
+État : **Phase 10d (nom, icône, installeur, version 1.0.0) terminée** (à valider sur Windows) — fusion dans `main` préparée, pas faite.
 
 | Phase | Sujet | État |
 |---|---|---|
@@ -14,7 +14,7 @@
 | 7 | Images, aperçus de liens, PDF | ✅ validée |
 | 8 | Stickers et post-it | ✅ validée |
 | 9 | OCR local | ✅ validée |
-| 10 | Export, raccourcis, palette, packaging | 🟡 10a et 10b validées ; 10c terminée, à valider ; 10d à venir |
+| 10 | Export, raccourcis, palette, packaging | 🟡 10a, 10b et 10c validées ; 10d terminée, à valider |
 
 ---
 
@@ -1084,6 +1084,74 @@ Captures `30-maquette-vs-app-*.png` (maquette à gauche, app à droite, même fe
 8. Narrateur (Ctrl+Win+Entrée) : F6 passe de la barre de titre à la barre latérale, puis à la liste et à l'éditeur. Dans la liste, le titre de la note est lu en premier ; dans les tags, « développé / réduit » ; Ctrl+P : la palette annonce la commande sélectionnée.
 9. Copie 2 000 notes dans le dossier (ou `localStorage` `ursa-dev-notes` en dev), relance : la fenêtre est utilisable en moins de 2 s. Parcours la liste avec ↓ et Fin : fluide, la sélection reste visible.
 10. Ouvre 200 notes l'une après l'autre (↓ dans la liste) en surveillant le Gestionnaire des tâches (processus WebView2) : la mémoire se stabilise et ne remonte pas en rouvrant les mêmes notes.
+
+### 10d — Nom, icône, installeur, version 1.0.0 : fait
+
+- **Nom : Bullshit** (réponse à la question sur « [NOM] »). Changés avant la 1.0 : identifiant `com.bullshit.notes`, dossier par défaut `Documents\Bullshit`, titre de la fenêtre, barre de titre, À propos, textes fr/en (« Bienvenue dans Bullshit », tag `#bullshit/bienvenue`, « Exports Bullshit »), installeur, exécutable `bullshit.exe`, métadonnées d'export (DOCX, HTML), agent HTTP des aperçus, notes d'exemple. « Ursa » reste le nom de code interne (P10-22).
+- **Migration depuis Ursa** (`src-tauri/src/legacy.rs`, 7 tests) :
+  - les réglages (`settings.json`, `.window-state.json`) de `%APPDATA%\com.ursa.notes` sont **copiés** avant le démarrage des plugins (taille et position de fenêtre comprises), si `com.bullshit.notes` n'a pas encore de réglages. L'ancien dossier reste ;
+  - `Documents\Ursa` est **renommé** `Documents\Bullshit` quand c'était le dossier par défaut (réglage vide, ou chemin enregistré égal à `Documents\Ursa`) et que `Documents\Bullshit` n'existe pas : jamais de fusion. Si le renommage échoue (fichier ouvert), l'app reste sur `Documents\Ursa` et réessaie au lancement suivant ;
+  - un dossier choisi ailleurs n'est jamais touché.
+- **Icône** : tuile carrée crème à coins arrondis, recadrée de `design/icone-coquelicot-reference.png` (P10-20) ; `scripts/make-app-icon.cjs` (`npm run icon`) produit les PNG de 16 à 1 024 px et un `.ico` (16, 20, 24, 32, 40, 48, 64, 96, 128, 256). En 16–32 px, une variante où la fleur occupe 90 % de la hauteur reste lisible (capture `01-icone-toutes-tailles.png` : fond clair, sombre, bleu Windows, 16 et 32 px agrandis ×8). Les autres tailles Tauri viennent de `npx tauri icon`.
+- **Installeur NSIS** (P10-21) : par utilisateur (`currentUser`, aucun droit administrateur, `%LOCALAPPDATA%\Bullshit`), en français (`src-tauri/installer/French.nsh`, chaînes de Tauri corrigées : accents, « bureau » ; case de désinstallation explicite « Supprimer aussi les réglages et caches (vos notes ne sont jamais supprimées) »). Raccourci menu Démarrer ; raccourci bureau proposé en fin d'installation. Aucune association de fichiers. Bootstrapper **WebView2** embarqué (installation silencieuse si absent, Windows 10).
+- **Désinstallation** : supprime l'app, ses raccourcis et son entrée « Applications installées » ; la case « Supprimer aussi les réglages et caches » est **décochée** par défaut et ne vise que `%APPDATA%\com.bullshit.notes` et `%LOCALAPPDATA%\com.bullshit.notes`. Le dossier des notes n'est jamais touché (aucun chemin du coffre dans le désinstalleur).
+- **Mise à jour** : une version plus récente s'installe par-dessus (même dossier, même entrée), réglages et notes gardés.
+- **Instance unique** (`tauri-plugin-single-instance`, premier plugin) : relancer l'app ramène la fenêtre existante (restaurée si réduite) au premier plan ; le second processus quitte aussitôt. Jamais deux instances sur le même coffre.
+- **Version 1.0.0** dans `package.json`, `Cargo.toml`, `tauri.conf.json` ; À propos la lit dans `package.json` ; un test Rust (`versions_match`) refuse toute divergence.
+- **CI** :
+  - une build 0.9.0 (même code, `--config {"version":"0.9.0"}`) est mise de côté, puis la 1.0.0 est construite ; l'installeur part en artefact `bullshit-setup` ;
+  - `scripts/ci/installer-test.ps1` (refuse de tourner hors CI) : installation silencieuse, exécutable dans `%LOCALAPPDATA%\Bullshit`, version 1.0.0 enregistrée, raccourcis, pas d'association `.md`, lancement et **fenêtre visible** titrée « Bullshit » (montrée par l'interface une fois thémée, donc l'interface a démarré), migration `Documents\Ursa` → `Documents\Bullshit` notes intactes, second lancement qui quitte (une seule instance), désinstallation silencieuse : raccourcis et entrée retirés, **chaque note identique octet pour octet** (SHA-256), réglages gardés ;
+  - mise à jour : installation 0.9.0, lancement, réglages modifiés (langue anglaise, tri par titre), installation 1.0.0 par-dessus : une seule entrée en 1.0.0, réglages et notes conservés, puis lancement de la 1.0.0 et nouvelle vérification ;
+  - `scripts/ci/installer-shots.ps1` : captures des vraies pages de l'installeur et du désinstalleur (artefact `installer-captures`, étape non bloquante) ;
+  - un tag `v*` crée une **release GitHub brouillon** avec l'installeur et la section correspondante de `CHANGELOG.md`.
+- **CHANGELOG.md** (1.0.0), README (installation, mise à jour, désinstallation, migration), CLAUDE.md (nom public / nom de code, packaging).
+
+### Décisions (10d)
+
+| # | Sujet | Décision |
+|---|---|---|
+| P10-20 | Icône | Aucune icône carrée finale dans `design/` : tuile recadrée de la référence du coquelicot (choix de l'utilisateur). La référence fait 304 px : la version 1 024 px est agrandie (douce), les tailles jusqu'à 256 px sont nettes. Remplaçable par une source vectorielle plus tard sans rien changer d'autre (`npm run icon`). |
+| P10-21 | MSI abandonné | Le `.msi` de Tauri s'installe par machine (droits administrateur) et ne partage pas l'entrée de mise à jour du NSIS par utilisateur : deux installations concurrentes possibles. Seul l'installeur NSIS est produit. |
+| P10-22 | Noms internes gardés | `.ursa/` dans le coffre, clés `ursa-*` (localStorage de dev, événements de performance), protocole `ursa-export:`, `URSA_PDF_SMOKE`, crate `ursa_lib`, journal `ursa.log`, branche Git : invisibles pour l'utilisateur, et renommer `.ursa/` obligerait à migrer chaque coffre. |
+| P10-23 | Migration non destructive | Réglages copiés (pas déplacés) ; dossier de notes renommé seulement vers un dossier inexistant, sinon laissé tel quel ; aucune migration du cache WebView (le thème mis en cache se reconstruit au premier lancement : au pire un clignement du thème par défaut, une seule fois). |
+| P10-24 | Raccourci bureau | Proposé (case cochée) sur la dernière page de l'installeur ; une installation silencieuse le crée, comme le fait le modèle de Tauri. |
+
+### Captures (10d)
+
+`docs/captures/phase-10d/` :
+- `01-icone-toutes-tailles.png` : l'icône de 16 à 256 px sur fond clair, sombre et bleu Windows, puis 16 et 32 px agrandis ×8 et 256 px ;
+- `02-premier-lancement-bienvenue.png` : premier lancement, note « Bienvenue dans Bullshit » ;
+- `03-a-propos.png`, `04-a-propos-sombre.png` : Réglages › À propos, « Bullshit version 1.0.0 » ;
+- `installeur-*.png`, `desinstalleur-*.png`, `app-premier-lancement.png` : pages réelles de l'installeur et du désinstalleur prises par la CI sur Windows.
+
+### Fusion dans `main` (à faire après validation, pas faite)
+
+Le dépôt n'a pas encore de branche `main` : la branche de travail `claude/ursa-notes-app-j3yanr` porte tout l'historique. Deux possibilités, au choix :
+1. **Sur GitHub** : *Code* › menu des branches › taper `main` › « Create branch main from claude/ursa-notes-app-j3yanr », puis *Settings* › *General* › *Default branch* › `main`. Rien à fusionner : `main` part du dernier commit validé.
+2. **En ligne de commande** :
+   ```bash
+   git fetch origin claude/ursa-notes-app-j3yanr
+   git push origin origin/claude/ursa-notes-app-j3yanr:refs/heads/main
+   ```
+   puis la branche par défaut comme en 1.
+
+Si une branche `main` existe déjà d'ici là, ouvrir une pull request `claude/ursa-notes-app-j3yanr` → `main` (je peux la préparer sur demande) et fusionner sans *squash*, pour garder un commit par phase.
+
+Ensuite :
+- le badge du README pointe sur la branche de travail (`?branch=claude/ursa-notes-app-j3yanr`) : le passer à `?branch=main` ;
+- le tag `v1.0.0` crée la release brouillon : la relire dans *Releases*, puis *Publish release*. Le tag est posé sur le commit qui a fait passer la CI au vert ; le déplacer si la validation demande des corrections.
+
+### Checklist de test manuel finale (10d, Windows)
+1. Télécharge `Bullshit_1.0.0_x64-setup.exe` (release brouillon ou artefact `bullshit-setup`), débloque-le (Propriétés › Débloquer) et lance-le : **aucune demande d'administrateur**, pages en français, icône du coquelicot sur l'installeur.
+2. Dernière page : laisse « Créer un raccourci sur le bureau » coché et « Lancer Bullshit » : l'app s'ouvre ; raccourcis présents dans le menu Démarrer (taper « Bullshit ») et sur le bureau, avec l'icône nette à 100 % et 150 %.
+3. **Venant d'Ursa** : si `Documents\Ursa` existait, il est devenu `Documents\Bullshit` avec toutes ses notes, tags, replis et stickers ; thème, langue et taille de fenêtre d'Ursa sont repris. L'ancienne app Ursa (`.msi`) se désinstalle à part.
+4. Barre des tâches, Alt+Tab, Gestionnaire des tâches : l'icône et le nom « Bullshit » partout ; Réglages › À propos : « version 1.0.0 ».
+5. App ouverte et réduite, relance-la depuis le menu Démarrer : la fenêtre existante revient au premier plan, aucune seconde fenêtre (un seul `bullshit.exe` dans le Gestionnaire des tâches).
+6. Écris une note, ferme l'app, relance l'installeur par-dessus (« réinstaller ») : la note et les réglages sont toujours là.
+7. Clic droit sur un fichier `.md` dans l'Explorateur › *Ouvrir avec* : Bullshit n'est pas imposé comme application par défaut.
+8. *Paramètres* › *Applications* › **Bullshit** › *Désinstaller* : la case « Supprimer aussi les réglages et caches » est **décochée**. Désinstalle sans la cocher : le dossier `Documents\Bullshit` est intact, `%APPDATA%\com.bullshit.notes` aussi ; raccourcis retirés.
+9. Réinstalle : les réglages reviennent. Désinstalle en cochant la case : `%APPDATA%\com.bullshit.notes` et `%LOCALAPPDATA%\com.bullshit.notes` disparaissent, `Documents\Bullshit` reste intact.
+10. Sur un Windows 10 sans WebView2 (machine virtuelle), avec Internet : l'installeur installe WebView2 puis l'app, qui démarre.
 
 ### Arborescence
 

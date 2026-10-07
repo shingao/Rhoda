@@ -75,7 +75,7 @@ function seed(now: number): Array<[string, string, number]> {
     ],
     [
       "Format des métadonnées.md",
-      "# Format des métadonnées\n\n#projets/ursa\n\nEn-tête YAML géré par l'app ; les clés inconnues sont préservées. Voir aussi [[Synchronisation des fichiers]].\n",
+      "# Format des métadonnées\n\n#projets/bullshit\n\nEn-tête YAML géré par l'app ; les clés inconnues sont préservées. Voir aussi [[Synchronisation des fichiers]].\n",
       now - 2 * DAY,
     ],
     ["Courses.md", "# Courses\n\n#maison\n\n- [ ] Farine T65\n- [x] Levure\n- [ ] Café\n", now - 5 * HOUR],

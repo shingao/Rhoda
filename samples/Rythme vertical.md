@@ -10,7 +10,7 @@ stickers:
   - { id: rythme-4, type: postit, text: Replié, color: blue, collapsed: true, anchor: { block: heading, text: images, index: 20 }, dx: 104, dy: 0, rotation: 1.5, size: 148, z: 1 }
 ---
 # Rythme vertical
-#tests/rythme #ursa
+#tests/rythme #bullshit
 
 Chaque ligne de cette note doit tomber sur la réglure de 28 px, quels que soient la police et la taille choisies. Ce paragraphe est assez long pour revenir à la ligne plusieurs fois dans la colonne de texte, avec du **gras**, de l'_italique_, du `code inline`, un [lien](https://example.com), un [[Voyage au Japon]] et du ==surlignage==.
 

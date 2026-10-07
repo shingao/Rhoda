@@ -106,6 +106,22 @@ jobs:
           $old = Get-Item "$env:RUNNER_TEMP/*_0.9.0_*-setup.exe"
           ./scripts/ci/installer-test.ps1 -Version $version -Setup $setup.FullName -OldSetup $old.FullName
 
+      # Pictures of the real installer and uninstaller pages (docs/captures/phase-10d).
+      - name: Installer captures
+        continue-on-error: true
+        timeout-minutes: 5
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $setup = Get-Item "src-tauri/target/release/bundle/nsis/*_${version}_*-setup.exe"
+          ./scripts/ci/installer-shots.ps1 -Setup $setup.FullName -Out "$env:RUNNER_TEMP/installer-captures"
+
+      - uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: installer-captures
+          path: ${{ runner.temp }}/installer-captures/*.png
+
       # Last, so that its output (installed languages, text and boxes read) ends the log.
       # The step fails unless exactly these real OCR tests ran and passed: no engine,
       # no English recognizer, a word not read, or a test skipped or filtered out

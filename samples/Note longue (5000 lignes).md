@@ -5,7 +5,7 @@ id: 0192f3a8-0000-7000-8000-000000001000
 
 # Partie 1
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -16,7 +16,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -32,11 +32,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -91,7 +91,7 @@ En dessous du séparateur.
 
 # Partie 2
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -102,7 +102,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -118,11 +118,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -177,7 +177,7 @@ En dessous du séparateur.
 
 # Partie 3
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -188,7 +188,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -204,11 +204,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -263,7 +263,7 @@ En dessous du séparateur.
 
 # Partie 4
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -274,7 +274,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -290,11 +290,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -349,7 +349,7 @@ En dessous du séparateur.
 
 # Partie 5
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -360,7 +360,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -376,11 +376,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -435,7 +435,7 @@ En dessous du séparateur.
 
 # Partie 6
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -446,7 +446,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -462,11 +462,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -521,7 +521,7 @@ En dessous du séparateur.
 
 # Partie 7
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -532,7 +532,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -548,11 +548,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -607,7 +607,7 @@ En dessous du séparateur.
 
 # Partie 8
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -618,7 +618,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -634,11 +634,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -693,7 +693,7 @@ En dessous du séparateur.
 
 # Partie 9
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -704,7 +704,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -720,11 +720,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -779,7 +779,7 @@ En dessous du séparateur.
 
 # Partie 10
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -790,7 +790,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -806,11 +806,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -865,7 +865,7 @@ En dessous du séparateur.
 
 # Partie 11
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -876,7 +876,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -892,11 +892,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -951,7 +951,7 @@ En dessous du séparateur.
 
 # Partie 12
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -962,7 +962,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -978,11 +978,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -1037,7 +1037,7 @@ En dessous du séparateur.
 
 # Partie 13
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -1048,7 +1048,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -1064,11 +1064,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -1123,7 +1123,7 @@ En dessous du séparateur.
 
 # Partie 14
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -1134,7 +1134,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -1150,11 +1150,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -1209,7 +1209,7 @@ En dessous du séparateur.
 
 # Partie 15
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -1220,7 +1220,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -1236,11 +1236,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -1295,7 +1295,7 @@ En dessous du séparateur.
 
 # Partie 16
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -1306,7 +1306,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -1322,11 +1322,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -1381,7 +1381,7 @@ En dessous du séparateur.
 
 # Partie 17
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -1392,7 +1392,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -1408,11 +1408,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -1467,7 +1467,7 @@ En dessous du séparateur.
 
 # Partie 18
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -1478,7 +1478,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -1494,11 +1494,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -1553,7 +1553,7 @@ En dessous du séparateur.
 
 # Partie 19
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -1564,7 +1564,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -1580,11 +1580,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -1639,7 +1639,7 @@ En dessous du séparateur.
 
 # Partie 20
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -1650,7 +1650,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -1666,11 +1666,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -1725,7 +1725,7 @@ En dessous du séparateur.
 
 # Partie 21
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -1736,7 +1736,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -1752,11 +1752,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -1811,7 +1811,7 @@ En dessous du séparateur.
 
 # Partie 22
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -1822,7 +1822,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -1838,11 +1838,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -1897,7 +1897,7 @@ En dessous du séparateur.
 
 # Partie 23
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -1908,7 +1908,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -1924,11 +1924,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -1983,7 +1983,7 @@ En dessous du séparateur.
 
 # Partie 24
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -1994,7 +1994,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -2010,11 +2010,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -2069,7 +2069,7 @@ En dessous du séparateur.
 
 # Partie 25
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -2080,7 +2080,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -2096,11 +2096,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -2155,7 +2155,7 @@ En dessous du séparateur.
 
 # Partie 26
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -2166,7 +2166,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -2182,11 +2182,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -2241,7 +2241,7 @@ En dessous du séparateur.
 
 # Partie 27
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -2252,7 +2252,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -2268,11 +2268,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -2327,7 +2327,7 @@ En dessous du séparateur.
 
 # Partie 28
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -2338,7 +2338,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -2354,11 +2354,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -2413,7 +2413,7 @@ En dessous du séparateur.
 
 # Partie 29
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -2424,7 +2424,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -2440,11 +2440,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -2499,7 +2499,7 @@ En dessous du séparateur.
 
 # Partie 30
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -2510,7 +2510,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -2526,11 +2526,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -2585,7 +2585,7 @@ En dessous du séparateur.
 
 # Partie 31
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -2596,7 +2596,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -2612,11 +2612,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -2671,7 +2671,7 @@ En dessous du séparateur.
 
 # Partie 32
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -2682,7 +2682,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -2698,11 +2698,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -2757,7 +2757,7 @@ En dessous du séparateur.
 
 # Partie 33
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -2768,7 +2768,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -2784,11 +2784,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -2843,7 +2843,7 @@ En dessous du séparateur.
 
 # Partie 34
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -2854,7 +2854,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -2870,11 +2870,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -2929,7 +2929,7 @@ En dessous du séparateur.
 
 # Partie 35
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -2940,7 +2940,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -2956,11 +2956,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -3015,7 +3015,7 @@ En dessous du séparateur.
 
 # Partie 36
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -3026,7 +3026,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -3042,11 +3042,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -3101,7 +3101,7 @@ En dessous du séparateur.
 
 # Partie 37
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -3112,7 +3112,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -3128,11 +3128,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -3187,7 +3187,7 @@ En dessous du séparateur.
 
 # Partie 38
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -3198,7 +3198,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -3214,11 +3214,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -3273,7 +3273,7 @@ En dessous du séparateur.
 
 # Partie 39
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -3284,7 +3284,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -3300,11 +3300,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -3359,7 +3359,7 @@ En dessous du séparateur.
 
 # Partie 40
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -3370,7 +3370,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -3386,11 +3386,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -3445,7 +3445,7 @@ En dessous du séparateur.
 
 # Partie 41
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -3456,7 +3456,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -3472,11 +3472,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -3531,7 +3531,7 @@ En dessous du séparateur.
 
 # Partie 42
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -3542,7 +3542,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -3558,11 +3558,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -3617,7 +3617,7 @@ En dessous du séparateur.
 
 # Partie 43
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -3628,7 +3628,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -3644,11 +3644,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -3703,7 +3703,7 @@ En dessous du séparateur.
 
 # Partie 44
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -3714,7 +3714,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -3730,11 +3730,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -3789,7 +3789,7 @@ En dessous du séparateur.
 
 # Partie 45
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -3800,7 +3800,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -3816,11 +3816,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -3875,7 +3875,7 @@ En dessous du séparateur.
 
 # Partie 46
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -3886,7 +3886,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -3902,11 +3902,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -3961,7 +3961,7 @@ En dessous du séparateur.
 
 # Partie 47
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -3972,7 +3972,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -3988,11 +3988,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -4047,7 +4047,7 @@ En dessous du séparateur.
 
 # Partie 48
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -4058,7 +4058,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -4074,11 +4074,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -4133,7 +4133,7 @@ En dessous du séparateur.
 
 # Partie 49
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -4144,7 +4144,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -4160,11 +4160,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -4219,7 +4219,7 @@ En dessous du séparateur.
 
 # Partie 50
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -4230,7 +4230,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -4246,11 +4246,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -4305,7 +4305,7 @@ En dessous du séparateur.
 
 # Partie 51
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -4316,7 +4316,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -4332,11 +4332,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -4391,7 +4391,7 @@ En dessous du séparateur.
 
 # Partie 52
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -4402,7 +4402,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -4418,11 +4418,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -4477,7 +4477,7 @@ En dessous du séparateur.
 
 # Partie 53
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -4488,7 +4488,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -4504,11 +4504,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -4563,7 +4563,7 @@ En dessous du séparateur.
 
 # Partie 54
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -4574,7 +4574,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -4590,11 +4590,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -4649,7 +4649,7 @@ En dessous du séparateur.
 
 # Partie 55
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -4660,7 +4660,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -4676,11 +4676,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -4735,7 +4735,7 @@ En dessous du séparateur.
 
 # Partie 56
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -4746,7 +4746,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -4762,11 +4762,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -4821,7 +4821,7 @@ En dessous du séparateur.
 
 # Partie 57
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -4832,7 +4832,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -4848,11 +4848,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -4907,7 +4907,7 @@ En dessous du séparateur.
 
 # Partie 58
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
@@ -4918,7 +4918,7 @@ Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses c
 ##### Titre de niveau 5
 ###### Titre de niveau 6
 
-## Un titre avec du **gras**, de l'_italique_ et un #tag
+## Un titre avec du **gras**, de l'_italique_ et un #tag (ignoré dans un titre)
 
 ### Un titre très long qui ne tient pas sur une seule ligne et doit revenir à la ligne proprement, sans casser le rythme vertical
 
@@ -4934,11 +4934,11 @@ Du texte avec des emoji 🐻✨ au milieu, un emoji composé 👩🏽‍💻 et 
 
 ## Liens
 
-Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]].
+Un [lien Markdown](https://example.com) (Ctrl+clic pour l'ouvrir), une URL nue https://example.org et un lien interne [[Voyage au Japon]], ou avec un alias [[Voyage au Japon|mon voyage]], vers une ancre [[Voyage au Japon#Hakone]], et un lien cassé [[Note qui n'existe pas]] (Ctrl+clic propose de la créer).
 
 ## Tags
 
-Des tags #idée, #voyages/japon-2026 et #liste de courses# — mais pas C#, ni le ticket #123, ni https://example.com/#ancre.
+Des tags #idée, #voyages/japon-2026, #été et #liste de courses# (#Idée = #idée) — mais pas C#, ni le ticket #123, ni n°#3, ni les couleurs #FFF et #E0654A, ni `#code`, ni https://example.com/#ancre.
 
 ## Listes
 
@@ -4993,7 +4993,7 @@ En dessous du séparateur.
 
 # Partie 59
 
-Cette note contient **chaque élément** de syntaxe reconnu par Ursa, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
+Cette note contient **chaque élément** de syntaxe reconnu par Bullshit, avec ses cas limites. Place le curseur sur une ligne : sa syntaxe apparaît, estompée. Ailleurs, elle est cachée.
 
 ## Titres
 
