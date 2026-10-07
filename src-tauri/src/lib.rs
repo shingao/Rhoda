@@ -105,6 +105,15 @@ pub fn run() {
             export::export_reveal,
             export::export_pdf,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running Ursa");
+        .build(tauri::generate_context!())
+        .expect("error while running Ursa")
+        .run(|_app, _event| {
+            // The PDF check closes the main window: the app waits for the PDF, then quits itself.
+            #[cfg(windows)]
+            if let tauri::RunEvent::ExitRequested { api, code: None, .. } = &_event {
+                if export::smoke_running() {
+                    api.prevent_exit();
+                }
+            }
+        });
 }

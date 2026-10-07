@@ -266,12 +266,22 @@ pub fn serve(app: &AppHandle, request: &tauri::http::Request<Vec<u8>>) -> Respon
     }
 }
 
+#[cfg(windows)]
+static SMOKE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+/// True while the CI check prints its PDF (closing the main window must not quit the app).
+#[cfg(windows)]
+pub fn smoke_running() -> bool {
+    SMOKE.load(std::sync::atomic::Ordering::SeqCst)
+}
+
 /// CI check of the PDF export (`URSA_PDF_SMOKE=<page.html>|<out.pdf>`): prints the page, then quits
 /// (exit code 0 when the PDF was written; the reason is written next to it otherwise).
 #[cfg(windows)]
 pub fn smoke(app: &tauri::App) -> bool {
     let Ok(spec) = std::env::var("URSA_PDF_SMOKE") else { return false };
     let Some((input, output)) = spec.split_once('|').map(|(a, b)| (PathBuf::from(a), PathBuf::from(b))) else { return false };
+    SMOKE.store(true, std::sync::atomic::Ordering::SeqCst);
     if let Some(main) = app.get_webview_window("main") {
         let _ = main.destroy();
     }
