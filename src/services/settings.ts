@@ -4,7 +4,7 @@ import type { SortKey } from "../core/note/sort";
 import { DEFAULT_LANGUAGE, isLanguage, type Language } from "../i18n";
 
 export interface Settings {
-  /** Absolute path of the notes folder; null = default (Documents/Ursa). */
+  /** Absolute path of the notes folder; null = default (Documents/Bullshit). */
   vaultPath: string | null;
   /** The welcome note was offered (first launch only). */
   welcomed: boolean;
@@ -86,7 +86,7 @@ export type ExportFormat = (typeof EXPORT_FORMATS)[number];
 
 /** Export dialog: last choices, remembered [DESIGN §2.17]. */
 export interface ExportSettings {
-  /** Last export folder (absolute); null = Documents\Ursa exports. */
+  /** Last export folder (absolute); null = Documents\Exports Bullshit. */
   folder: string | null;
   format: ExportFormat;
   page: "a4" | "letter";

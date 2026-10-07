@@ -343,6 +343,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "bullshit"
+version = "1.0.0"
+dependencies = [
+ "arboard",
+ "image",
+ "imagesize",
+ "notify-debouncer-full",
+ "percent-encoding",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-dialog",
+ "tauri-plugin-opener",
+ "tauri-plugin-single-instance",
+ "tauri-plugin-window-state",
+ "tempfile",
+ "tokio",
+ "trash",
+ "url",
+ "webview2-com",
+ "windows",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.20.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4080,6 +4107,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-single-instance"
+version = "2.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ee2c8fe2d6b75caed0153f91eda30ea1dea3bfb6710d5adb80456d2c035a569d"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tauri",
+ "thiserror 2.0.21",
+ "tokio",
+ "tracing",
+ "windows-sys 0.61.2",
+ "zbus",
+]
+
+[[package]]
 name = "tauri-plugin-window-state"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4653,32 +4696,6 @@ dependencies = [
  "regex",
  "serde",
  "url",
-]
-
-[[package]]
-name = "ursa"
-version = "0.1.0"
-dependencies = [
- "arboard",
- "image",
- "imagesize",
- "notify-debouncer-full",
- "percent-encoding",
- "reqwest 0.12.28",
- "serde",
- "serde_json",
- "sha2",
- "tauri",
- "tauri-build",
- "tauri-plugin-dialog",
- "tauri-plugin-opener",
- "tauri-plugin-window-state",
- "tempfile",
- "tokio",
- "trash",
- "url",
- "webview2-com",
- "windows",
 ]
 
 [[package]]

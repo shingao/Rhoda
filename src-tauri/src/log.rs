@@ -1,4 +1,4 @@
-//! Error journal: `%LOCALAPPDATA%\com.ursa.notes\logs\ursa.log`, rotated to
+//! Error journal: `%LOCALAPPDATA%\com.bullshit.notes\logs\ursa.log`, rotated to
 //! `ursa.1.log` … `ursa.4.log` (5 files at most). Lines come from the frontend
 //! (already stripped of note text, see `src/core/logText.ts`) and from Rust
 //! panics. Never blocks or fails the app: a journal that cannot be written is

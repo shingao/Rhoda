@@ -172,7 +172,7 @@ export const fr = {
     emptyTag: "Aucune note avec ce tag",
     deleteTitle: (n: number) => (n === 1 ? "Supprimer définitivement cette note ?" : `Supprimer définitivement ${n} notes ?`),
     deleteBody: (n: number) =>
-      `${n === 1 ? "Le fichier sera envoyé" : "Les fichiers seront envoyés"} dans la corbeille de Windows : ${n === 1 ? "il disparaît" : "ils disparaissent"} d'Ursa mais reste${n === 1 ? "" : "nt"} récupérable${n === 1 ? "" : "s"} depuis Windows.`,
+      `${n === 1 ? "Le fichier sera envoyé" : "Les fichiers seront envoyés"} dans la corbeille de Windows : ${n === 1 ? "il disparaît" : "ils disparaissent"} de Bullshit mais reste${n === 1 ? "" : "nt"} récupérable${n === 1 ? "" : "s"} depuis Windows.`,
     deleteConfirm: "Supprimer définitivement",
     deleted: (n: number) => `${n} note${n > 1 ? "s supprimées" : " supprimée"}`,
   },
@@ -268,11 +268,11 @@ export const fr = {
     ocrEnabled: "Lire le texte des images et des PDF",
     ocrEnabledHint: "En arrière-plan, sur cet ordinateur, pour que la recherche le trouve. Rien n'est envoyé sur Internet.",
     ocrUnavailable:
-      "La reconnaissance de texte de Windows n'est pas disponible sur cet ordinateur. Ursa fonctionne normalement : seul le texte des images n'est pas lu (celui des PDF qui en contiennent l'est).",
+      "La reconnaissance de texte de Windows n'est pas disponible sur cet ordinateur. Bullshit fonctionne normalement : seul le texte des images n'est pas lu (celui des PDF qui en contiennent l'est).",
     ocrLanguages: "Langues de reconnaissance",
     ocrNoLanguage: "Aucune langue de reconnaissance n'est installée dans Windows.",
     ocrInstallHint:
-      "Il manque une langue ? Paramètres Windows › Heure et langue › Langue et région › Ajouter une langue, en cochant « Reconnaissance optique de caractères » (ou dans les options d'une langue déjà installée). Redémarrez ensuite Ursa.",
+      "Il manque une langue ? Paramètres Windows › Heure et langue › Langue et région › Ajouter une langue, en cochant « Reconnaissance optique de caractères » (ou dans les options d'une langue déjà installée). Redémarrez ensuite Bullshit.",
     ocrPdfPages: "Pages lues par PDF",
     ocrPdfPagesHint: "Les pages sans texte (scans) passent par l'OCR ; au-delà de cette limite, un PDF n'est pas lu.",
     ocrProgress: "Avancement",
@@ -280,7 +280,7 @@ export const fr = {
     ocrReindex: "Réindexer",
     version: (v: string) => `version ${v}`,
     aboutText:
-      "Vos notes restent des fichiers Markdown dans votre dossier. Ursa n'envoie rien : aucune télémétrie ; la seule requête réseau est l'aperçu des liens, désactivable dans Éditeur.",
+      "Vos notes restent des fichiers Markdown dans votre dossier. Bullshit n'envoie rien : aucune télémétrie ; la seule requête réseau est l'aperçu des liens, désactivable dans Éditeur.",
     thirdParty: "Licences tierces",
     openLogs: "Ouvrir le dossier des journaux",
     logsHint: "Les journaux ne contiennent que les erreurs de l'application, jamais le contenu de vos notes.",
@@ -328,7 +328,7 @@ export const fr = {
       blue: "Bleu nuit",
     },
     linkPreviews: "Aperçus de liens",
-    linkPreviewsHint: "Seule connexion réseau d'Ursa : récupère le titre et l'image des liens collés. Désactivé, rien ne sort de l'ordinateur.",
+    linkPreviewsHint: "Seule connexion réseau de Bullshit : récupère le titre et l'image des liens collés. Désactivé, rien ne sort de l'ordinateur.",
     font: "Police de l'éditeur",
     fonts: { sans: "Hanken Grotesk", serif: "Newsreader (serif)" },
     fontSize: "Taille",
@@ -537,7 +537,7 @@ export const fr = {
     destination: "Dossier d'export",
     change: "Modifier…",
     chooseFolder: "Choisir le dossier d'export",
-    defaultFolder: "Exports Ursa",
+    defaultFolder: "Exports Bullshit",
     cancel: "Annuler",
     exportAs: (format: string) => `Exporter en ${format}`,
     exporting: (done: number, total: number) => (total > 1 ? `Export… ${done} / ${total}` : "Export…"),
@@ -642,22 +642,22 @@ export const fr = {
     replace: "Remplacer",
     cancel: "Annuler",
     standardTitle: (keys: string) => `Remplacer ${keys} ?`,
-    standardBody: (keys: string) => `${keys} est un raccourci standard de Windows (copier, coller, couper, annuler, rétablir, tout sélectionner ou enregistrer). Dans Ursa, il ne fera plus son action habituelle.`,
+    standardBody: (keys: string) => `${keys} est un raccourci standard de Windows (copier, coller, couper, annuler, rétablir, tout sélectionner ou enregistrer). Dans Bullshit, il ne fera plus son action habituelle.`,
     standardConfirm: "Remplacer quand même",
     saved: (name: string, keys: string) => `« ${name} » : ${keys}`,
   },
   welcome: {
-    title: "Bienvenue dans Ursa",
+    title: "Bienvenue dans Bullshit",
     body: (k: Record<"newNote" | "palette" | "search" | "find" | "task" | "stickers" | "focus" | "export" | "settings", string>) =>
-      `# Bienvenue dans Ursa
+      `# Bienvenue dans Bullshit
 
-Ursa range vos notes dans un dossier, une note par fichier Markdown : elles restent lisibles dans n'importe quel autre éditeur. Cette note est une note comme les autres : modifiez-la, puis supprimez-la quand vous n'en avez plus besoin. #ursa/bienvenue
+Bullshit range vos notes dans un dossier, une note par fichier Markdown : elles restent lisibles dans n'importe quel autre éditeur. Cette note est une note comme les autres : modifiez-la, puis supprimez-la quand vous n'en avez plus besoin. #bullshit/bienvenue
 
 ## Écrire
 
 Tapez simplement. La mise en forme Markdown s'affiche en direct : **gras**, *italique*, ==surlignage==, \`code\`.
 
-- [x] Ouvrir Ursa
+- [x] Ouvrir Bullshit
 - [ ] Créer une note avec ${k.newNote}
 - [ ] Cocher une tâche d'un clic, ou avec ${k.task}
 
@@ -689,7 +689,7 @@ Le menu … de l'éditeur propose un fond de page (lignes, quadrillage, pointill
   },
   crash: {
     title: "Un problème est survenu",
-    body: "Ursa a rencontré une erreur inattendue. Vos notes sont des fichiers sur le disque : elles ne sont pas touchées.",
+    body: "Bullshit a rencontré une erreur inattendue. Vos notes sont des fichiers sur le disque : elles ne sont pas touchées.",
     saving: "Enregistrement du texte en cours…",
     saved: "Tout le texte a été enregistré. Rechargez pour reprendre.",
     unsaved: (n: number) =>

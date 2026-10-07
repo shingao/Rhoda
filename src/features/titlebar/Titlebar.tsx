@@ -35,7 +35,7 @@ export function Titlebar() {
           onClick={() => toggleColumn("sidebar")}
         />
         <span className={s.appName} data-tauri-drag-region>
-          Ursa
+          Bullshit
         </span>
       </div>
       <div className={s.center} data-tauri-drag-region>

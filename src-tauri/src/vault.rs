@@ -267,14 +267,24 @@ pub(crate) fn unique_note_path(dir: &Path, stem: &str, current: Option<&Path>) -
     unreachable!("an unused name always exists")
 }
 
-#[tauri::command]
-pub fn default_vault_path(app: AppHandle) -> CmdResult<String> {
+fn documents(app: &AppHandle) -> CmdResult<PathBuf> {
     // Without a configured Documents folder (some Linux setups), fall back to ~/Documents.
-    let docs = match app.path().document_dir() {
+    Ok(match app.path().document_dir() {
         Ok(dir) => dir,
         Err(_) => app.path().home_dir()?.join("Documents"),
-    };
-    Ok(docs.join("Ursa").to_string_lossy().into_owned())
+    })
+}
+
+/// `Documents\Bullshit`, after moving the pre-1.0 `Documents\Ursa` there (see `legacy`).
+#[tauri::command]
+pub fn default_vault_path(app: AppHandle) -> CmdResult<String> {
+    Ok(crate::legacy::default_vault(&documents(&app)?).to_string_lossy().into_owned())
+}
+
+/// Whether a configured notes folder is the pre-1.0 default (`Documents\Ursa`).
+#[tauri::command]
+pub fn is_old_default_vault(app: AppHandle, path: String) -> CmdResult<bool> {
+    Ok(crate::legacy::is_old_default(&documents(&app)?, Path::new(&path)))
 }
 
 /// Native folder picker for Settings › Notes folder; `None` if cancelled.

@@ -327,7 +327,7 @@ export async function noteDocx(note: Note, options: DocxOptions): Promise<Blob> 
   for (const line of [...postits.keys()]) after(line);
 
   const doc = new d.Document({
-    creator: "Ursa",
+    creator: "Bullshit",
     title: note.title,
     styles: { default: { document: { run: { font: FONT, size: 22, color: c.text } } } },
     numbering: {

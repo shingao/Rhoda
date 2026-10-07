@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Ursa",
-  "version": "0.1.0",
-  "identifier": "com.ursa.notes",
+  "productName": "Bullshit",
+  "version": "1.0.0",
+  "identifier": "com.bullshit.notes",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Ursa",
+        "title": "Bullshit",
         "width": 1280,
         "height": 820,
         "minWidth": 860,
@@ -26,18 +26,43 @@
     ],
     "security": {
       "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: vault: http://vault.localhost; connect-src 'self' ipc: http://ipc.localhost vault: http://vault.localhost",
-      "dangerousDisableAssetCspModification": ["style-src"]
+      "dangerousDisableAssetCspModification": [
+        "style-src"
+      ]
     }
   },
   "bundle": {
     "active": true,
-    "targets": ["msi"],
+    "targets": [
+      "nsis"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "publisher": "Bullshit",
+    "copyright": "© 2026",
+    "shortDescription": "Notes locales en Markdown",
+    "longDescription": "Bullshit : prise de notes locale en Markdown pour Windows.",
+    "windows": {
+      "webviewInstallMode": {
+        "type": "embedBootstrapper",
+        "silent": true
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": [
+          "French"
+        ],
+        "displayLanguageSelector": false,
+        "customLanguageFiles": {
+          "French": "installer/French.nsh"
+        },
+        "installerIcon": "icons/icon.ico"
+      }
+    }
   }
 }

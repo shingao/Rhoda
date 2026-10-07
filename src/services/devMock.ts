@@ -112,7 +112,7 @@ const DEMO_TAGS = JSON.stringify({
   tags: { voyages: { icon: "plane", pinned: true }, "projets": { icon: "folder" }, maison: { icon: "house", color: 4 }, travail: { icon: "briefcase" } },
 });
 
-const DEFAULT_VAULT = "C:\\Users\\dev\\Documents\\Ursa";
+const DEFAULT_VAULT = "C:\\Users\\dev\\Documents\\Bullshit";
 type Entry = { content: string; mtime: number; created: number };
 
 export function installDevMock(): void {

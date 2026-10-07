@@ -231,7 +231,7 @@ export async function exportPage(note: Note, options: PageOptions): Promise<Expo
   const lang = settings.language;
   const html =
     `<!doctype html><html lang="${lang}" data-theme="${palette}" class="u-file" style="${vars.join(";")}"><head><meta charset="utf-8">` +
-    `<meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Ursa">` +
+    `<meta name="viewport" content="width=device-width, initial-scale=1"><meta name="generator" content="Bullshit">` +
     `<title>${escapeTitle(note.title)}</title><style>${fonts}\n${tokensCss}\n${componentsCss}\n${exportCss}\n${pageRule}</style></head>` +
     `<body><main class="u-page"><div class="${sheet}" aria-hidden="true"></div><article>${body}</article></main></body></html>`;
   return { html, title: note.title };

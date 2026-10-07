@@ -34,7 +34,7 @@ export function closeExport(): void {
   setState({ exportDialog: null });
 }
 
-/** The folder to export to: the last one if it is still there, else `Documents\Ursa exports`. */
+/** The folder to export to: the last one if it is still there, else `Documents\Exports Bullshit`. */
 export async function exportFolder(): Promise<string> {
   const remembered = getState().settings.export.folder;
   if (remembered && (await exportApi.folderOk(remembered).catch(() => false))) return remembered;

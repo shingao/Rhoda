@@ -1,7 +1,7 @@
 {
-  "name": "ursa",
+  "name": "bullshit",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -18,7 +18,8 @@
     "test:rhythm": "node scripts/check-rhythm.mjs",
     "test:a11y": "node scripts/check-a11y.mjs",
     "perf": "node scripts/perf.mjs",
-    "sample:images": "node scripts/make-sample-images.mjs"
+    "sample:images": "node scripts/make-sample-images.mjs",
+    "icon": "node scripts/make-app-icon.cjs"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.3",

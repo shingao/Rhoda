@@ -1,4 +1,4 @@
-//! Link previews: the only network request of Ursa, made here and never from
+//! Link previews: the only network request of the app, made here and never from
 //! the webview. A URL alone on its line becomes a card (title, description,
 //! image, favicon) when the setting is on.
 //!
@@ -43,7 +43,7 @@ const MAX_DOWNLOAD: usize = 20 * 1024 * 1024;
 const BLOCKED_SUFFIXES: [&str; 13] = [
     ".local", ".lan", ".internal", ".corp", ".localhost", ".localdomain", ".home", ".home.arpa", ".intranet", ".private", ".test", ".invalid", ".onion",
 ];
-const USER_AGENT: &str = "Mozilla/5.0 (compatible; UrsaLinkPreview/0.1)";
+const USER_AGENT: &str = "Mozilla/5.0 (compatible; BullshitLinkPreview/1.0)";
 
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum Blocked {

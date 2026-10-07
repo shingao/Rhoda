@@ -3,6 +3,7 @@ mod backup;
 mod preview;
 mod error;
 mod export;
+mod legacy;
 mod log;
 mod ocr;
 mod settings;
@@ -22,7 +23,19 @@ const SHOW_FALLBACK: Duration = Duration::from_secs(3);
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Settings of the app before its rename, in place before the plugins read them.
+    if let Some(dir) = legacy::config_dir() {
+        legacy::copy_old_settings(&dir);
+    }
     tauri::Builder::default()
+        // First plugin: a second launch only brings the open window back (one app per vault).
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.unminimize();
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+        }))
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         // The window is shown by the frontend once themed (no flash): never restore "visible".
@@ -61,6 +74,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             vault::default_vault_path,
+            vault::is_old_default_vault,
             vault::open_vault,
             vault::read_note,
             vault::write_note,
@@ -110,7 +124,7 @@ pub fn run() {
             log::log_open_folder,
         ])
         .build(tauri::generate_context!())
-        .expect("error while running Ursa")
+        .expect("error while running Bullshit")
         .run(|_app, _event| {
             // The PDF check closes the main window: the app waits for the PDF, then quits itself.
             #[cfg(windows)]
@@ -120,4 +134,16 @@ pub fn run() {
                 }
             }
         });
+}
+
+#[cfg(test)]
+mod tests {
+    /// One version everywhere: Cargo, Tauri (installer, upgrade check) and package.json (About).
+    #[test]
+    fn versions_match() {
+        let conf: serde_json::Value = serde_json::from_str(include_str!("../tauri.conf.json")).unwrap();
+        let package: serde_json::Value = serde_json::from_str(include_str!("../../package.json")).unwrap();
+        assert_eq!(conf["version"], env!("CARGO_PKG_VERSION"));
+        assert_eq!(package["version"], env!("CARGO_PKG_VERSION"));
+    }
 }

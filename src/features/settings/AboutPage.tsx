@@ -35,7 +35,7 @@ export function AboutPage() {
   return (
     <div className={s.about}>
       <p className={s.aboutName}>
-        Ursa <span className={s.aboutVersion}>{t.settings.version(version)}</span>
+        Bullshit <span className={s.aboutVersion}>{t.settings.version(version)}</span>
       </p>
       <p className={s.aboutText}>{t.settings.aboutText}</p>
       <div className={s.aboutLogs}>

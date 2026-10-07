@@ -112,7 +112,7 @@ pub async fn export_pick_folder(app: AppHandle, state: State<'_, ExportState>, t
     Ok(Some(dir.to_string_lossy().into_owned()))
 }
 
-/// The default export folder: `Documents\Ursa exports` (created on first use, then allowed).
+/// The default export folder: `Documents\Exports Bullshit` (created on first use, then allowed).
 #[tauri::command]
 pub async fn export_default_folder(app: AppHandle, state: State<'_, ExportState>, name: String) -> CmdResult<String> {
     if name.is_empty() || name.contains(['/', '\\']) || name.starts_with('.') {

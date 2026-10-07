@@ -27,7 +27,10 @@ export interface BackupContent {
 
 /** The only module that talks to the Rust vault commands. */
 export const vaultApi = {
+  /** `Documents\Bullshit` (the pre-1.0 `Documents\Ursa` is moved there first). */
   defaultPath: () => invoke<string>("default_vault_path"),
+  /** Whether a configured folder is the pre-1.0 default, `Documents\Ursa`. */
+  isOldDefault: (path: string) => invoke<boolean>("is_old_default_vault", { path }),
   open: (path: string) => invoke<NoteFile[]>("open_vault", { path }),
   read: (path: string) => invoke<NoteFile | null>("read_note", { path }),
   write: (path: string, content: string) => invoke<number>("write_note", { path, content }),

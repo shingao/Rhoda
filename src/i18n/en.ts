@@ -166,7 +166,7 @@ export const en: Messages = {
     emptyTagHint: (tag: string) => `Write ${tag} in a note to find it here.`,
     emptyTag: "No note with this tag",
     deleteTitle: (n) => (n === 1 ? "Delete this note permanently?" : `Delete ${n} notes permanently?`),
-    deleteBody: (n) => `${n === 1 ? "The file goes" : "The files go"} to the Windows Recycle Bin: gone from Ursa, still recoverable from Windows.`,
+    deleteBody: (n) => `${n === 1 ? "The file goes" : "The files go"} to the Windows Recycle Bin: gone from Bullshit, still recoverable from Windows.`,
     deleteConfirm: "Delete permanently",
     deleted: (n: number) => `${n} note${n > 1 ? "s" : ""} deleted`,
   },
@@ -259,11 +259,11 @@ export const en: Messages = {
     ocrEnabled: "Read the text of images and PDFs",
     ocrEnabledHint: "In the background, on this computer, so that search finds it. Nothing is sent over the Internet.",
     ocrUnavailable:
-      "Windows text recognition is not available on this computer. Ursa works normally: only the text of images is not read (PDFs that contain text still are).",
+      "Windows text recognition is not available on this computer. Bullshit works normally: only the text of images is not read (PDFs that contain text still are).",
     ocrLanguages: "Recognition languages",
     ocrNoLanguage: "No recognition language is installed in Windows.",
     ocrInstallHint:
-      "A language is missing? Windows Settings › Time & language › Language & region › Add a language, with “Optical character recognition” checked (or in the options of an installed language). Then restart Ursa.",
+      "A language is missing? Windows Settings › Time & language › Language & region › Add a language, with “Optical character recognition” checked (or in the options of an installed language). Then restart Bullshit.",
     ocrPdfPages: "Pages read per PDF",
     ocrPdfPagesHint: "Pages without text (scans) go through OCR; beyond this limit, a PDF is not read.",
     ocrProgress: "Progress",
@@ -271,7 +271,7 @@ export const en: Messages = {
     ocrReindex: "Reindex",
     version: (v: string) => `version ${v}`,
     aboutText:
-      "Your notes stay Markdown files in your folder. Ursa sends nothing: no telemetry; the only network request is link previews, which you can turn off in Editor.",
+      "Your notes stay Markdown files in your folder. Bullshit sends nothing: no telemetry; the only network request is link previews, which you can turn off in Editor.",
     thirdParty: "Third-party licences",
     openLogs: "Open the log folder",
     logsHint: "Logs only hold the app's errors, never the content of your notes.",
@@ -319,7 +319,7 @@ export const en: Messages = {
       blue: "Night blue",
     },
     linkPreviews: "Link previews",
-    linkPreviewsHint: "Ursa's only network connection: fetches the title and image of pasted links. When off, nothing leaves the computer.",
+    linkPreviewsHint: "Bullshit's only network connection: fetches the title and image of pasted links. When off, nothing leaves the computer.",
     font: "Editor font",
     fonts: { sans: "Hanken Grotesk", serif: "Newsreader (serif)" },
     fontSize: "Font size",
@@ -526,7 +526,7 @@ export const en: Messages = {
     destination: "Export folder",
     change: "Change…",
     chooseFolder: "Choose the export folder",
-    defaultFolder: "Ursa exports",
+    defaultFolder: "Bullshit exports",
     cancel: "Cancel",
     exportAs: (format) => `Export ${format}`,
     exporting: (done, total) => (total > 1 ? `Exporting… ${done} / ${total}` : "Exporting…"),
@@ -631,22 +631,22 @@ export const en: Messages = {
     replace: "Replace",
     cancel: "Cancel",
     standardTitle: (keys) => `Replace ${keys}?`,
-    standardBody: (keys) => `${keys} is a standard Windows shortcut (copy, paste, cut, undo, redo, select all or save). In Ursa, it will no longer do that.`,
+    standardBody: (keys) => `${keys} is a standard Windows shortcut (copy, paste, cut, undo, redo, select all or save). In Bullshit, it will no longer do that.`,
     standardConfirm: "Replace anyway",
     saved: (name, keys) => `“${name}”: ${keys}`,
   },
   welcome: {
-    title: "Welcome to Ursa",
+    title: "Welcome to Bullshit",
     body: (k: Record<"newNote" | "palette" | "search" | "find" | "task" | "stickers" | "focus" | "export" | "settings", string>) =>
-      `# Welcome to Ursa
+      `# Welcome to Bullshit
 
-Ursa keeps your notes in a folder, one Markdown file per note: they stay readable in any other editor. This is a note like any other: edit it, then delete it when you no longer need it. #ursa/welcome
+Bullshit keeps your notes in a folder, one Markdown file per note: they stay readable in any other editor. This is a note like any other: edit it, then delete it when you no longer need it. #bullshit/welcome
 
 ## Writing
 
 Just type. Markdown formatting shows live: **bold**, *italic*, ==highlight==, \`code\`.
 
-- [x] Open Ursa
+- [x] Open Bullshit
 - [ ] Create a note with ${k.newNote}
 - [ ] Tick a task with a click, or with ${k.task}
 
@@ -678,7 +678,7 @@ The editor's … menu offers a page background (lines, grid, dots, red margin): 
   },
   crash: {
     title: "Something went wrong",
-    body: "Ursa ran into an unexpected error. Your notes are files on disk: they are not affected.",
+    body: "Bullshit ran into an unexpected error. Your notes are files on disk: they are not affected.",
     saving: "Saving your text…",
     saved: "All text has been saved. Reload to carry on.",
     unsaved: (n: number) =>

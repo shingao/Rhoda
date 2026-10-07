@@ -9,10 +9,14 @@ concurrency:
   group: windows-${{ github.ref }}
   cancel-in-progress: true
 
+# A tag v* also drafts the GitHub release (last step).
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
 
@@ -55,13 +59,22 @@ jobs:
           cargo test -- --skip ocr::windows
           cargo test scan_reads_2000_notes -- --nocapture
 
+      # The same app numbered 0.9.0, kept aside for the upgrade test.
+      - name: Build a 0.9.0 installer (upgrade test)
+        shell: pwsh
+        run: |
+          '{"version":"0.9.0"}' | Set-Content "$env:RUNNER_TEMP/version-0.9.0.json"
+          npx tauri build --config "$env:RUNNER_TEMP/version-0.9.0.json"
+          Move-Item src-tauri/target/release/bundle/nsis/*_0.9.0_*-setup.exe "$env:RUNNER_TEMP/"
+
+      # Per-user NSIS installer in French, WebView2 bootstrapper inside.
       - name: Build the installer
         run: npx tauri build
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ursa-msi
-          path: src-tauri/target/release/bundle/msi/*.msi
+          name: bullshit-setup
+          path: src-tauri/target/release/bundle/nsis/*-setup.exe
           if-no-files-found: error
 
       # The real PDF export: the release build prints an export page (3 A4 pages, lined
@@ -73,7 +86,7 @@ jobs:
           # Windows paths for the app; MSYS must not rewrite this variable.
           export MSYS2_ENV_CONV_EXCL=URSA_PDF_SMOKE
           export URSA_PDF_SMOKE="$(cygpath -w "$PWD/src-tauri/tests/fixtures/export-page.html")|$(cygpath -w "$out")"
-          timeout 180 src-tauri/target/release/ursa.exe || { cat "${out%.pdf}.error.txt" 2>/dev/null; echo "::error::the app could not print the PDF"; exit 1; }
+          timeout 180 src-tauri/target/release/bullshit.exe || { cat "${out%.pdf}.error.txt" 2>/dev/null; echo "::error::the app could not print the PDF"; exit 1; }
           test -s "$out" || { echo "::error::no PDF written"; exit 1; }
           head -c 5 "$out" | grep -q "%PDF-" || { echo "::error::not a PDF"; exit 1; }
           pages=$(grep -a -o "/Count [0-9]*" "$out" | sort -t' ' -k2 -n | tail -1 | cut -d' ' -f2)
@@ -81,6 +94,17 @@ jobs:
           echo "PDF: $(stat -c %s "$out") bytes, $pages pages, $fonts embedded fonts"
           [ "${pages:-0}" -ge 2 ] || { echo "::error::expected several A4 pages, got $pages"; exit 1; }
           [ "$fonts" -ge 1 ] || { echo "::error::fonts not embedded"; exit 1; }
+
+      # Silent install, shortcuts, launch (the window opens), migration of Documents\Ursa,
+      # single instance, silent uninstall with the notes untouched; then 0.9.0 → 1.0.0
+      # over it with settings and notes kept. See the script for every check.
+      - name: Installer, uninstaller and upgrade
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $setup = Get-Item "src-tauri/target/release/bundle/nsis/*_${version}_*-setup.exe"
+          $old = Get-Item "$env:RUNNER_TEMP/*_0.9.0_*-setup.exe"
+          ./scripts/ci/installer-test.ps1 -Version $version -Setup $setup.FullName -OldSetup $old.FullName
 
       # Last, so that its output (installed languages, text and boxes read) ends the log.
       # The step fails unless exactly these real OCR tests ran and passed: no engine,
@@ -97,3 +121,26 @@ jobs:
           done
           cargo test --lib ocr::windows -- --include-ignored --test-threads=1 --nocapture 2>&1 | tee ocr-tests.log
           grep -q "^test result: ok\. 3 passed; 0 failed; 0 ignored" ocr-tests.log || { echo "::error::the 3 real OCR tests did not all run and pass"; exit 1; }
+
+      # Tag v*: a draft release with the installer and the notes of that version
+      # in CHANGELOG.md. Published by hand.
+      - name: Draft the GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          $log = Get-Content CHANGELOG.md -Raw -Encoding utf8
+          $notes = [regex]::Match($log, "(?ms)^## \[$([regex]::Escape($version))\][^\n]*\n(.*?)(?=^## \[|\z)").Groups[1].Value.Trim()
+          if (-not $notes) { throw "no CHANGELOG.md section for $version" }
+          Set-Content "$env:RUNNER_TEMP/release-notes.md" $notes -Encoding utf8NoBOM
+          "version=$version" >> $env:GITHUB_OUTPUT
+        id: notes
+
+      - uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          draft: true
+          name: Bullshit ${{ steps.notes.outputs.version }}
+          body_path: ${{ runner.temp }}/release-notes.md
+          files: src-tauri/target/release/bundle/nsis/*_${{ steps.notes.outputs.version }}_*-setup.exe
+          fail_on_unmatched_files: true

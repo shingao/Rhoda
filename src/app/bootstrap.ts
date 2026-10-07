@@ -7,7 +7,7 @@ import { connectTheme } from "./theme";
 import { connectShortcuts } from "./shortcuts";
 import { connectSearch } from "./search";
 import { flushAll, handleDiskChanges, prepareClose } from "./notes";
-import { getState, setState, useApp } from "./store";
+import { getState, setState, updateSettings, useApp } from "./store";
 import { connectAttachments } from "./attachments";
 import { connectOcr } from "./ocr";
 import { connectPreviews } from "./previews";
@@ -42,7 +42,11 @@ export async function bootstrap(): Promise<void> {
     connectPreviews();
 
     await vaultApi.onChanged((paths) => void handleDiskChanges(paths));
-    const path = settings.vaultPath ?? (await vaultApi.defaultPath());
+    // Chosen explicitly before 1.0 as Documents\Ursa: it is the default folder, moved to Documents\Bullshit.
+    if (settings.vaultPath && (await vaultApi.isOldDefault(settings.vaultPath).catch(() => false))) {
+      updateSettings((s) => ({ ...s, vaultPath: null }));
+    }
+    const path = getState().settings.vaultPath ?? (await vaultApi.defaultPath());
     await openVault(path);
     await welcomeOnFirstLaunch();
     performance.mark("ursa:ready");
