@@ -905,7 +905,7 @@ Découpée en quatre sous-étapes, chacune avec son commit, un run CI vert et le
 - **Tests** :
   - Vitest 204 (modèle, espacement, HTML échappé, liens sûrs, ancres, stickers, Markdown : liens, images, tags) ; Rust 3 nouveaux (noms, non-écrasement, formats de page).
   - Le code WebView2 a été vérifié par `clippy` pour la cible Windows.
-  - **Test réel en CI** : `ursa.exe` (build de release) imprime une page d'export de 3 pages A4 (`URSA_PDF_SMOKE`, fixture `src-tauri/tests/fixtures/export-page.html`). L'étape vérifie que le fichier est un PDF, qu'il a plusieurs pages et que ses polices sont embarquées.
+  - **Test réel en CI** : `ursa.exe` (build de release) imprime une page d'export de 3 pages A4 (`URSA_PDF_SMOKE`, fixture `src-tauri/tests/fixtures/export-page.html`). L'étape vérifie que le fichier est un PDF, qu'il a plusieurs pages et que ses polices sont embarquées. Run 10 : « PDF: 438983 bytes, 3 pages, 7 embedded fonts » en 8 s, depuis la fenêtre cachée. Le premier essai (run 9) avait révélé que fermer la fenêtre principale faisait quitter l'app avant l'impression ; corrigé (`prevent_exit` pendant le test).
 - Réglages › À propos : `docx` (MIT) ajouté.
 
 ### Décisions (10a)
