@@ -66,14 +66,21 @@ export function coversLatin(range: string): boolean {
   });
 }
 
-let fontCache: Promise<string> | null = null;
+/** The serif editor font, embedded only when it is the chosen one. */
+const SERIF_FAMILY = "Newsreader";
+
+const fontCache = new Map<string, Promise<string>>();
 
 /**
  * The app's fonts as `@font-face` rules with the files inside (Latin subsets:
- * the PDF embeds what it uses, the HTML stays a reasonable size).
+ * the PDF embeds what it uses, the HTML stays a reasonable size), except the
+ * families in `skip` (the editor font that is not chosen).
  */
-export function embeddedFonts(): Promise<string> {
-  fontCache ??= (async () => {
+export function embeddedFonts(skip: readonly string[] = []): Promise<string> {
+  const key = skip.join("|");
+  const cached = fontCache.get(key);
+  if (cached) return cached;
+  const built = (async () => {
     const rules: CSSFontFaceRule[] = [];
     for (const sheet of Array.from(document.styleSheets)) {
       let list: CSSRuleList;
@@ -84,12 +91,14 @@ export function embeddedFonts(): Promise<string> {
       }
       for (const rule of Array.from(list)) if (rule instanceof CSSFontFaceRule) rules.push(rule);
     }
-    const latin = (rule: CSSFontFaceRule) => {
+    const wanted = (rule: CSSFontFaceRule) => {
+      const family = rule.style.getPropertyValue("font-family").replace(/["']/g, "").trim();
+      if (skip.includes(family)) return false;
       const range = rule.style.getPropertyValue("unicode-range");
       return !range || coversLatin(range);
     };
     const out = await Promise.all(
-      rules.filter(latin).map(async (rule) => {
+      rules.filter(wanted).map(async (rule) => {
         const url = /url\(["']?([^"')]+)["']?\)/.exec(rule.style.getPropertyValue("src"))?.[1];
         const blob = url ? await fetchBlob(new URL(url, rule.parentStyleSheet?.href ?? location.href).href) : null;
         if (!blob) return "";
@@ -103,7 +112,8 @@ export function embeddedFonts(): Promise<string> {
     );
     return out.join("\n");
   })();
-  return fontCache;
+  fontCache.set(key, built);
+  return built;
 }
 
 /** Data URLs of the note's images (only the files of the vault). */
@@ -194,7 +204,7 @@ export async function exportPage(note: Note, options: PageOptions): Promise<Expo
     options.images ? noteImages(note, blocks) : Promise.resolve(new Map<string, string>()),
     noteCards(blocks),
     options.stickers ? decorations(note) : Promise.resolve([]),
-    embeddedFonts(),
+    embeddedFonts(settings.editor.font === "serif" ? [] : [SERIF_FAMILY]),
   ]);
   const body = renderHtml(blocks, {
     image: (src) => {

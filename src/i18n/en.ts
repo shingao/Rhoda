@@ -263,11 +263,13 @@ export const en: Messages = {
     aboutText:
       "Your notes stay Markdown files in your folder. Ursa sends nothing: no telemetry; the only network request is link previews, which you can turn off in Editor.",
     thirdParty: "Third-party licences",
+    openLogs: "Open the log folder",
+    logsHint: "Logs only hold the app's errors, never the content of your notes.",
     licenceTexts: "Licence texts",
     licences: { mit: "MIT", ofl: "SIL OFL 1.1", isc: "ISC", apache: "Apache 2.0", mitApache: "MIT / Apache 2.0" },
     licenceTitles: {
       mit: "MIT License (Fluent Emoji; same text for CodeMirror, React, Zustand, Tauri)",
-      ofl: "SIL Open Font License 1.1 (Caveat, Hanken Grotesk, JetBrains Mono)",
+      ofl: "SIL Open Font License 1.1 (Caveat, Hanken Grotesk, JetBrains Mono, Newsreader)",
       isc: "ISC License (Lucide; same text for yaml)",
       apache: "Apache License 2.0 (PDF.js, Tauri)",
     },
@@ -275,6 +277,7 @@ export const en: Messages = {
       stickers: "built-in stickers (209 images)",
       hand: "handwriting font of sticky notes",
       ui: "interface and text font",
+      serif: "serif editor font",
       mono: "code font",
       icons: "icons",
       pdf: "PDF previews",
@@ -619,6 +622,21 @@ export const en: Messages = {
     standardBody: (keys) => `${keys} is a standard Windows shortcut (copy, paste, cut, undo, redo, select all or save). In Ursa, it will no longer do that.`,
     standardConfirm: "Replace anyway",
     saved: (name, keys) => `“${name}”: ${keys}`,
+  },
+  crash: {
+    title: "Something went wrong",
+    body: "Ursa ran into an unexpected error. Your notes are files on disk: they are not affected.",
+    saving: "Saving your text…",
+    saved: "All text has been saved. Reload to carry on.",
+    unsaved: (n: number) =>
+      n === 1
+        ? "One note could not be saved: save a copy or try again before reloading."
+        : `${n} notes could not be saved: save a copy or try again before reloading.`,
+    copySaved: "Copy saved.",
+    reload: "Reload",
+    retryReload: "Try again",
+    quit: "Quit without saving",
+    details: "Error details (also in the log)",
   },
   closeDialog: {
     title: "Unsaved changes",

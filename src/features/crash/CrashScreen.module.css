@@ -1,0 +1,93 @@
+/* Crash screen: a modal card [DESIGN §2.17] on the app background (decision P10-13). */
+
+.screen {
+  --ring-bg: var(--bg-raised);
+
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--bg-1);
+  color: var(--text);
+  font-family: var(--font-ui);
+}
+
+.bar {
+  display: flex;
+  justify-content: flex-end;
+  height: var(--titlebar-h);
+  flex: none;
+}
+
+.center {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-6);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  width: var(--modal-w);
+  max-width: 100%;
+  padding: var(--modal-pad);
+  border-radius: var(--r-xl);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-pop);
+}
+
+.icon {
+  width: var(--crash-icon);
+  height: var(--crash-icon);
+  color: var(--accent);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--modal-title-fs);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+}
+
+.body,
+.status {
+  margin: 0;
+  font-size: var(--fs-md);
+  line-height: var(--lh-ui);
+}
+
+.status {
+  color: var(--text-2);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--modal-footer-gap);
+  margin-top: var(--sp-3);
+}
+
+.details {
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+}
+
+.details pre {
+  overflow: auto;
+  max-height: var(--crash-details-max);
+  margin: var(--sp-2) 0 0;
+  padding: var(--sp-3);
+  border-radius: var(--r-md);
+  background: var(--bg-sunken);
+  font-family: var(--font-mono);
+  white-space: pre-wrap;
+}
+
+@media (forced-colors: active) {
+  .card {
+    border: 1px solid CanvasText;
+  }
+}

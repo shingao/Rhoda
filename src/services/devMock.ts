@@ -371,6 +371,11 @@ export function installDevMock(): void {
         return (payload as { files: string[] }).files.map((f) => `assets/${f.split("/").pop()}`);
       case "export_reveal":
         return null;
+      case "log_write":
+        ((window as unknown as { __ursaLogs?: string[] }).__ursaLogs ??= []).push(`${args.level} [${args.source}] ${args.message}`);
+        return null;
+      case "log_open_folder":
+        return null;
       case "plugin:window|is_maximized":
       case "plugin:window|is_focused":
         return cmd.endsWith("is_focused");

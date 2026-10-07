@@ -3,6 +3,7 @@ mod backup;
 mod preview;
 mod error;
 mod export;
+mod log;
 mod ocr;
 mod settings;
 mod snapshots;
@@ -43,6 +44,7 @@ pub fn run() {
         // The page of a PDF export, to the hidden window that prints it.
         .register_uri_scheme_protocol("ursa-export", |ctx, request| export::serve(ctx.app_handle(), &request))
         .setup(|app| {
+            log::init(app.handle());
             #[cfg(windows)]
             if export::smoke(app) {
                 return Ok(());
@@ -104,6 +106,8 @@ pub fn run() {
             export::export_copy_assets,
             export::export_reveal,
             export::export_pdf,
+            log::log_write,
+            log::log_open_folder,
         ])
         .build(tauri::generate_context!())
         .expect("error while running Ursa")

@@ -193,6 +193,8 @@
   --modal-scale-from: .98;
   --modal-top: 18vh;                       /* (decision) */
   --modal-w-wide: 760px;                   /* (decision) crop dialog */
+  --crash-icon: 28px;                      /* [§2.17] crash screen (decision P10-13) */
+  --crash-details-max: 160px;              /* [§2.17] crash screen details (decision P10-13) */
   --crop-stage-h: 440px;                   /* (decision) image area of the crop dialog */
   --crop-shade-spread: 2000px;             /* (decision) dims everything around the frame */
   --crop-handle: 12px;                     /* (decision) like the image handles [§2.12], a bit larger */

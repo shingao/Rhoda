@@ -9,10 +9,18 @@ import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/500.css";
 import "@fontsource/caveat/500.css";
 import "@fontsource/caveat/600.css";
+import "@fontsource/newsreader/400.css";
+import "@fontsource/newsreader/400-italic.css";
+import "@fontsource/newsreader/500.css";
+import "@fontsource/newsreader/600.css";
+import "@fontsource/newsreader/700.css";
+import "@fontsource/newsreader/700-italic.css";
 import "./styles/tokens.css";
 import "./styles/tokens.components.css";
 import "./styles/global.css";
 import { App } from "./App";
+import { ErrorBoundary } from "./app/ErrorBoundary";
+import { connectLog } from "./app/log";
 
 async function start() {
   // Outside Tauri (plain browser during development), serve an in-memory vault.
@@ -21,9 +29,17 @@ async function start() {
     const { installDevMock } = await import("./services/devMock");
     installDevMock();
   }
-  createRoot(document.getElementById("root")!).render(
+  connectLog();
+  createRoot(document.getElementById("root")!, {
+    // The error boundary writes these to the journal itself: no second report.
+    onCaughtError: (error) => {
+      if (import.meta.env.DEV) console.debug("[ursa] render error caught", error);
+    },
+  }).render(
     <StrictMode>
-      <App />
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
     </StrictMode>,
   );
 }

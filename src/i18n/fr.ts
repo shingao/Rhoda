@@ -272,11 +272,13 @@ export const fr = {
     aboutText:
       "Vos notes restent des fichiers Markdown dans votre dossier. Ursa n'envoie rien : aucune télémétrie ; la seule requête réseau est l'aperçu des liens, désactivable dans Éditeur.",
     thirdParty: "Licences tierces",
+    openLogs: "Ouvrir le dossier des journaux",
+    logsHint: "Les journaux ne contiennent que les erreurs de l'application, jamais le contenu de vos notes.",
     licenceTexts: "Textes des licences",
     licences: { mit: "MIT", ofl: "SIL OFL 1.1", isc: "ISC", apache: "Apache 2.0", mitApache: "MIT / Apache 2.0" },
     licenceTitles: {
       mit: "Licence MIT (Fluent Emoji ; même texte pour CodeMirror, React, Zustand, Tauri)",
-      ofl: "SIL Open Font License 1.1 (Caveat, Hanken Grotesk, JetBrains Mono)",
+      ofl: "SIL Open Font License 1.1 (Caveat, Hanken Grotesk, JetBrains Mono, Newsreader)",
       isc: "Licence ISC (Lucide ; même texte pour yaml)",
       apache: "Licence Apache 2.0 (PDF.js, Tauri)",
     },
@@ -284,6 +286,7 @@ export const fr = {
       stickers: "stickers intégrés (209 images)",
       hand: "police manuscrite des post-it",
       ui: "police de l'interface et du texte",
+      serif: "police serif de l'éditeur",
       mono: "police du code",
       icons: "icônes",
       pdf: "aperçu des PDF",
@@ -630,6 +633,21 @@ export const fr = {
     standardBody: (keys: string) => `${keys} est un raccourci standard de Windows (copier, coller, couper, annuler, rétablir, tout sélectionner ou enregistrer). Dans Ursa, il ne fera plus son action habituelle.`,
     standardConfirm: "Remplacer quand même",
     saved: (name: string, keys: string) => `« ${name} » : ${keys}`,
+  },
+  crash: {
+    title: "Un problème est survenu",
+    body: "Ursa a rencontré une erreur inattendue. Vos notes sont des fichiers sur le disque : elles ne sont pas touchées.",
+    saving: "Enregistrement du texte en cours…",
+    saved: "Tout le texte a été enregistré. Rechargez pour reprendre.",
+    unsaved: (n: number) =>
+      n === 1
+        ? "Une note n'a pas pu être enregistrée : enregistrez-en une copie ou réessayez avant de recharger."
+        : `${n} notes n'ont pas pu être enregistrées : enregistrez-en une copie ou réessayez avant de recharger.`,
+    copySaved: "Copie enregistrée.",
+    reload: "Recharger",
+    retryReload: "Réessayer",
+    quit: "Quitter sans enregistrer",
+    details: "Détails de l'erreur (aussi dans le journal)",
   },
   closeDialog: {
     title: "Modifications non enregistrées",

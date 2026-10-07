@@ -1,4 +1,7 @@
+import { FolderOpen } from "lucide-react";
 import { useT } from "../../app/i18n";
+import { Button } from "../../components/Button";
+import { logApi } from "../../services/log";
 import apache from "../../assets/licenses/pdfjs-Apache-2.0.txt?raw";
 import isc from "../../assets/licenses/lucide-ISC.txt?raw";
 import mit from "../../assets/licenses/fluent-emoji-MIT.txt?raw";
@@ -10,10 +13,11 @@ type Licence = "mit" | "ofl" | "isc" | "apache" | "mitApache";
 const TEXTS: Partial<Record<Licence, string>> = { mit, ofl, isc, apache };
 
 /** What Ursa ships that others made; `use` keys are in i18n (settings.credits). */
-const CREDITS: ReadonlyArray<{ name: string; author: string; licence: Licence; use: "stickers" | "hand" | "ui" | "mono" | "icons" | "pdf" | "editor" | "app" | "shell" | "store" | "yaml" | "docx" }> = [
+const CREDITS: ReadonlyArray<{ name: string; author: string; licence: Licence; use: "stickers" | "hand" | "ui" | "serif" | "mono" | "icons" | "pdf" | "editor" | "app" | "shell" | "store" | "yaml" | "docx" }> = [
   { name: "Fluent Emoji 3D", author: "Microsoft", licence: "mit", use: "stickers" },
   { name: "Caveat", author: "The Caveat Project Authors", licence: "ofl", use: "hand" },
   { name: "Hanken Grotesk", author: "The Hanken Grotesk Project Authors", licence: "ofl", use: "ui" },
+  { name: "Newsreader", author: "The Newsreader Project Authors", licence: "ofl", use: "serif" },
   { name: "JetBrains Mono", author: "The JetBrains Mono Project Authors", licence: "ofl", use: "mono" },
   { name: "Lucide", author: "Lucide Icons and Contributors", licence: "isc", use: "icons" },
   { name: "PDF.js", author: "Mozilla Foundation", licence: "apache", use: "pdf" },
@@ -34,6 +38,12 @@ export function AboutPage() {
         Ursa <span className={s.aboutVersion}>{t.settings.version(version)}</span>
       </p>
       <p className={s.aboutText}>{t.settings.aboutText}</p>
+      <div className={s.aboutLogs}>
+        <Button icon={FolderOpen} onClick={() => void logApi.openFolder().catch((e: unknown) => console.error("[ursa] cannot open the log folder", e))}>
+          {t.settings.openLogs}
+        </Button>
+        <p className={s.aboutText}>{t.settings.logsHint}</p>
+      </div>
       <h3 className={s.aboutHeading}>{t.settings.thirdParty}</h3>
       <ul className={s.credits}>
         {CREDITS.map((c) => (
