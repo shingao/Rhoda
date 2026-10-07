@@ -15,6 +15,8 @@ import { serializeStickers, type Sticker } from "../core/stickers";
 import { placeSticker, runStickerCommand, type NewSticker, type StickerCommand } from "./stickers/commands";
 import { changesStickers, hideStickers, loadStickers, placeStickers, stickersField, storedStickers } from "./stickers/state";
 import { commitStickerEdit } from "./stickers/layer";
+import { EDITOR_COMMANDS } from "./setup";
+import type { ShortcutId } from "../app/shortcuts";
 
 /**
  * Owns the single EditorView and one EditorState per note (keyed by note id),
@@ -302,6 +304,23 @@ export function runSectionCommand(command: SectionCommand): void {
   if (!view) return;
   ({ foldAll, unfoldAll, toggleIsolation })[command](view);
   view.focus();
+}
+
+/** Types `text` at the cursor of the open note (palette › "Insert as link"); false without an open note. */
+export function insertAtCursor(noteId: string, text: string): boolean {
+  if (!view || currentId !== noteId) return false;
+  view.dispatch(view.state.replaceSelection(text), { userEvent: "input", scrollIntoView: true });
+  view.focus();
+  return true;
+}
+
+/** An editor shortcut's command on the open note (command palette); false when there is none. */
+export function runEditorCommand(id: ShortcutId): boolean {
+  const command = EDITOR_COMMANDS[id];
+  if (!view || !currentId || !command) return false;
+  const done = command(view);
+  view.focus();
+  return done;
 }
 
 export function isSectionIsolated(): boolean {

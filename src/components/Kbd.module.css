@@ -1,0 +1,19 @@
+/* [§2.16] kbd: 22 px, --bg-sunken, mono 11 */
+.keys {
+  display: inline-flex;
+  flex: none;
+  gap: var(--kbd-gap);
+}
+
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  height: var(--kbd-h);
+  padding: 0 var(--kbd-pad-x);
+  border-radius: var(--r-sm);
+  background: var(--bg-sunken);
+  color: var(--text-2);
+  font-family: var(--font-mono);
+  font-size: var(--kbd-fs);
+  line-height: 1;
+}

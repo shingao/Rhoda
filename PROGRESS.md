@@ -1,6 +1,6 @@
 # Ursa — PROGRESS
 
-État : **Phase 10a (export) terminée** (à valider sur Windows) — en attente du « go » pour 10b.
+État : **Phase 10b (raccourcis et palette) terminée** (à valider sur Windows) — en attente du « go » pour 10c.
 
 | Phase | Sujet | État |
 |---|---|---|
@@ -14,7 +14,7 @@
 | 7 | Images, aperçus de liens, PDF | ✅ validée |
 | 8 | Stickers et post-it | ✅ validée |
 | 9 | OCR local | ✅ validée |
-| 10 | Export, raccourcis, palette, packaging | 🟡 10a export terminé, à valider ; 10b–10d à venir |
+| 10 | Export, raccourcis, palette, packaging | 🟡 10a validée ; 10b terminée, à valider ; 10c–10d à venir |
 
 ---
 
@@ -938,6 +938,61 @@ Captures : `docs/captures/phase-10a/` (modale PDF, image, DOCX, Markdown ; menu 
 8. Menu de la liste › « Exporter la liste (N notes)… » en PDF : un fichier par note, noms propres, aucun fichier écrasé si tu recommences (« (2) »).
 9. « Modifier… » : choisis un autre dossier, quitte et relance Ursa ; la modale propose ce dossier.
 10. Toast › « Afficher » : l'Explorateur s'ouvre sur le fichier exporté.
+
+
+### 10b — Raccourcis et palette : fait
+- **Palette de commandes (Ctrl+P)** [DESIGN §2.16, maquette 07] (`src/app/commandList.ts`, `src/app/palette.ts`, `src/features/palette/`) :
+  - 28 commandes (note, recherche, export, tâches, sections, affichage, stickers, thème, réglages, dossier, OCR), groupes Commandes / Notes / Tags ;
+  - recherche floue insensible à la casse et aux accents (`src/core/search/fuzzy.ts`) : sous-chaîne, ou groupes de lettres au début des mots (« expn » → **Exp**orter la **n**ote) ; lettres trouvées en gras accent ;
+  - commandes récentes en tête (et favorisées dans les résultats), mémorisées dans les réglages ;
+  - raccourci à droite de chaque commande, une puce par touche, noms français (Maj, Suppr, Entrée, Échap…) ;
+  - commandes indisponibles grisées avec la raison (« aucune note ouverte », « la note est dans la corbeille », « la liste est vide », « OCR coupé ou indisponible ») ;
+  - `>` commandes seulement, `#` tags seulement, Entrée exécute / ouvre, Tab insère `[[Note]]` dans la note ouverte.
+- **Une seule source pour les raccourcis** (`src/app/shortcuts.ts`) : défauts + personnalisations (`settings.shortcuts`, seules les différences sont stockées).
+  - Les raccourcis globaux exécutent les commandes de la palette ; ceux de l'éditeur passent par le même moteur (plus de noms de touches CodeMirror figés à la création de l'éditeur).
+  - Tooltips, menus, palette et page de réglages relisent les raccourcis en vigueur : un changement s'applique partout, sans redémarrage (`useT` se redessine sur `shortcutsVersion`).
+  - Touches physiques (chiffres, ponctuation) affichées comme le clavier de l'utilisateur les imprime (carte du clavier du navigateur) : « Ctrl ; » pour les Réglages en AZERTY.
+- **Réglages › Raccourcis** (`src/features/settings/ShortcutsPage.tsx`) :
+  - capture en appuyant sur la combinaison (Échap annule, Tab passe au suivant) ;
+  - refus expliqués : Ctrl+Alt qui écrit un caractère avec AltGr en AZERTY (2–9, 0, ), =, E, $ ; détecté aussi en direct pour d'autres dispositions), raccourcis de Windows (Alt+F4, Alt+Tab, Ctrl+Échap, touche Windows…), touche seule qui sert à écrire ou à se déplacer ;
+  - conflit : « Ctrl K est déjà le raccourci de « … » » avec Remplacer (l'autre perd son raccourci) ou Annuler ;
+  - avertissement pour Ctrl+C / V / X / Z / Y / A / S (Remplacer quand même / Annuler) ;
+  - « Rétablir » par raccourci (demande si la combinaison d'origine a été reprise ailleurs), « Retirer », « Tout rétablir par défaut » ;
+  - une valeur invalide, inconnue ou en conflit dans les réglages est ignorée au chargement (le défaut reste) : jamais de plantage ;
+  - ligne d'aide : Échap puis Tab pour atteindre cases et boutons Copier.
+- **Ctrl+Maj+T** (`src/core/markdown/tasks.ts`, `src/editor/tasks.ts`) : coche / décoche la tâche de la ligne, ou de toutes les lignes sélectionnées (toutes cochées si l'une ne l'était pas, sinon toutes décochées) ; sans tâche, les lignes deviennent des tâches ; jamais dans un bloc de code ; annulable.
+- **Accès clavier promis en phase 2** : cases à cocher et bouton Copier focusables, focus visible (anneau §2), Espace ou Entrée pour activer, focus conservé sur la case après bascule. Depuis le texte : Échap puis Tab (convention CodeMirror : Tab indente les listes).
+- **Tests** : Vitest 215 (dont raccourcis avec événements AZERTY réels — AltGr+E « € », Ctrl+1 « & », Ctrl+A sur la touche Q —, résolution des réglages invalides, Ctrl+Maj+T, recherche floue) ; essais dans le navigateur : palette, capture avec événements AZERTY simulés, conflit, édition standard, rétablir, tooltip mis à jour en direct, Ctrl+Maj+T, Échap + Tab + Espace.
+
+### Décisions (10b)
+| # | Sujet | Décision |
+|---|---|---|
+| P10-8 | Page Raccourcis | Pas de maquette : lignes de 40 px comme les options de la modale d'export, combinaison en puces cliquable, actions Rétablir / Retirer à droite, regroupées en Général, Affichage, Note et éditeur, Liste et recherche. |
+| P10-9 | Touches enregistrées | Lettres par caractère (le raccourci suit la disposition : Ctrl+A où est le A), chiffres et ponctuation par position physique (`Digit1`, `Comma`), touches nommées par leur nom. |
+| P10-10 | Ctrl+Maj+T sans tâche | La ligne devient une tâche non cochée (une puce reçoit sa case, une ligne simple devient `- [ ] …`). |
+| P10-11 | Réglages (Ctrl+,) | Le commentaire de la phase 6 disait « , » à la même place en AZERTY : c'est faux (la touche imprime « ; »). Le raccourci reste la même touche physique, désormais affichée « Ctrl ; » en AZERTY ; personnalisable. |
+| P10-12 | Palette sans requête | Récentes (8 au plus) puis 8 commandes ; « > » seul liste toutes les commandes. |
+
+### Comparaison avec la maquette 07 (palette)
+- 640 px à 120 px du haut, champ 56 px, groupes Commandes / Notes / Tags, lignes 40 px, lettres trouvées en gras accent, raccourcis en puces `kbd`, ligne courante `--active`, pied d'aides : **conformes**.
+- Écarts :
+  - groupe « Récentes » en tête quand rien n'est tapé (demandé) ;
+  - raison affichée à droite des commandes indisponibles (demandé) ;
+  - pied : « > commandes seulement · # tags » ; « Tab Insérer comme lien » seulement quand une note est sélectionnée.
+
+Captures : `docs/captures/phase-10b/` (palette : « ex », accents, vide avec récentes, commandes indisponibles ; Réglages › Raccourcis : liste, capture, AltGr refusé, conflit, raccourci d'édition standard, raccourci modifié ; tooltip mis à jour ; case atteinte par Échap + Tab).
+
+### Checklist de test manuel (10b, Windows, clavier AZERTY)
+1. Ctrl+P, tape « expn » puis « reglages » : « Exporter la note… » puis « Réglages… » en tête, lettres en gras, raccourcis en puces françaises (Ctrl Maj E).
+2. Sans note ouverte, Ctrl+P puis « >note » : « Exporter la note… » grisé avec « aucune note ouverte » ; Entrée dessus ne fait rien.
+3. Lance « Afficher ou masquer le sommaire » depuis la palette, rouvre-la : la commande est sous « Récentes ».
+4. Réglages › Raccourcis › « Exporter la note » : appuie sur AltGr+E : refus avec explication ; Ctrl+Alt+2 aussi ; Alt+F4 : « appartient à Windows ».
+5. Même ligne : Ctrl+Maj+J. Survole le bouton Exporter de la barre : l'infobulle dit « Ctrl Maj J » ; Ctrl+Maj+J ouvre l'export, sans redémarrage.
+6. « Palette de commandes » : Ctrl+K → « déjà le raccourci de Rechercher dans les notes » → Remplacer : Ctrl+K ouvre la palette, la recherche n'a plus de raccourci. Puis « Rétablir » sur Rechercher : il demande, Remplacer.
+7. « Nouvelle note » : Ctrl+C → avertissement de raccourci standard ; Annuler.
+8. « Tout rétablir par défaut », puis relance Ursa : tout est d'origine.
+9. Dans une liste de courses, Ctrl+Maj+T coche la ligne ; sélectionne trois lignes, Ctrl+Maj+T les coche toutes ; Ctrl+Z annule.
+10. Dans une note avec cases et bloc de code : Échap puis Tab → la première case a l'anneau de focus ; Espace la coche ; Tab va à la suivante puis au bouton Copier (visible), Entrée copie.
 
 ---
 

@@ -513,6 +513,31 @@
   --postit-pill-max: 160px;
   --postit-pill-shadow: 0 1px 2px rgba(60, 40, 10, .18);
 
+  /* Command palette [§2.16]: 640 wide, 120 from the top; field 56 / 16 px, icon 18;
+     group titles 11.5/600; rows 40, icon 16; kbd 22 px mono 11; list 420; footer 40 / 12 px */
+  --cmd-w: 640px;
+  --cmd-top: 120px;
+  --cmd-field-h: 56px;
+  --cmd-field-fs: 16px;
+  --cmd-field-icon: 18px;
+  --cmd-group-fs: 11.5px;
+  --cmd-row-h: 40px;
+  --cmd-row-pad: 0 12px;
+  --cmd-row-icon: 16px;
+  --cmd-list-max: 420px;
+  --cmd-footer-h: 40px;
+  --cmd-footer-fs: var(--fs-xs);
+  --kbd-h: 22px;
+  --kbd-fs: var(--fs-2xs);
+  --kbd-pad-x: 6px;                        /* (decision) */
+  --kbd-gap: var(--sp-1);                  /* (decision) between the keys of a chord */
+  /* Settings › Shortcuts (decision P10-8): rows like the option rows of §2.17 */
+  --shortcut-row-h: 40px;
+  --shortcut-keys-min: 120px;
+  --shortcut-recording-ring: 1.5px;
+  /* Keyboard access to editor widgets [§2.7, §2.8]: the copy button shows when focused */
+  --widget-focus-offset: 2px;
+
   /* Export [§2.17] — modal: 5 format tiles 84 px high, icon 22, label 13/600, option rows 40 px */
   --export-tile-h: 84px;
   --export-tile-icon: 22px;

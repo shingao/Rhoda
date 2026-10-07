@@ -244,6 +244,8 @@
 }
 
 .cm-checkbox {
+  --ring-bg: var(--bg-2);
+
   position: absolute;
   top: calc((var(--editor-lh) - var(--checkbox-size)) / 2);
   left: 0;
@@ -268,6 +270,13 @@
 .cm-checkbox[aria-checked="true"] {
   background: var(--text-3);
   box-shadow: none;
+}
+
+/* Keyboard focus (Esc then Tab) [§2]: the box draws its ring with box-shadow, so the focus ring is restated. */
+.cm-checkbox:focus-visible {
+  box-shadow:
+    0 0 0 var(--focus-gap) var(--ring-bg),
+    0 0 0 var(--focus-outer) var(--focus-ring);
 }
 
 .cm-checkbox svg {
@@ -347,6 +356,8 @@
 }
 
 .cm-code-copy {
+  --ring-bg: var(--bg-code);
+
   position: absolute;
   top: calc((var(--code-header-h) - var(--code-copy-btn)) / 2);
   right: calc(var(--code-pad-x) / 2);
@@ -366,6 +377,11 @@
 .cm-code-copy svg {
   width: var(--code-copy-icon);
   height: var(--code-copy-icon);
+}
+
+/* Reached from the keyboard (Esc then Tab from the text) [§2, §2.8]: shown while focused. */
+.cm-code-copy:focus-visible {
+  opacity: 1;
 }
 
 .cm-code-copy:hover {

@@ -12,6 +12,8 @@ interface DialogProps {
   initialFocus?: RefObject<HTMLElement | null>;
   /** Vertically centred (tall dialogs) instead of placed high. */
   centered?: boolean;
+  /** Placement of a dialog that is not a modal card (the command palette). */
+  scrimClassName?: string;
 }
 
 /** Open dialogs: the app behind them is inert (no focus, no clicks, hidden from assistive tech). */
@@ -24,7 +26,7 @@ function setAppInert(): void {
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 
 /** Modal shell [DESIGN §2.17]: scrim, trapped focus, Esc / scrim click close, focus restored. */
-export function Dialog({ onClose, labelledBy, className, children, initialFocus, centered }: DialogProps) {
+export function Dialog({ onClose, labelledBy, className, children, initialFocus, centered, scrimClassName }: DialogProps) {
   const dialog = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -65,7 +67,7 @@ export function Dialog({ onClose, labelledBy, className, children, initialFocus,
   };
 
   return createPortal(
-    <div className={[s.scrim, centered && s.centered].filter(Boolean).join(" ")} onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className={[s.scrim, centered && s.centered, scrimClassName].filter(Boolean).join(" ")} onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
       <div ref={dialog} role="dialog" aria-modal="true" aria-labelledby={labelledBy} className={className} onKeyDown={onKeyDown}>
         {children}
       </div>

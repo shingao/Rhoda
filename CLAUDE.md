@@ -102,7 +102,8 @@ cd src-tauri && cargo clippy --all-targets -- -D warnings && cargo test
 - Identité d'une note : l'`id` du frontmatter (provisoire en mémoire pour une note externe, écrit à la 1re écriture). L'index est indexé par `id`, jamais par chemin.
 - Échecs disque (fichier verrouillé) : jamais bloquants ni destructeurs ; texte gardé en attente, ancien nom conservé, nouvelle tentative plus tard.
 - **Textes d'interface** : uniquement via `src/i18n/` (`fr.ts` = référence, `en.ts` mêmes clés) et `useT()` / `currentMessages()`. Aucune chaîne visible en dur dans les composants.
-- **Raccourcis** : uniquement déclarés dans `src/app/shortcuts.ts` ; les composants les référencent par id (`shortcutLabel`, `matchShortcut`).
+- **Raccourcis** : uniquement déclarés dans `src/app/shortcuts.ts` ; les composants les référencent par id (`shortcutLabel`, `shortcutKeys`, `matchShortcut`), jamais par touches : les personnalisations (`settings.shortcuts`, règles et résolution dans `src/core/keys.ts`) s'appliquent alors partout. Les raccourcis de l'éditeur passent par `EDITOR_COMMANDS` (`src/editor/setup.ts`).
+- **Commandes** : toute action nommable va dans `src/app/commandList.ts` (libellé, icône, raccourci, raison d'indisponibilité) ; la palette (`src/app/palette.ts`) et les raccourcis globaux s'en servent.
 - **Markdown** : une seule grammaire (`src/core/markdown/syntax.ts`) pour l'éditeur et l'indexation. Le rendu live (`src/editor/livePreview/`) ne parcourt que la zone visible ; ses styles sont dans `src/editor/editor.css` (règles de ligne en `.cm-editor .cm-line.x`).
 - Notes d'exemple dans `samples/` (`npm run sample:long` régénère la note de 5 000 lignes). Outils de dev du navigateur : `localStorage` `ursa-dev-raw`, `ursa-dev-fail-writes`.
 

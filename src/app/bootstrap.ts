@@ -4,6 +4,7 @@ import { loadSettings, saveSettings } from "../services/settings";
 import { vaultApi } from "../services/vault";
 import { connectEditor } from "./editorBridge";
 import { connectTheme } from "./theme";
+import { connectShortcuts } from "./shortcuts";
 import { connectSearch } from "./search";
 import { flushAll, handleDiskChanges, prepareClose } from "./notes";
 import { getState, setState, useApp } from "./store";
@@ -24,6 +25,7 @@ export async function bootstrap(): Promise<void> {
     const settings = await loadSettings();
     setState({ settings });
     connectTheme();
+    connectShortcuts();
     document.documentElement.lang = settings.language;
     // Shown once themed (React has already rendered). Not via requestAnimationFrame:
     // a hidden window never gets animation frames.

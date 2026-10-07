@@ -22,6 +22,12 @@ export interface Settings {
   };
   ocr: OcrSettings;
   export: ExportSettings;
+  /** Changed shortcuts: id → keys ("Ctrl+Shift+E"), "" = none. Unknown or invalid ones are ignored. */
+  shortcuts: Record<string, string>;
+  palette: {
+    /** Commands run from the palette, most recent first. */
+    recent: string[];
+  };
   stickers: {
     /** Last stickers placed, most recent first (drawer › Recent). */
     recent: string[];
@@ -115,6 +121,8 @@ export const DEFAULT_SETTINGS: Settings = {
   },
   layout: { sidebarWidth: null, listWidth: null, sidebarCollapsed: false, listCollapsed: false, outlineOpen: false },
   ocr: { enabled: true, languages: null, pdfPages: PDF_PAGES.default },
+  shortcuts: {},
+  palette: { recent: [] },
   export: { folder: null, format: "pdf", page: "a4", image: "png", images: true, tags: true, currentTheme: false, paper: true, stickers: true },
   stickers: { recent: [], show: true, hideInFocus: false },
 };
@@ -143,6 +151,12 @@ const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(mi
 const oneOf = <T extends string>(v: string, values: readonly T[], fallback: T): T => ((values as readonly string[]).includes(v) ? (v as T) : fallback);
 
 /** Values of the right type but out of range (edited by hand) are brought back in range. */
+/** Commands kept in the palette's "recent" list. */
+export const RECENT_COMMANDS = 8;
+
+const stringRecord = (v: unknown): Record<string, string> =>
+  isObject(v) ? Object.fromEntries(Object.entries(v).filter((e): e is [string, string] => typeof e[1] === "string")) : {};
+
 export function sanitizeSettings(s: Settings): Settings {
   const a = s.appearance;
   const e = s.editor;
@@ -172,6 +186,8 @@ export function sanitizeSettings(s: Settings): Settings {
       page: oneOf(s.export.page, ["a4", "letter"], "a4"),
       image: oneOf(s.export.image, ["png", "jpg"], "png"),
     },
+    shortcuts: stringRecord(s.shortcuts),
+    palette: { recent: Array.isArray(s.palette.recent) ? s.palette.recent.filter((r): r is string => typeof r === "string").slice(0, RECENT_COMMANDS) : [] },
     stickers: {
       ...s.stickers,
       recent: Array.isArray(s.stickers.recent) ? s.stickers.recent.filter((r): r is string => typeof r === "string").slice(0, RECENT_STICKERS) : [],
@@ -181,7 +197,10 @@ export function sanitizeSettings(s: Settings): Settings {
 
 export async function loadSettings(): Promise<Settings> {
   try {
-    return sanitizeSettings(merge(DEFAULT_SETTINGS, await invoke<unknown>("load_settings")));
+    const stored = await invoke<unknown>("load_settings");
+    // A record of any keys: `merge` keeps only the keys of the defaults.
+    const shortcuts = isObject(stored) ? stringRecord(stored.shortcuts) : {};
+    return sanitizeSettings({ ...merge(DEFAULT_SETTINGS, stored), shortcuts });
   } catch {
     return DEFAULT_SETTINGS;
   }
