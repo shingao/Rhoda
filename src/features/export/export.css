@@ -1,0 +1,543 @@
+/* Page of an exported note (HTML file, PDF, image): the live preview's look
+   [DESIGN §2.5–2.10, §3, §7–9] on a page of --export-page-w, built from the
+   same tokens. Embedded as text in the export (`?raw`), never in the app. */
+
+/* Paper size: added per export (PDF only); margins are the page's padding. */
+@page {
+  margin: 0;
+}
+
+html {
+  background: var(--bg-2);
+  color: var(--text);
+  print-color-adjust: exact;
+}
+
+body {
+  margin: 0;
+}
+
+.u-page {
+  position: relative;
+  z-index: 0;
+  box-sizing: border-box;
+  width: var(--export-page-w);
+  max-width: 100%;
+  margin: 0 auto;
+  padding: var(--export-pad-y) var(--export-pad-x);
+  font-family: var(--editor-font-active);
+  font-size: var(--editor-fs);
+  line-height: var(--editor-lh);
+
+  /* Every printed page gets its own top and bottom margin, and its own background. */
+  box-decoration-break: clone;
+  overflow-wrap: break-word;
+}
+
+/* An HTML file opened in a browser: the page fills the window. */
+@media screen {
+  html.u-file {
+    min-height: 100%;
+  }
+}
+
+/* Page background [§7]: a layer behind the text with the editor's patterns, on
+   the rhythm from the first line. It covers the whole page on screen and in an
+   image; printed, it is repeated whole on every page (fixed elements are). */
+.u-sheet {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+@media print {
+  .u-sheet {
+    position: fixed;
+  }
+}
+
+.u-paper-lined {
+  background-image: var(--paper-lined-image);
+  background-size: var(--paper-lined-size);
+  background-position: 0 var(--export-pad-y);
+}
+
+.u-paper-grid {
+  background-image: var(--paper-grid-image);
+  background-size: var(--paper-grid-size);
+  background-position: 0 calc(var(--export-pad-y) + var(--paper-grid-offset));
+}
+
+.u-paper-dots {
+  background-image: var(--paper-dots-image);
+  background-size: var(--paper-dots-size);
+  background-position: 0 var(--export-pad-y);
+}
+
+/* Red margin: a background layer, so it is drawn on every page. */
+.u-margin {
+  --u-margin-x: calc(var(--export-pad-x) - var(--paper-margin-x));
+  --u-margin-line: linear-gradient(to right, transparent var(--u-margin-x), var(--paper-margin) var(--u-margin-x), var(--paper-margin) calc(var(--u-margin-x) + var(--paper-margin-w)), transparent calc(var(--u-margin-x) + var(--paper-margin-w)));
+
+  background-image: var(--u-margin-line);
+}
+
+.u-margin.u-paper-lined {
+  background-image: var(--u-margin-line), var(--paper-lined-image);
+  background-size: 100% 100%, var(--paper-lined-size);
+  background-position: 0 0, 0 var(--export-pad-y);
+}
+
+.u-margin.u-paper-grid {
+  background-image: var(--u-margin-line), var(--paper-grid-image);
+  background-size: 100% 100%, var(--paper-grid-size);
+  background-position: 0 0, 0 calc(var(--export-pad-y) + var(--paper-grid-offset));
+}
+
+.u-margin.u-paper-dots {
+  background-image: var(--u-margin-line), var(--paper-dots-image);
+  background-size: 100% 100%, var(--paper-dots-size);
+  background-position: 0 0, 0 var(--export-pad-y);
+}
+
+/* Blocks: as many blank lines as in the note — none, or one rhythm unit
+   (`data-gap`: the line before the block is blank). */
+.u-page p,
+.u-page ul,
+.u-page ol,
+.u-page blockquote,
+.u-page figure,
+.u-page hr,
+.u-page .u-card,
+.u-page h1,
+.u-page h2,
+.u-page h3,
+.u-page h4,
+.u-page h5,
+.u-page h6 {
+  margin: 0;
+}
+
+.u-page [data-gap] {
+  margin-top: var(--rhythm);
+}
+
+.u-page h1,
+.u-page h2,
+.u-page h3,
+.u-page h4,
+.u-page h5,
+.u-page h6 {
+  font-size: inherit;
+  font-weight: var(--fw-bold);
+  line-height: var(--editor-lh);
+  break-after: avoid;
+}
+
+.u-page h1 {
+  font-size: var(--h1-fs);
+  line-height: var(--h1-lh);
+  letter-spacing: var(--h1-tracking);
+}
+
+.u-page h2 {
+  font-size: var(--h2-fs);
+  line-height: var(--h2-lh);
+}
+
+.u-page h3 {
+  font-size: var(--h3-fs);
+  line-height: var(--h3-lh);
+}
+
+.u-page h4 {
+  font-size: var(--h4-fs);
+  line-height: var(--h4-lh);
+}
+
+.u-page h5 {
+  color: var(--text-2);
+}
+
+.u-page h6 {
+  font-weight: var(--fw-semibold);
+  font-variant: small-caps;
+  color: var(--text-3);
+}
+
+/* Inline [§3, §2.5] */
+.u-page strong {
+  font-weight: var(--fw-bold);
+}
+
+.u-page s {
+  color: var(--text-3);
+}
+
+.u-page mark {
+  padding: var(--highlight-pad);
+  border-radius: var(--r-xs);
+  background: var(--highlight);
+  color: inherit;
+}
+
+.u-page code {
+  padding: var(--inline-code-pad);
+  border-radius: var(--r-xs);
+  background: var(--bg-code);
+  color: var(--accent-text);
+  font-family: var(--font-mono);
+  font-size: var(--syntax-mono-fs);
+}
+
+.u-page a,
+.u-link-text {
+  color: var(--accent-text);
+  text-decoration: underline var(--link-underline) var(--accent-soft);
+  text-underline-offset: var(--link-underline-offset);
+}
+
+.u-page .u-wiki {
+  font-weight: var(--fw-semibold);
+  color: var(--accent-text);
+  text-decoration: none;
+  box-shadow: inset 0 calc(-1 * var(--wikilink-underline)) 0 var(--accent-soft);
+}
+
+.u-tag {
+  display: inline-block;
+  margin: calc((var(--editor-lh) - var(--tag-lh) - 2 * var(--tag-pad-y)) / 2) 0;
+  padding: var(--tag-pad);
+  border-radius: var(--r-pill);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-family: var(--font-ui);
+  font-size: var(--tag-fs);
+  font-style: normal;
+  font-weight: var(--fw-semibold);
+  line-height: var(--tag-lh);
+  vertical-align: top;
+}
+
+/* Lists and tasks [§3, §2.7] */
+.u-page ul,
+.u-page ol {
+  padding-left: var(--list-indent);
+}
+
+.u-page li > p,
+.u-page li > div > p {
+  margin: 0;
+}
+
+.u-page li > ul,
+.u-page li > ol,
+.u-page li > div > ul,
+.u-page li > div > ol {
+  margin: 0;
+}
+
+.u-page li::marker {
+  color: var(--text-3);
+}
+
+.u-page ul.u-tasks {
+  padding-left: 0;
+  list-style: none;
+}
+
+.u-task {
+  display: flex;
+  gap: var(--checkbox-gap);
+}
+
+.u-task > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.u-task > input {
+  appearance: none;
+  position: relative;
+  flex: none;
+  width: var(--checkbox-size);
+  height: var(--checkbox-size);
+  margin: calc((var(--editor-lh) - var(--checkbox-size)) / 2) 0 0;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 var(--checkbox-ring) var(--text-faint);
+}
+
+.u-task > input:checked {
+  background: var(--text-3);
+  box-shadow: none;
+}
+
+.u-task > input:checked::after {
+  content: "";
+  position: absolute;
+  top: 22%;
+  left: 36%;
+  width: 22%;
+  height: 40%;
+  border: solid var(--bg-2);
+  border-width: 0 var(--export-check) var(--export-check) 0;
+  transform: rotate(45deg);
+}
+
+.u-done > div {
+  color: var(--text-3);
+}
+
+/* Quote [§2.9] */
+.u-page blockquote {
+  padding: 0 var(--quote-pad-x);
+  border-radius: var(--r-md);
+  background: var(--bg-1);
+  color: var(--text-2);
+  font-style: italic;
+}
+
+.u-page blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.u-page blockquote blockquote {
+  background: var(--bg-sunken);
+}
+
+/* Code [§2.8]: never cut by a page break. */
+.u-code {
+  border-radius: var(--r-lg);
+  background: var(--bg-code);
+  break-inside: avoid;
+}
+
+.u-code figcaption {
+  padding: 0 var(--code-pad-x);
+  color: var(--text-3);
+  font-family: var(--font-ui);
+  font-size: var(--code-lang-fs);
+  font-weight: var(--fw-medium);
+  line-height: var(--code-header-h);
+}
+
+.u-code pre {
+  margin: 0;
+  padding: var(--code-pad-x) var(--code-pad-x) var(--code-pad-bottom);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.u-code figcaption + pre {
+  padding-top: 0;
+}
+
+.u-code pre code {
+  padding: 0;
+  background: none;
+  color: var(--text);
+  font-size: var(--code-fs);
+  line-height: var(--code-lh);
+}
+
+/* A separator takes a line of the rhythm, the rule in its middle. */
+.u-page hr {
+  height: var(--hr-thickness);
+  margin-block: calc((var(--rhythm) - var(--hr-thickness)) / 2);
+  border: 0;
+  background: var(--separator);
+}
+
+.u-page hr[data-gap] {
+  margin-top: calc(var(--rhythm) + (var(--rhythm) - var(--hr-thickness)) / 2);
+}
+
+/* Table */
+.u-table {
+  overflow-x: auto;
+  break-inside: avoid;
+}
+
+.u-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.u-table th,
+.u-table td {
+  padding: 0 var(--sp-3);
+  border-bottom: var(--hr-thickness) solid var(--separator);
+  text-align: left;
+  vertical-align: top;
+}
+
+.u-table th {
+  font-weight: var(--fw-semibold);
+}
+
+/* Images [§2.10]: never cut by a page break. */
+.u-image {
+  break-inside: avoid;
+}
+
+.u-image img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--image-radius);
+}
+
+.u-inline-image {
+  max-width: 100%;
+  vertical-align: top;
+}
+
+.u-missing {
+  color: var(--text-3);
+  font-size: var(--image-missing-fs);
+}
+
+/* Cards: links [§2.11] and PDFs, never cut. */
+.u-page .u-card {
+  display: flex;
+  align-items: center;
+  gap: var(--link-card-gap);
+  padding: var(--link-card-pad);
+  border-radius: var(--r-lg);
+  background: var(--bg-1);
+  color: var(--text);
+  text-decoration: none;
+  break-inside: avoid;
+}
+
+.u-card-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  line-height: var(--lh-ui);
+}
+
+.u-card-meta {
+  color: var(--text-3);
+  font-family: var(--font-ui);
+  font-size: var(--link-card-domain-fs);
+}
+
+.u-card-title {
+  font-family: var(--font-ui);
+  font-size: var(--link-card-title-fs);
+  font-weight: var(--fw-semibold);
+}
+
+.u-card-desc {
+  color: var(--text-2);
+  font-family: var(--font-ui);
+  font-size: var(--link-card-desc-fs);
+  line-height: var(--link-card-desc-lh);
+}
+
+.u-card-thumb {
+  width: var(--link-card-thumb-w);
+  border-radius: var(--r-md);
+}
+
+.u-pdf-badge {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--pdf-preview-w);
+  height: var(--pdf-preview-h);
+  border-radius: var(--pdf-preview-radius);
+  background: var(--bg-sunken);
+  color: var(--accent-text);
+  font-family: var(--font-ui);
+  font-size: var(--pdf-badge-fs);
+  font-weight: var(--fw-bold);
+}
+
+/* Stickers [§8]: in the margins, never on the text. A float with a negative
+   margin takes no room from the lines; stacked ones never overlap; it moves
+   with its block to the next page. */
+.u-sticker {
+  display: block;
+  width: var(--size);
+  height: var(--size);
+  margin-top: var(--dy);
+  break-inside: avoid;
+}
+
+.u-sticker.u-right {
+  float: right;
+  clear: right;
+  margin-right: calc(-1 * (var(--size) + var(--export-sticker-gap)));
+}
+
+.u-sticker.u-left {
+  float: left;
+  clear: left;
+  margin-left: calc(-1 * (var(--size) + var(--export-sticker-gap)));
+}
+
+.u-sticker img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: var(--sticker-shadow);
+  transform: rotate(var(--turn));
+}
+
+/* Post-its [§9]: in the text column, the text flowing around them. */
+.u-postit {
+  position: relative;
+  box-sizing: border-box;
+  width: min(var(--size), var(--export-postit-max));
+  min-height: var(--size);
+  padding: var(--postit-pad);
+  padding-bottom: var(--rhythm);
+  border-radius: var(--postit-r);
+  background: var(--postit-yellow);
+  box-shadow: var(--postit-shadow);
+  color: var(--postit-text);
+  font-family: var(--font-hand);
+  font-size: var(--postit-fs);
+  font-weight: var(--fw-medium);
+  line-height: var(--postit-lh);
+  overflow-wrap: anywhere;
+  transform: rotate(var(--turn));
+  break-inside: avoid;
+}
+
+.u-postit.u-right {
+  float: right;
+  clear: right;
+  margin: 0 0 var(--rhythm) var(--export-postit-gap);
+}
+
+.u-postit.u-left {
+  float: left;
+  clear: left;
+  margin: 0 var(--export-postit-gap) var(--rhythm) 0;
+}
+
+.u-postit[data-color="pink"] {
+  background: var(--postit-pink);
+}
+
+.u-postit[data-color="green"] {
+  background: var(--postit-green);
+}
+
+.u-postit[data-color="blue"] {
+  background: var(--postit-blue);
+}
+
+/* Nothing floats past the end of the note. */
+.u-page::after {
+  content: "";
+  display: block;
+  clear: both;
+}

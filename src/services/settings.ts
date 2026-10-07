@@ -21,6 +21,7 @@ export interface Settings {
     outlineOpen: boolean;
   };
   ocr: OcrSettings;
+  export: ExportSettings;
   stickers: {
     /** Last stickers placed, most recent first (drawer › Recent). */
     recent: string[];
@@ -72,6 +73,25 @@ export interface OcrSettings {
   pdfPages: number;
 }
 
+export const EXPORT_FORMATS = ["md", "html", "pdf", "docx", "image"] as const;
+export type ExportFormat = (typeof EXPORT_FORMATS)[number];
+
+/** Export dialog: last choices, remembered [DESIGN §2.17]. */
+export interface ExportSettings {
+  /** Last export folder (absolute); null = Documents\Ursa exports. */
+  folder: string | null;
+  format: ExportFormat;
+  page: "a4" | "letter";
+  image: "png" | "jpg";
+  images: boolean;
+  tags: boolean;
+  /** Current theme instead of the light one. */
+  currentTheme: boolean;
+  /** The note's page background (lines, grid, dots, red margin). */
+  paper: boolean;
+  stickers: boolean;
+}
+
 export const PDF_PAGES = { min: 5, max: 500, step: 5, default: 50 } as const;
 
 export const FONT_SIZE = { min: 14, max: 20, step: 0.5, default: 16.5 } as const;
@@ -95,6 +115,7 @@ export const DEFAULT_SETTINGS: Settings = {
   },
   layout: { sidebarWidth: null, listWidth: null, sidebarCollapsed: false, listCollapsed: false, outlineOpen: false },
   ocr: { enabled: true, languages: null, pdfPages: PDF_PAGES.default },
+  export: { folder: null, format: "pdf", page: "a4", image: "png", images: true, tags: true, currentTheme: false, paper: true, stickers: true },
   stickers: { recent: [], show: true, hideInFocus: false },
 };
 
@@ -144,6 +165,12 @@ export function sanitizeSettings(s: Settings): Settings {
       enabled: s.ocr.enabled,
       languages: Array.isArray(s.ocr.languages) ? s.ocr.languages.filter((l): l is string => typeof l === "string") : null,
       pdfPages: Math.round(clamp(s.ocr.pdfPages, PDF_PAGES.min, PDF_PAGES.max)),
+    },
+    export: {
+      ...s.export,
+      format: oneOf(s.export.format, EXPORT_FORMATS, "pdf"),
+      page: oneOf(s.export.page, ["a4", "letter"], "a4"),
+      image: oneOf(s.export.image, ["png", "jpg"], "png"),
     },
     stickers: {
       ...s.stickers,

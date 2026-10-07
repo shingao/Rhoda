@@ -3,6 +3,7 @@ import { bootstrap } from "./app/bootstrap";
 import { focusSearch } from "./app/commands";
 import { useT } from "./app/i18n";
 import { toggleColumn, toggleFocusMode, toggleOutline, useEscapeLeavesFocus } from "./app/layout";
+import { openExport } from "./app/export";
 import { createNote } from "./app/notes";
 import { openFindFromSelection } from "./app/search";
 import { useGlobalShortcuts, type ShortcutHandlers } from "./app/shortcuts";
@@ -27,6 +28,7 @@ const globalHandlers: ShortcutHandlers = {
   "focus.toggleKey": toggleFocusMode,
   "stickers.drawer": () => toggleStickerDrawer(),
   "stickers.hide": toggleStickersHidden,
+  "export.open": () => openExport(),
 };
 
 export function App() {

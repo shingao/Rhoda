@@ -2,6 +2,7 @@ mod assets;
 mod backup;
 mod preview;
 mod error;
+mod export;
 mod ocr;
 mod settings;
 mod snapshots;
@@ -11,6 +12,9 @@ mod watcher;
 use std::time::Duration;
 
 use tauri::Manager;
+
+/// Hidden window printing PDF exports (see `export::pdf`).
+const EXPORT_WINDOW: &str = "export-pdf";
 
 /// If the frontend could not show the window (script error), show it anyway.
 const SHOW_FALLBACK: Duration = Duration::from_secs(3);
@@ -24,17 +28,25 @@ pub fn run() {
         .plugin(
             tauri_plugin_window_state::Builder::default()
                 .with_state_flags(tauri_plugin_window_state::StateFlags::all() & !tauri_plugin_window_state::StateFlags::VISIBLE)
+                .with_denylist(&[EXPORT_WINDOW])
                 .build(),
         )
         .manage(vault::VaultState::default())
         .manage(ocr::OcrState::default())
+        .manage(export::ExportState::default())
         // Attachments and caches of the open vault, for <img> and pdf.js.
         .register_asynchronous_uri_scheme_protocol("vault", |ctx, request, responder| {
             // Thumbnails can take a moment: never on the main thread.
             let app = ctx.app_handle().clone();
             std::thread::spawn(move || responder.respond(assets::serve(&app, &request)));
         })
+        // The page of a PDF export, to the hidden window that prints it.
+        .register_uri_scheme_protocol("ursa-export", |ctx, request| export::serve(ctx.app_handle(), &request))
         .setup(|app| {
+            #[cfg(windows)]
+            if export::smoke(app) {
+                return Ok(());
+            }
             if let Some(window) = app.get_webview_window("main") {
                 std::thread::spawn(move || {
                     std::thread::sleep(SHOW_FALLBACK);
@@ -85,6 +97,13 @@ pub fn run() {
             assets::pdf_info,
             assets::save_pdf_preview,
             assets::open_attachment,
+            export::export_pick_folder,
+            export::export_default_folder,
+            export::export_folder_ok,
+            export::export_write,
+            export::export_copy_assets,
+            export::export_reveal,
+            export::export_pdf,
         ])
         .run(tauri::generate_context!())
         .expect("error while running Ursa");

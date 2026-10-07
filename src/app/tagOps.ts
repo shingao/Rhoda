@@ -16,6 +16,13 @@ export function notesWithTag(key: string): number {
   return Object.values(getState().notes).filter(hasTag(key)).length;
 }
 
+/** Notes carrying a tag or one of its sub-tags, outside the trash (export of a tag). */
+export function noteIdsWithTag(key: string): string[] {
+  return Object.values(getState().notes)
+    .filter((n) => !n.trashed && hasTag(key)(n))
+    .map((n) => n.id);
+}
+
 /** Moves the settings of `key` and its descendants under a new key. */
 function moveConfig(oldKey: string, newKey: string | null): void {
   setState((s) => {

@@ -1,5 +1,6 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { ChevronDown, Plus } from "lucide-react";
+import { ChevronDown, Plus, Share } from "lucide-react";
+import { openExport } from "../../app/export";
 import { cssPx } from "../../app/cssTokens";
 import { createFromSearch } from "../../app/search";
 import { noteIndex } from "../../app/noteIndex";
@@ -121,12 +122,20 @@ export function NoteList() {
 
   const menuEntries = (m: MenuState): MenuEntry[] =>
     m.kind === "sort"
-      ? SORT_KEYS.map((key) => ({
-          id: key,
-          label: t.list.sort[key],
-          checked: key === sort,
-          onSelect: () => updateSettings((st) => ({ ...st, sort: key })),
-        }))
+      ? [
+          ...SORT_KEYS.map((key) => ({
+            id: key,
+            label: t.list.sort[key],
+            checked: key === sort,
+            onSelect: () => updateSettings((st) => ({ ...st, sort: key })),
+          })),
+          ...(list.length > 0 && !inTrash
+            ? [
+                { kind: "separator" as const, id: "sep-export" },
+                { id: "export", label: t.exportDialog.menuList(list.length), icon: Share, onSelect: () => openExport(list.map((n) => n.id), `${title} · ${t.exportDialog.notes(list.length)}`) },
+              ]
+            : []),
+        ]
       : noteMenuEntries(notes[m.id], t, trashAndRefocus);
 
   return (

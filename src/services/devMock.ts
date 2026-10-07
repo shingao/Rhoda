@@ -361,6 +361,16 @@ export function installDevMock(): void {
       case "save_settings":
         localStorage.setItem("ursa-dev-settings", JSON.stringify((payload as { value: unknown }).value));
         return null;
+      case "export_pick_folder":
+        return localStorage.getItem("ursa-dev-export") ?? "C:\\Users\\dev\\Documents\\Exports";
+      case "export_default_folder":
+        return `C:\\Users\\dev\\Documents\\${args.name}`;
+      case "export_folder_ok":
+        return true;
+      case "export_copy_assets":
+        return (payload as { files: string[] }).files.map((f) => `assets/${f.split("/").pop()}`);
+      case "export_reveal":
+        return null;
       case "plugin:window|is_maximized":
       case "plugin:window|is_focused":
         return cmd.endsWith("is_focused");
@@ -368,4 +378,39 @@ export function installDevMock(): void {
         return null;
     }
   });
+  // After mockIPC, which installs the invoke it wraps.
+  installExportMock();
+}
+
+/** A file "written" by an export in the browser (no disk): kept for tests and captures. */
+export interface MockExport {
+  dir: string;
+  name: string;
+  bytes: Uint8Array;
+  /** PDF: the page that WebView2 would print, and the paper size. */
+  html?: string;
+  page?: string;
+}
+
+/**
+ * Exports send raw bytes with their destination in headers, which `mockIPC` does
+ * not pass on: these commands are answered before it. Files land in
+ * `window.__ursaExports` (Playwright reads them back).
+ */
+function installExportMock(): void {
+  const exports: MockExport[] = [];
+  (window as unknown as { __ursaExports: MockExport[] }).__ursaExports = exports;
+  const internals = (window as unknown as { __TAURI_INTERNALS__: { invoke: (cmd: string, args: unknown, options?: { headers?: Record<string, string> }) => Promise<unknown> } }).__TAURI_INTERNALS__;
+  const next = internals.invoke.bind(internals);
+  internals.invoke = (cmd, args, options) => {
+    if (cmd !== "export_write" && cmd !== "export_pdf") return next(cmd, args, options);
+    const h = (name: string) => decodeURIComponent(options?.headers?.[name] ?? "");
+    const dir = h("x-ursa-dir");
+    let name = h("x-ursa-name");
+    const dot = name.lastIndexOf(".");
+    for (let n = 2; exports.some((e) => e.dir === dir && e.name === name); n++) name = `${h("x-ursa-name").slice(0, dot)} (${n})${h("x-ursa-name").slice(dot)}`;
+    const bytes = args instanceof Uint8Array ? args : new Uint8Array();
+    exports.push(cmd === "export_pdf" ? { dir, name, bytes, html: new TextDecoder().decode(bytes), page: h("x-ursa-page") } : { dir, name, bytes });
+    return Promise.resolve(`${dir}\\${name}`);
+  };
 }

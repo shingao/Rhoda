@@ -36,6 +36,8 @@ export const SHORTCUTS = {
   "stickers.drawer": { keys: "Ctrl+Shift+S", scope: "global" },
   // "Hide stickers" of the open note; H is the same key on AZERTY and QWERTY.
   "stickers.hide": { keys: "Ctrl+Shift+H", scope: "global" },
+  // Export dialog of the open note [DESIGN §2.17]; E is the same key on AZERTY and QWERTY.
+  "export.open": { keys: "Ctrl+Shift+E", scope: "global" },
 } as const satisfies Record<string, { keys: string; scope: ShortcutScope }>;
 
 /** "editor" shortcuts run inside CodeMirror (see `editorKey`). */

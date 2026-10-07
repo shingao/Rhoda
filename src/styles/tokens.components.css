@@ -512,6 +512,23 @@
   --postit-pill-fs: 17px;
   --postit-pill-max: 160px;
   --postit-pill-shadow: 0 1px 2px rgba(60, 40, 10, .18);
+
+  /* Export [§2.17] — modal: 5 format tiles 84 px high, icon 22, label 13/600, option rows 40 px */
+  --export-tile-h: 84px;
+  --export-tile-icon: 22px;
+  --export-tile-fs: var(--fs-sm);
+  --export-tile-ring: 1.5px;               /* selected: ring inset 1.5 px --accent */
+  --export-row-h: 40px;
+  --export-dest-fs: var(--fs-xs);          /* destination path in mono */
+  /* Export page (decision P10-2): A4 at 96 dpi; text column with margins
+     wide enough for stickers; top and bottom of every page on the rhythm. */
+  --export-page-w: 794px;
+  --export-pad-x: 104px;
+  --export-pad-y: calc(var(--rhythm) * 2);
+  --export-sticker-gap: var(--sp-3);       /* between a margin sticker and the text / page edge */
+  --export-postit-max: 40%;                /* post-it width at most, in the text column */
+  --export-postit-gap: var(--sp-6);        /* text flowing around a post-it */
+  --export-check: 2px;                     /* check mark stroke in exported tasks */
 }
 
 /* Reduced motion [§4]: everything instant except opacity fades (80 ms). */

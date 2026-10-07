@@ -10,7 +10,7 @@ type Licence = "mit" | "ofl" | "isc" | "apache" | "mitApache";
 const TEXTS: Partial<Record<Licence, string>> = { mit, ofl, isc, apache };
 
 /** What Ursa ships that others made; `use` keys are in i18n (settings.credits). */
-const CREDITS: ReadonlyArray<{ name: string; author: string; licence: Licence; use: "stickers" | "hand" | "ui" | "mono" | "icons" | "pdf" | "editor" | "app" | "shell" | "store" | "yaml" }> = [
+const CREDITS: ReadonlyArray<{ name: string; author: string; licence: Licence; use: "stickers" | "hand" | "ui" | "mono" | "icons" | "pdf" | "editor" | "app" | "shell" | "store" | "yaml" | "docx" }> = [
   { name: "Fluent Emoji 3D", author: "Microsoft", licence: "mit", use: "stickers" },
   { name: "Caveat", author: "The Caveat Project Authors", licence: "ofl", use: "hand" },
   { name: "Hanken Grotesk", author: "The Hanken Grotesk Project Authors", licence: "ofl", use: "ui" },
@@ -22,6 +22,7 @@ const CREDITS: ReadonlyArray<{ name: string; author: string; licence: Licence; u
   { name: "Tauri", author: "The Tauri Programme", licence: "mitApache", use: "shell" },
   { name: "Zustand", author: "Poimandres", licence: "mit", use: "store" },
   { name: "yaml", author: "Eemeli Aro", licence: "isc", use: "yaml" },
+  { name: "docx", author: "Dolan Miu", licence: "mit", use: "docx" },
 ];
 
 /** Settings › About: version, privacy, third-party licences (full texts of those shipped as files). */

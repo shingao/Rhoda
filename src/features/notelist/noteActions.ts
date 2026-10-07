@@ -1,4 +1,5 @@
-import { Archive, ArchiveRestore, Copy, Pin, PinOff, RotateCcw, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, Copy, Pin, PinOff, RotateCcw, Share, Trash2 } from "lucide-react";
+import { openExport } from "../../app/export";
 import { confirmAction } from "../../app/confirm";
 import { currentMessages } from "../../app/i18n";
 import { BackupFailedError, deleteNotes, duplicateNote, restoreNote, setArchived, setPinned, undoAction, type BulkOperation } from "../../app/notes";
@@ -54,6 +55,7 @@ export function noteMenuEntries(note: Note | undefined, t: Messages, onTrash: (i
       onSelect: () => void setArchived(note.id, !note.archived),
     },
     { id: "duplicate", label: t.list.duplicate, icon: Copy, onSelect: () => void duplicateNote(note.id) },
+    { id: "export", label: t.exportDialog.menuNote, icon: Share, shortcut: shortcutLabel("export.open", t), onSelect: () => openExport([note.id]) },
     { kind: "separator", id: "sep-note" },
     {
       id: "trash",

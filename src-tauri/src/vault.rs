@@ -316,7 +316,7 @@ pub async fn open_vault(app: AppHandle, state: State<'_, VaultState>, path: Stri
 
 /// `canonicalize` returns `\\?\C:\…` verbatim paths on Windows; strip the
 /// prefix so paths stay comparable with the ones `notify` reports.
-fn dunce(p: PathBuf) -> PathBuf {
+pub(crate) fn dunce(p: PathBuf) -> PathBuf {
     let s = p.to_string_lossy();
     match s.strip_prefix(r"\\?\") {
         Some(rest) if !rest.starts_with("UNC\\") => PathBuf::from(rest.to_string()),

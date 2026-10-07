@@ -8,6 +8,7 @@ import { Toast } from "../../components/Toast";
 import { CloseDialog } from "../close/CloseDialog";
 import { SettingsDialog } from "../settings/SettingsDialog";
 import { CropDialog } from "../editor/CropDialog";
+import { ExportDialog } from "../export/ExportDialog";
 import { CardMenu } from "../editor/CardMenu";
 import { StickerMenu } from "../stickers/StickerMenu";
 import { OcrText } from "../editor/OcrText";
@@ -56,6 +57,7 @@ export function AppLayout() {
       </div>
       <SettingsDialog />
       <CropDialog />
+      <ExportDialog />
       <CardMenu />
       <StickerMenu />
       <OcrText />

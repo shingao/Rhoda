@@ -53,6 +53,24 @@ jobs:
           path: src-tauri/target/release/bundle/msi/*.msi
           if-no-files-found: error
 
+      # The real PDF export: the release build prints an export page (3 A4 pages, lined
+      # paper, fonts inside) from its hidden window with WebView2's PrintToPdf, then quits.
+      - name: PDF export through WebView2 (must write a real PDF)
+        shell: bash
+        run: |
+          out="$(cygpath -u "$RUNNER_TEMP")/export-smoke.pdf"
+          # Windows paths for the app; MSYS must not rewrite this variable.
+          export MSYS2_ENV_CONV_EXCL=URSA_PDF_SMOKE
+          export URSA_PDF_SMOKE="$(cygpath -w "$PWD/src-tauri/tests/fixtures/export-page.html")|$(cygpath -w "$out")"
+          timeout 180 src-tauri/target/release/ursa.exe || { cat "${out%.pdf}.error.txt" 2>/dev/null; echo "::error::the app could not print the PDF"; exit 1; }
+          test -s "$out" || { echo "::error::no PDF written"; exit 1; }
+          head -c 5 "$out" | grep -q "%PDF-" || { echo "::error::not a PDF"; exit 1; }
+          pages=$(grep -a -o "/Count [0-9]*" "$out" | sort -t' ' -k2 -n | tail -1 | cut -d' ' -f2)
+          fonts=$(grep -a -o "/FontFile2" "$out" | wc -l)
+          echo "PDF: $(stat -c %s "$out") bytes, $pages pages, $fonts embedded fonts"
+          [ "${pages:-0}" -ge 2 ] || { echo "::error::expected several A4 pages, got $pages"; exit 1; }
+          [ "$fonts" -ge 1 ] || { echo "::error::fonts not embedded"; exit 1; }
+
       # Last, so that its output (installed languages, text and boxes read) ends the log.
       # The step fails unless exactly these real OCR tests ran and passed: no engine,
       # no English recognizer, a word not read, or a test skipped or filtered out

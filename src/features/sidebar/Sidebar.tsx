@@ -1,12 +1,13 @@
 import { lazy, Suspense, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
-import { Archive, CalendarDays, Inbox, NotebookText, Pencil, Pin, PinOff, ScanText, Shapes, SquareCheck, Trash2, type LucideIcon } from "lucide-react";
+import { Archive, CalendarDays, Inbox, NotebookText, Pencil, Pin, PinOff, ScanText, Shapes, Share, SquareCheck, Trash2, type LucideIcon } from "lucide-react";
 import { confirmAction } from "../../app/confirm";
 import { useT } from "../../app/i18n";
 import { noteIndex } from "../../app/noteIndex";
 import { BackupFailedError, setFilter, undoAction, type BulkResult } from "../../app/notes";
 import { SECTIONS, UNCOUNTED, sectionCounts, type SectionId } from "../../app/sections";
 import { showToast, useApp } from "../../app/store";
-import { deleteTag, notesWithTag, renameTag, updateTagSettings } from "../../app/tagOps";
+import { deleteTag, noteIdsWithTag, notesWithTag, renameTag, updateTagSettings } from "../../app/tagOps";
+import { openExport } from "../../app/export";
 import { useNow } from "../../app/useNow";
 import { tagKey } from "../../core/markdown/extract";
 import { cleanTagName, formatTag, type TagNode } from "../../core/tags";
@@ -105,6 +106,15 @@ export function Sidebar() {
         onSelect: () => updateTagSettings(node.key, { pinned: !isPinned }),
       },
       { id: "rename", label: t.tags.rename, icon: Pencil, shortcut: "F2", onSelect: () => setRenaming(node.key) },
+      {
+        id: "export",
+        label: t.exportDialog.menuTag,
+        icon: Share,
+        onSelect: () => {
+          const ids = noteIdsWithTag(node.key);
+          if (ids.length) openExport(ids, `${formatTag(node.path)} · ${t.exportDialog.notes(ids.length)}`);
+        },
+      },
       { kind: "separator", id: "sep" },
       { id: "delete", label: t.tags.remove, icon: Trash2, danger: true, onSelect: () => void removeTag(node) },
     ];

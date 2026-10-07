@@ -1,0 +1,114 @@
+/* Export dialog [DESIGN §2.17, maquette 08] */
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--sp-2);
+  margin-top: var(--sp-5);
+}
+
+.tile {
+  --ring-bg: var(--bg-raised);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  height: var(--export-tile-h);
+  border-radius: var(--r-lg);
+  background: var(--bg-sunken);
+  color: var(--text);
+  font-size: var(--export-tile-fs);
+  font-weight: var(--fw-semibold);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.tile:hover:not(:disabled) {
+  background-image: linear-gradient(var(--hover), var(--hover));
+}
+
+.tile[aria-checked="true"] {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 var(--export-tile-ring) var(--accent);
+  color: var(--accent-text);
+}
+
+.tileIcon {
+  width: var(--export-tile-icon);
+  height: var(--export-tile-icon);
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--sp-4);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--export-row-h);
+}
+
+.rowLabel {
+  font-size: var(--fs-md);
+  color: var(--text);
+}
+
+.toggle {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: var(--export-row-h);
+}
+
+.note {
+  margin: var(--sp-1) 0 0;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+}
+
+.destination {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: var(--field-h);
+  margin-top: var(--sp-4);
+  padding: 0 var(--field-px);
+  border-radius: var(--r-md);
+  background: var(--bg-sunken);
+}
+
+.folderIcon {
+  flex: none;
+  width: var(--field-icon);
+  height: var(--field-icon);
+  color: var(--text-3);
+}
+
+.path {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--export-dest-fs);
+  color: var(--text-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.change {
+  --ring-bg: var(--bg-sunken);
+
+  flex: none;
+  border-radius: var(--r-xs);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--accent-text);
+}
+
+.change:hover:not(:disabled) {
+  text-decoration: underline;
+}

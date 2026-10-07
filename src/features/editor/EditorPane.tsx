@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { ChevronsDownUp, ChevronsUpDown, CircleAlert, Ellipsis, Expand, Focus, ImagePlus, Info, ListTree, Notebook, PanelLeftClose, PanelLeftOpen, Eye, EyeOff, Settings, Sticker } from "lucide-react";
+import { ChevronsDownUp, ChevronsUpDown, CircleAlert, Ellipsis, Expand, Focus, ImagePlus, Info, ListTree, Notebook, PanelLeftClose, PanelLeftOpen, Eye, EyeOff, Settings, Share, Sticker } from "lucide-react";
+import { openExport } from "../../app/export";
 import { useT } from "../../app/i18n";
 import { cssPx } from "../../app/cssTokens";
 import { insertFromDialog } from "../../app/attachments";
@@ -136,6 +137,13 @@ export function EditorPane() {
           active={outlineOpen}
           aria-pressed={outlineOpen}
           onClick={toggleOutline}
+        />
+        <IconButton
+          icon={Share}
+          label={t.exportDialog.menuNote.replace(/…$/, "")}
+          shortcut={shortcutLabel("export.open", t)}
+          disabled={!selectedId}
+          onClick={() => openExport()}
         />
         <IconButton
           icon={Ellipsis}

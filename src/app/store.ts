@@ -53,6 +53,8 @@ interface AppState {
   ocrText: { path: string; at: { x: number; y: number } } | null;
   /** Notes whose stickers are hidden ("Hide stickers", `.ursa/view.json`). */
   hiddenStickers: Record<string, true>;
+  /** Export dialog: the notes to export (one, a list or a tag), and how they are named in its subtitle. */
+  exportDialog: { noteIds: string[]; subtitle: string } | null;
   /** Context menu of a sticker or post-it of the open note. */
   stickerMenu: { noteId: string; id: string; at: { x: number; y: number } } | null;
 }
@@ -108,6 +110,7 @@ export const useApp = create<AppState>()(() => ({
   hiddenStickers: {},
   ocr: { status: null, remaining: 0, version: 0 },
   ocrText: null,
+  exportDialog: null,
   focusMode: false,
 }));
 
