@@ -1026,7 +1026,7 @@ Livrée en cinq commits (chacun avec son run CI vert) : polices et robustesse, �
   - pas exact (28 × échelle) et position sur la réglure ;
   - points identiques et marge rouge nette ;
   - passage 125 % → 175 % sans recharger.
-  Testé aussi avec une largeur de fenêtre impaire (colonne sur un demi-pixel).
+  Testé aussi avec une largeur de fenêtre impaire (colonne sur un demi-pixel). Passe aussi sous Windows dans la CI (Chromium, run 18).
 - **Accessibilité** :
   - `npm run check:contrast` (dans `check`) contrôle 35 paires texte / fond × 6 thèmes, lues dans les jetons (`color-mix` compris). Il a trouvé 5 paires sous 4,5:1, hors tableau de DESIGN §5 : texte tertiaire sur menus et modales en graphite, indication de la recherche en corail, texte « danger » en graphite, compteur de la section active, « Modifier… » de l'export. Elles sont corrigées par des jetons dérivés (P10-16) ;
   - `npm run test:a11y` (en CI aussi) passe axe-core (WCAG 2.1 A/AA) sur la fenêtre, la palette, les 6 pages de réglages, l'export, le tiroir, la recherche sans résultat et une section vide, et sur les 6 thèmes. Il vérifie aussi un anneau de focus à chaque arrêt de tabulation, F6, le mouvement réduit (durées 0, fondus des popovers 80 ms) et le contraste élevé Windows ;
@@ -1046,7 +1046,7 @@ Build de production avec le coffre factice (`npm run perf`, Chromium, conteneur 
 | Mesure | Résultat |
 |---|---|
 | Démarrage : chargement de la page → première image de la fenêtre | **0,73 s** (médiane de 5) ; boot → coffre prêt 0,32 s, boot → première image 0,37 s |
-| Lecture du disque (Rust, `scan_reads_2000_notes`) | 2 000 notes en **15–19 ms** sous Linux ; la CI Windows affiche sa propre mesure dans le log « Rust tests » |
+| Lecture du disque (Rust, `scan_reads_2000_notes`) | 2 000 notes en **75 ms** sur le runner Windows de la CI (build debug, run 18) ; 15–19 ms sous Linux |
 | Démarrage avec OCR actif et 200 images à lire | **identique** à OCR coupé : 333 ms contre 353 ms (médianes de 5, écart dans le bruit) ; la file démarre à +2 s (une tâche de 69 ms, une seule fois) puis ne relit que les notes modifiées |
 | Frappe dans la recherche (2 000 notes) | **22 ms** médiane ; première frappe 161 ms (la liste passe en « Résultats ») |
 | Mémoire, 200 notes ouvertes l'une après l'autre (↓ dans la liste) | tas JS après ramasse-miettes : 22,7 Mo → 24,6 (50) → 35,1 (100) → 35,2 (150) → 37,6 (200) → **35,3 Mo après 50 notes rouvertes** ; nœuds DOM **419 → 636** |
