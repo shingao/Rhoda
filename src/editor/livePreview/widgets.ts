@@ -77,18 +77,37 @@ export class CheckboxWidget extends WidgetType {
     box.className = "cm-checkbox";
     box.setAttribute("role", "checkbox");
     box.setAttribute("aria-checked", String(this.checked));
+    // Reached with Esc then Tab from the text (Tab itself indents lists) [DESIGN §2.7].
+    box.tabIndex = 0;
+    box.setAttribute("aria-label", currentMessages().editor.task);
     if (this.checked) box.append(icon(Check));
     box.addEventListener("mousedown", (e) => {
       if (e.button !== 0) return;
       e.preventDefault();
       toggleTaskAt(view, view.posAtDOM(wrap));
     });
+    box.addEventListener("keydown", (e) => {
+      if (e.key !== " " && e.key !== "Enter") return;
+      e.preventDefault();
+      e.stopPropagation();
+      const line = view.state.doc.lineAt(view.posAtDOM(wrap)).number;
+      if (!toggleTaskAt(view, view.posAtDOM(wrap))) return;
+      // The box is drawn anew: the focus goes to the new one, on the same line.
+      requestAnimationFrame(() => {
+        for (const el of view.contentDOM.querySelectorAll<HTMLElement>(".cm-checkbox")) {
+          if (view.state.doc.lineAt(view.posAtDOM(el)).number === line) {
+            el.focus();
+            break;
+          }
+        }
+      });
+    });
     wrap.append(box);
     return wrap;
   }
 
   ignoreEvent(e: Event): boolean {
-    // Clicks on the box are ours; elsewhere in the gutter the editor places the cursor.
+    // Clicks and keys on the box are ours; elsewhere in the gutter the editor places the cursor.
     return e.target instanceof Element && e.target.closest(".cm-checkbox") !== null;
   }
 }

@@ -375,8 +375,15 @@
 
 .cm-code-copy.is-copied,
 .cm-code-revealed .cm-code-copy,
-.cm-code-head.is-hovered .cm-code-copy {
+.cm-code-head.is-hovered .cm-code-copy,
+.cm-code-copy:focus-visible {
   opacity: 1;
+}
+
+/* Keyboard focus on editor widgets (Esc then Tab from the text) [§2, §2.7, §2.8] */
+.cm-checkbox,
+.cm-code-copy {
+  --ring-bg: var(--bg-2);
 }
 
 .cm-tok-keyword {

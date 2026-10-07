@@ -1,40 +1,22 @@
 import { useEffect } from "react";
 import { bootstrap } from "./app/bootstrap";
-import { focusSearch } from "./app/commands";
-import { useT } from "./app/i18n";
-import { toggleColumn, toggleFocusMode, toggleOutline, useEscapeLeavesFocus } from "./app/layout";
-import { openExport } from "./app/export";
-import { createNote } from "./app/notes";
-import { openFindFromSelection } from "./app/search";
-import { useGlobalShortcuts, type ShortcutHandlers } from "./app/shortcuts";
-import { getState, setState, useApp } from "./app/store";
-import { toggleStickerDrawer } from "./app/stickers";
-import { toggleStickersHidden } from "./app/noteView";
+import { globalHandlers } from "./app/commandList";
+import { currentMessages, useT } from "./app/i18n";
+import { useEscapeLeavesFocus } from "./app/layout";
+import { useGlobalShortcuts } from "./app/shortcuts";
+import { useApp } from "./app/store";
 import { changeVaultFolder } from "./app/vault";
 import { Button } from "./components/Button";
 import { AppLayout } from "./features/layout/AppLayout";
 import s from "./App.module.css";
 
-const globalHandlers: ShortcutHandlers = {
-  "note.new": () => void createNote(),
-  "search.focus": focusSearch,
-  "layout.toggleSidebar": () => toggleColumn("sidebar"),
-  "layout.toggleList": () => toggleColumn("list"),
-  "outline.toggle": toggleOutline,
-  "find.open": () => openFindFromSelection(false),
-  "find.replace": () => openFindFromSelection(true),
-  "settings.open": () => setState({ settingsPage: getState().settingsPage ?? "general" }),
-  "focus.toggle": toggleFocusMode,
-  "focus.toggleKey": toggleFocusMode,
-  "stickers.drawer": () => toggleStickerDrawer(),
-  "stickers.hide": toggleStickersHidden,
-  "export.open": () => openExport(),
-};
+/** Global shortcuts run the commands of the palette (one list, see commandList). */
+const handlers = globalHandlers(currentMessages);
 
 export function App() {
   const vault = useApp((st) => st.vault);
   const t = useT();
-  useGlobalShortcuts(globalHandlers);
+  useGlobalShortcuts(handlers);
   useEscapeLeavesFocus();
   useEffect(() => void bootstrap(), []);
 

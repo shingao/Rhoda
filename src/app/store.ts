@@ -55,11 +55,17 @@ interface AppState {
   hiddenStickers: Record<string, true>;
   /** Export dialog: the notes to export (one, a list or a tag), and how they are named in its subtitle. */
   exportDialog: { noteIds: string[]; subtitle: string } | null;
+  /** Bumped when the shortcuts in force (or the keyboard layout) change: labels re-render. */
+  shortcutsVersion: number;
+  /** Settings › Shortcuts is recording a key: global shortcuts are off meanwhile. */
+  recordingShortcut: boolean;
+  /** Command palette (Ctrl+P) open, with what was typed to open it (">" commands, "#" tags). */
+  palette: { query: string } | null;
   /** Context menu of a sticker or post-it of the open note. */
   stickerMenu: { noteId: string; id: string; at: { x: number; y: number } } | null;
 }
 
-export type SettingsPage = "general" | "editor" | "ocr" | "backups" | "about";
+export type SettingsPage = "general" | "editor" | "shortcuts" | "ocr" | "backups" | "about";
 
 export interface SearchInput {
   chips: string[];
@@ -111,6 +117,9 @@ export const useApp = create<AppState>()(() => ({
   ocr: { status: null, remaining: 0, version: 0 },
   ocrText: null,
   exportDialog: null,
+  shortcutsVersion: 0,
+  recordingShortcut: false,
+  palette: null,
   focusMode: false,
 }));
 

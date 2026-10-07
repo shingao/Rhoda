@@ -1,6 +1,6 @@
 # Ursa — PROGRESS
 
-État : **Phase 10a (export) terminée** (à valider sur Windows) — en attente du « go » pour 10b.
+État : **Phase 10b (raccourcis et palette) terminée** (à valider sur Windows) — en attente du « go » pour 10c.
 
 | Phase | Sujet | État |
 |---|---|---|
@@ -14,7 +14,7 @@
 | 7 | Images, aperçus de liens, PDF | ✅ validée |
 | 8 | Stickers et post-it | ✅ validée |
 | 9 | OCR local | ✅ validée |
-| 10 | Export, raccourcis, palette, packaging | 🟡 10a export terminé, à valider ; 10b–10d à venir |
+| 10 | Export, raccourcis, palette, packaging | 🟡 10a validée ; 10b terminée, à valider ; 10c–10d à venir |
 
 ---
 

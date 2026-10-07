@@ -1,6 +1,6 @@
 import { defaultKeymap, history, historyKeymap, indentWithTab } from "@codemirror/commands";
 import { Prec, type Extension } from "@codemirror/state";
-import { drawSelection, EditorView, keymap, placeholder } from "@codemirror/view";
+import { drawSelection, EditorView, keymap, placeholder, type Command } from "@codemirror/view";
 import { cssMs } from "../app/cssTokens";
 import { currentMessages } from "../app/i18n";
 import { backlinks } from "./backlinks";
@@ -15,9 +15,20 @@ import { outlineReporter } from "./sections/outline";
 import { findField } from "./find/find";
 import { isolationField, leaveIsolation, selectIsolated, toggleIsolation } from "./sections/focus";
 import { folding, foldAll, foldCurrent, unfoldAll, unfoldCurrent } from "./sections/fold";
-import { editorKey } from "../app/shortcuts";
+import { matchShortcut, type ShortcutId } from "../app/shortcuts";
+import { toggleTasks } from "./tasks";
 import { livePreview } from "./livePreview/plugin";
 import "./editor.css";
+
+/** What the editor shortcuts do (also run from the command palette, see `runEditorCommand`). */
+export const EDITOR_COMMANDS: Partial<Record<ShortcutId, Command>> = {
+  "fold.section": foldCurrent,
+  "unfold.section": unfoldCurrent,
+  "fold.all": foldAll,
+  "unfold.all": unfoldAll,
+  "section.isolate": toggleIsolation,
+  "task.toggle": toggleTasks,
+};
 
 /** Editor frame, driven by design tokens only. Markdown rendering lives in livePreview/ and editor.css. */
 const ursaTheme = EditorView.theme({
@@ -75,12 +86,19 @@ export function editorExtensions(): Extension {
     Prec.highest(findField),
     foldChevrons,
     outlineReporter,
+    // The app's editor shortcuts (Settings › Shortcuts), matched like every other one, live.
+    Prec.high(
+      EditorView.domEventHandlers({
+        keydown: (e, view) => {
+          const id = matchShortcut(e, "editor");
+          const command = id && EDITOR_COMMANDS[id];
+          if (!command || !command(view)) return false;
+          e.preventDefault();
+          return true;
+        },
+      }),
+    ),
     keymap.of([
-      { key: editorKey("fold.section"), run: foldCurrent },
-      { key: editorKey("unfold.section"), run: unfoldCurrent },
-      { key: editorKey("fold.all"), run: foldAll },
-      { key: editorKey("unfold.all"), run: unfoldAll },
-      { key: editorKey("section.isolate"), run: toggleIsolation },
       { key: "Escape", run: leaveIsolation },
       { key: "Mod-a", run: selectIsolated },
     ]),
