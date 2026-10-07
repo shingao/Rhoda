@@ -599,9 +599,10 @@ export function unsavedNotes(): Array<{ id: string; title: string; content: stri
   });
 }
 
-/** Before the window closes: saves everything; false if some text is still unsaved. */
+/** Before the window closes: saves everything and waits for the disk queue (a note being created included); false if some text is still unsaved. */
 export async function prepareClose(): Promise<boolean> {
   await flushAll();
+  await enqueue(async () => undefined);
   return pendingBodies.size === 0;
 }
 
