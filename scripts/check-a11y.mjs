@@ -72,7 +72,7 @@ try {
   await audit(page, "fenêtre principale, note ouverte");
   await audit(page, "palette de commandes", () => page.keyboard.press("Control+p"));
   await page.keyboard.press("Escape");
-  for (const p of ["general", "appearance", "editor", "shortcuts", "backups", "about"]) {
+  for (const p of ["general", "editor", "shortcuts", "ocr", "backups", "about"]) {
     await audit(page, `réglages › ${p}`, () => set(page, { settingsPage: p }));
   }
   await set(page, { settingsPage: null });
@@ -108,7 +108,7 @@ try {
     await audit(page, `thème ${palette} : fenêtre principale`);
     await audit(page, `thème ${palette} : palette`, () => page.keyboard.press("Control+p"));
     await page.keyboard.press("Escape");
-    await audit(page, `thème ${palette} : réglages`, () => set(page, { settingsPage: "appearance" }));
+    await audit(page, `thème ${palette} : réglages`, () => set(page, { settingsPage: "general" }));
     await set(page, { settingsPage: null });
   }
 
@@ -169,6 +169,8 @@ try {
     };
     border(document.querySelector('[role="option"][aria-selected="true"]'), "carte sélectionnée");
     border(document.querySelector('header input')?.closest("label"), "champ de recherche");
+    border(document.querySelector(".cm-checkbox"), "case à cocher");
+    border([...document.querySelectorAll("header button")].find((b) => b.textContent?.trim()), "bouton « Nouvelle note »");
     return out;
   });
   await forced.keyboard.press("Control+p");
@@ -188,7 +190,7 @@ try {
     })),
   );
   if (borders.length) fail("contraste élevé", borders);
-  else console.log("✓ contraste élevé : bordures sur carte, champ, palette ; focus en contour");
+  else console.log("✓ contraste élevé : bordures sur carte, champ, case à cocher, bouton, palette ; focus en contour");
   await forced.close();
 } finally {
   await browser.close();

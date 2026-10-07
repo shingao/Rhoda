@@ -73,3 +73,9 @@
   opacity: var(--disabled-opacity);
   pointer-events: none;
 }
+
+@media (forced-colors: active) {
+  .button {
+    border: 1px solid ButtonText;
+  }
+}

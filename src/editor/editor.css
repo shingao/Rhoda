@@ -1621,3 +1621,24 @@
 .cm-postit.cm-postit-open {
   z-index: 1;
 }
+
+/* Windows high contrast [§5]: shadows are not drawn, so controls get system borders. */
+@media (forced-colors: active) {
+  .cm-checkbox {
+    border: 1px solid CanvasText;
+  }
+
+  .cm-checkbox[aria-checked="true"] {
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  /* An outline, not a border: block heights stay on the rhythm. */
+  .cm-tag,
+  .cm-link-card-body,
+  .cm-pdf-card-body,
+  .cm-remote-image-body {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
+  }
+}

@@ -1,6 +1,6 @@
 # Ursa — PROGRESS
 
-État : **Phase 10b (raccourcis et palette) terminée** (à valider sur Windows) — en attente du « go » pour 10c.
+État : **Phase 10c (finitions, accessibilité, performances) terminée** (à valider sur Windows) — en attente du « go » pour 10d.
 
 | Phase | Sujet | État |
 |---|---|---|
@@ -14,7 +14,7 @@
 | 7 | Images, aperçus de liens, PDF | ✅ validée |
 | 8 | Stickers et post-it | ✅ validée |
 | 9 | OCR local | ✅ validée |
-| 10 | Export, raccourcis, palette, packaging | 🟡 10a validée ; 10b terminée, à valider ; 10c–10d à venir |
+| 10 | Export, raccourcis, palette, packaging | 🟡 10a et 10b validées ; 10c terminée, à valider ; 10d à venir |
 
 ---
 
@@ -917,7 +917,7 @@ Découpée en quatre sous-étapes, chacune avec son commit, un run CI vert et le
 | P10-4 | DOCX | Polices présentes sur tout Windows (Segoe UI, Consolas, Segoe UI Symbol pour ☐ ☑) : celles de l'app ne sont pas installées chez le destinataire. Les stickers (décoratifs) ne sont pas repris, les post-it oui. |
 | P10-5 | Images distantes | Jamais téléchargées par l'export (la seule requête réseau reste l'aperçu de lien) : leur texte alternatif à la place. Les cartes de lien utilisent le cache d'aperçus si l'option est active. |
 | P10-6 | Image trop haute | 16 000 px par image (×2, donc 8 000 px CSS) : sous la limite de 32 767 px de Chromium et raisonnable en mémoire. Coupure au début d'un bloc. |
-| P10-7 | Newsreader | La police serif n'est pas embarquée dans l'app (repli Cambria / Georgia) : à traiter en 10c, l'export suivra. |
+| P10-7 | Newsreader | ~~La police serif n'est pas embarquée~~ → embarquée en 10c (éditeur et export). |
 
 ### Comparaison avec la maquette 08 (modale d'export)
 - Titre, sous-titre (titre de la note), 5 tuiles de 84 px, sélection `--accent-soft` + anneau `--accent`, lignes d'options de 40 px, segmented A4 / Letter, champ destination en mono avec « Modifier… », boutons Annuler / « Exporter en PDF » : **conformes**.
@@ -997,6 +997,93 @@ Captures : `docs/captures/phase-10b/` (palette : « ex », accents, vide avec r�
 ---
 
 ## Proposition d'architecture
+
+### 10c — Finitions, accessibilité, performances : fait
+
+Livrée en cinq commits (chacun avec son run CI vert) : polices et robustesse, états vides et note de bienvenue, pixels physiques, accessibilité, performances.
+
+- **Newsreader** (OFL) embarquée pour la police serif de l'éditeur (400, 400 italique, 500, 600, 700, 700 italique) ; l'export l'intègre seulement si c'est la police choisie ; listée dans Réglages › À propos. Le rythme reste exact avec la vraie police (26 tailles × 2 polices).
+- **Robustesse** :
+  - une erreur de rendu React affiche « Un problème est survenu » au lieu d'une fenêtre blanche. Le texte en attente est d'abord écrit, puis « Recharger » ; si un texte ne peut pas être écrit (fichier verrouillé), l'écran le dit et propose « Enregistrer une copie ailleurs… », « Réessayer » ou « Quitter sans enregistrer ». Les boutons de fenêtre restent (pas de barre de titre sur cet écran) ;
+  - **journal d'erreurs** dans `%LOCALAPPDATA%\com.ursa.notes\logs\` : `ursa.log` + 4 fichiers tournants de 512 Ko (5 au plus). Il reçoit les `console.error/warn`, les erreurs et promesses non rattrapées, les paniques Rust, et au plus 60 lignes par minute ;
+  - **aucun contenu de note dans le journal** (`src/core/logText.ts`, testé) : seuls nos propres messages sont gardés. Une valeur passée en argument devient son type (`<text 17>`), un message d'erreur ne garde que sa première ligne (les erreurs YAML recopient le texte fautif sur les suivantes), et tout chemin du dossier des notes devient `<vault>\….md` ;
+  - bouton « Ouvrir le dossier des journaux » dans À propos.
+- **États vides** : un composant `EmptyState` pour tous les cas :
+  - coffre vide, avec le bouton « Nouvelle note » et le raccourci ;
+  - chaque section (Sans tag, À faire, Aujourd'hui, Épinglées, Archives, Corbeille) ;
+  - tag vide : le tag garde son nom même quand sa dernière note s'en va ;
+  - recherche sans résultat, avec « Créer la note « … » » ;
+  - éditeur sans note.
+- **Note de bienvenue** au tout premier lancement (pas de fichier de réglages) : « Bienvenue dans Ursa ». Elle présente tags, liens, fonds de page, stickers et raccourcis, avec les touches réellement réglées. Elle a un fond ligné, un sticker et un post-it. C'est une note ordinaire, supprimable, qui ne revient jamais. Un utilisateur existant ne la reçoit pas.
+- **Mise à l'échelle Windows** (100, 125, 150, 175 %) :
+  - `--dpr` est posé sur la racine et suit l'écran de la fenêtre (changement d'écran sans recharger) ;
+  - les traits fins font un nombre entier de pixels physiques (`--hairline` : 1 px physique à 100–125 %, 2 à 150–175 %) ;
+  - réglure, quadrillage et points sont placés au pixel physique dans un motif de 28 px, qui fait un nombre entier de pixels à chaque palier de 25 %. Le quadrillage devient un motif de 28 px à deux lignes, car son pas de 14 px tombe sur un demi-pixel à 125 % ;
+  - marge rouge de 1,5 px arrondie au pixel physique ;
+  - séparateurs, anneaux, filet horizontal et anneau de focus suivent le même arrondi.
+- **`test:rhythm` étendu** : en plus des 26 passes, il relance le rythme à 100/125/150/175 % avec un **vrai facteur d'échelle** (comme sous Windows). Puis il lit les captures pixel par pixel :
+  - largeur des traits, sans pixel à moitié allumé ;
+  - pas exact (28 × échelle) et position sur la réglure ;
+  - points identiques et marge rouge nette ;
+  - passage 125 % → 175 % sans recharger.
+  Testé aussi avec une largeur de fenêtre impaire (colonne sur un demi-pixel).
+- **Accessibilité** :
+  - `npm run check:contrast` (dans `check`) contrôle 35 paires texte / fond × 6 thèmes, lues dans les jetons (`color-mix` compris). Il a trouvé 5 paires sous 4,5:1, hors tableau de DESIGN §5 : texte tertiaire sur menus et modales en graphite, indication de la recherche en corail, texte « danger » en graphite, compteur de la section active, « Modifier… » de l'export. Elles sont corrigées par des jetons dérivés (P10-16) ;
+  - `npm run test:a11y` (en CI aussi) passe axe-core (WCAG 2.1 A/AA) sur la fenêtre, la palette, les 6 pages de réglages, l'export, le tiroir, la recherche sans résultat et une section vide, et sur les 6 thèmes. Il vérifie aussi un anneau de focus à chaque arrêt de tabulation, F6, le mouvement réduit (durées 0, fondus des popovers 80 ms) et le contraste élevé Windows ;
+  - corrigé grâce à ces contrôles :
+    - le nom lu d'un bouton de raccourci contient les touches affichées (WCAG 2.5.3) ;
+    - les cartes sont lues titre d'abord (la date reste affichée au-dessus) ;
+    - les tags sont de vrais éléments d'arbre (état replié ou déplié lu, plus de « Replier » dans le nom) ;
+    - date de la carte sélectionnée en thème sombre ;
+  - **contraste élevé** : bordure `CanvasText` sur cartes, champs, modales, menus, popovers, tiroir, infobulles, toasts, boutons, interrupteurs ; contour sur cases à cocher, pastilles de tag et cartes de l'éditeur (contour plutôt que bordure, pour garder le rythme) ; focus en `Highlight` ;
+  - **F6 / Maj+F6** (DESIGN §5, manquait) : barre de titre → barre latérale → liste → éditeur → sommaire, en sautant les colonnes masquées. Personnalisable dans Réglages › Raccourcis.
+- **Performances** : liste des notes **fenêtrée** (P10-18), **états d'éditeur** gardés pour les 30 dernières notes (P10-17), **file OCR** démarrée 2 s après l'ouverture du coffre, fichiers référencés mis en cache par note. Mesures ci-dessous, reproductibles avec `npm run perf`.
+
+### Mesures (10c)
+
+Build de production avec le coffre factice (`npm run perf`, Chromium, conteneur Linux), 2 018 notes (2 000 générées + exemples) :
+
+| Mesure | Résultat |
+|---|---|
+| Démarrage : chargement de la page → première image de la fenêtre | **0,73 s** (médiane de 5) ; boot → coffre prêt 0,32 s, boot → première image 0,37 s |
+| Lecture du disque (Rust, `scan_reads_2000_notes`) | 2 000 notes en **15–19 ms** sous Linux ; la CI Windows affiche sa propre mesure dans le log « Rust tests » |
+| Démarrage avec OCR actif et 200 images à lire | **identique** à OCR coupé : 333 ms contre 353 ms (médianes de 5, écart dans le bruit) ; la file démarre à +2 s (une tâche de 69 ms, une seule fois) puis ne relit que les notes modifiées |
+| Frappe dans la recherche (2 000 notes) | **22 ms** médiane ; première frappe 161 ms (la liste passe en « Résultats ») |
+| Mémoire, 200 notes ouvertes l'une après l'autre (↓ dans la liste) | tas JS après ramasse-miettes : 22,7 Mo → 24,6 (50) → 35,1 (100) → 35,2 (150) → 37,6 (200) → **35,3 Mo après 50 notes rouvertes** ; nœuds DOM **419 → 636** |
+| Liste | 15 à 23 cartes dans le DOM quelle que soit la taille de la liste (avant : jusqu'à 2 000) |
+
+Lecture : la mémoire monte pendant les 100 premières notes (index de recherche préchauffé, états d'éditeur jusqu'au plafond de 30), puis reste **plate** ; rouvrir des notes ne la fait pas monter : pas de fuite. Avant 10c, sur le même parcours : 22,9 → 45,1 Mo et 510 → 2 280 nœuds (cartes accumulées, états d'éditeur jamais libérés).
+
+### Décisions (10c)
+
+| # | Sujet | Décision |
+|---|---|---|
+| P10-13 | Écran d'erreur | Carte de modale (§2.17) sur `--bg-1`, icône d'alerte accent, boutons de fenêtre en haut ; détails de l'erreur repliés (première ligne seulement) ; jamais de rechargement tant qu'un texte n'est pas écrit sans l'accord explicite (« Quitter sans enregistrer »). |
+| P10-14 | États vides | DESIGN est muet : icône décorative 28 px `--text-faint` (celle de la section), titre `--text-2` 14/600, aide `--text-3`, action éventuelle ; en haut de la colonne de liste, centré dans l'éditeur. |
+| P10-15 | Pixels physiques | Arrondis CSS (`round(…, var(--device-px))`) et `--hairline` plutôt qu'une correction mesurée en JS : avec un vrai facteur d'échelle, Chromium place déjà les boîtes et l'origine des fonds sur des pixels physiques (une correction JS testée en émulation dégradait le vrai rendu). Paliers de 25 % garantis ; une échelle personnalisée (ex. 110 %) reste nette en épaisseur mais le pas peut alterner d'un pixel. |
+| P10-16 | Contrastes dérivés | `tokens.css` est une copie verbatim : quand un thème est trop juste, jeton dérivé `color-mix` dans `tokens.components.css` (`--text-3-raised`, `--search-hint`, `--danger-text`, `--chrome-count-active`, `--accent-text-sunken`), vérifié par le script ; écart visuel imperceptible en clair. |
+| P10-17 | États d'éditeur | 30 notes gardées (historique d'annulation, sélection, défilement) ; au-delà, la note se rouvre depuis son texte enregistré, sans son historique d'annulation. Une note dont le texte n'est pas encore écrit n'est jamais oubliée. |
+| P10-18 | Liste fenêtrée | Hauteurs mesurées au fil de l'affichage, estimation par la moyenne pour les autres ; le focus reste dans la liste si la carte focalisée sort de la fenêtre (les flèches continuent) ; `aria-posinset` / `aria-setsize` pour le Narrateur. |
+| P10-19 | Note de bienvenue | Créée seulement s'il n'existe aucun fichier de réglages (vrai premier lancement) ; texte selon la langue, raccourcis réels ; exemples de tags écrits en code pour ne pas créer de tags parasites. |
+
+### Comparaison avec les maquettes (passe finale)
+
+Captures `30-maquette-vs-app-*.png` (maquette à gauche, app à droite, même fenêtre de 1 210 × 775) :
+- **Conformes** : éditeur et rendu live (02, 02b), recherche active (05), palette (07), mode focus (03), sommaire en overlay, tiroir à stickers (10), sélecteur d'icône (06), modale d'export (08), fonds de page (A1–A4).
+- **Écarts maintenus (déjà consignés)** : la modale Réglages est plus large que la maquette 09 et sépare « Thème » (Clair / Sombre / Système) des palettes (P6) ; le sélecteur d'icône montre tous les groupes avec défilement plutôt que quatre rangées (P3-8) ; la palette est un peu plus large (P10-8) ; libellés en français (§0).
+- **Nouveaux éléments sans maquette** : écran d'erreur, états vides, note de bienvenue, bouton « Ouvrir le dossier des journaux » (P10-13, P10-14, P10-19).
+
+### Checklist de test manuel (10c, Windows)
+1. Paramètres Windows › Affichage › Échelle à **125 %**, puis 150 % et 175 % : une note au fond ligné avec marge rouge, puis quadrillage et pointillés. Les traits sont nets et d'épaisseur régulière (loupe Windows), la marge rouge est nette, les stickers et icônes aussi.
+2. Avec deux écrans d'échelles différentes, glisse la fenêtre de l'un à l'autre : les traits restent nets sans relancer.
+3. Réglages › Éditeur › police serif : l'éditeur passe en Newsreader. Exporte en PDF : la police est la même dans le PDF.
+4. Réglages › À propos › « Ouvrir le dossier des journaux » : l'Explorateur ouvre `%LOCALAPPDATA%\com.ursa.notes\logs`. Ouvre `ursa.log` : aucun titre ni texte de note.
+5. Vide le dossier de réglages (`%APPDATA%\com.ursa.notes\settings.json`) et lance Ursa : la note « Bienvenue dans Ursa » s'ouvre. Supprime-la puis relance : elle ne revient pas.
+6. Choisis un dossier de notes vide : « Aucune note pour l'instant » avec « Nouvelle note ». Corbeille vide, Épinglées vide, recherche « zzz » : chaque fois, un message et une aide.
+7. Contraste élevé Windows (Alt gauche+Maj gauche+Impr. écran) : cartes, champ de recherche, palette, boutons et cases à cocher ont un contour ; le focus est visible.
+8. Narrateur (Ctrl+Win+Entrée) : F6 passe de la barre de titre à la barre latérale, puis à la liste et à l'éditeur. Dans la liste, le titre de la note est lu en premier ; dans les tags, « développé / réduit » ; Ctrl+P : la palette annonce la commande sélectionnée.
+9. Copie 2 000 notes dans le dossier (ou `localStorage` `ursa-dev-notes` en dev), relance : la fenêtre est utilisable en moins de 2 s. Parcours la liste avec ↓ et Fin : fluide, la sélection reste visible.
+10. Ouvre 200 notes l'une après l'autre (↓ dans la liste) en surveillant le Gestionnaire des tâches (processus WebView2) : la mémoire se stabilise et ne remonte pas en rouvrant les mêmes notes.
 
 ### Arborescence
 

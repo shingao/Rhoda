@@ -78,3 +78,9 @@
 .input:checked + .track .handle {
   transform: translateX(calc(var(--toggle-w) - var(--toggle-handle) - 2 * var(--toggle-gap)));
 }
+
+@media (forced-colors: active) {
+  .track {
+    border: 1px solid ButtonText;
+  }
+}

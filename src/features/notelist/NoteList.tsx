@@ -48,7 +48,8 @@ export function NoteList() {
   );
   const inTrash = filter.kind === "section" && filter.section === "trash";
   const tagNode = filter.kind === "tag" ? noteIndex(notes).tags.byKey.get(filter.key) : undefined;
-  const viewTitle = filter.kind === "section" ? t.sidebar.sections[filter.section] : tagNode ? formatTag(tagNode.path) : t.list.title;
+  // A tag whose last note just went away keeps its name (from the filter's key).
+  const viewTitle = filter.kind === "section" ? t.sidebar.sections[filter.section] : formatTag(tagNode?.path ?? filter.key);
   const title = query ? t.search.resultsTitle : viewTitle;
   const scroller = useRef<HTMLDivElement>(null);
   const [menu, setMenu] = useState<MenuState | null>(null);
