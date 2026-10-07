@@ -7,6 +7,7 @@ param(
 )
 $ErrorActionPreference = "Stop"
 if ($env:CI -ne "true") { throw "CI only: installs and uninstalls the app." }
+. (Join-Path $PSScriptRoot "windows.ps1")
 Add-Type -AssemblyName System.Windows.Forms, System.Drawing
 Add-Type @"
 using System;
@@ -32,9 +33,9 @@ function Window([string] $pattern, [int] $seconds = 60) {
   throw "no window for $pattern"
 }
 
-function Shot($process, [string] $file) {
+function Shot($process, [string] $file, [IntPtr] $handle = [IntPtr]::Zero) {
   Start-Sleep -Milliseconds 1200
-  $h = $process.MainWindowHandle
+  $h = if ($handle -ne [IntPtr]::Zero) { $handle } else { $process.MainWindowHandle }
   [void] [Win]::SetForegroundWindow($h)
   Start-Sleep -Milliseconds 300
   $r = New-Object Win+RECT
@@ -73,9 +74,12 @@ for ($page = 0; $page -lt 8; $page++) {
 
 # The finish page starts the app (checked by default).
 try {
-  $app = Window "^bullshit$" 60
+  $deadline = (Get-Date).AddSeconds(60)
+  $app = $null
+  while (-not $app -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 500; $app = Find-AppWindow "bullshit" "Bullshit" }
+  if (-not $app) { throw "no window" }
   Start-Sleep -Seconds 3
-  Shot $app "app-premier-lancement.png"
+  Shot $app.Process "app-premier-lancement.png" $app.Handle
 } catch { Write-Host "  app window not found: $_" }
 Get-Process bullshit -ErrorAction SilentlyContinue | Stop-Process -Force
 Start-Sleep -Seconds 2

@@ -13,6 +13,7 @@ param(
 )
 $ErrorActionPreference = "Stop"
 if ($env:CI -ne "true") { throw "CI only: this script deletes the app's data and notes folders." }
+. (Join-Path $PSScriptRoot "windows.ps1")
 
 $Product = "Bullshit"
 $Exe = "bullshit"
@@ -55,24 +56,27 @@ function Uninstall {
 function Installed-Version { (Get-ItemProperty $UninstallKey -ErrorAction SilentlyContinue).DisplayVersion }
 
 # Starts the installed app and waits for its window: hidden at first, it is
-# shown by the frontend once themed, so a visible main window means the UI booted.
+# shown by the frontend once themed, so a visible window means the UI booted.
 function Launch {
   Start-Process (Join-Path $InstallDir "$Exe.exe") | Out-Null
-  $script:app = $null
+  $script:window = $null
   Wait-Until {
-    $script:app = Get-Process $Exe -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne 0 } | Select-Object -First 1
-    [bool] $script:app
-  } 90 "the window opens"
-  Check ($script:app.MainWindowTitle -eq $Product) "window open, title « $($script:app.MainWindowTitle) »"
-  return $script:app
+    $script:window = Find-AppWindow $Exe $Product
+    [bool] $script:window
+  } 90 "the window « $Product » opens"
+  Ok "window « $Product » open"
+  return $script:window.Process
 }
 
 function Quit {
-  $running = Get-Process $Exe -ErrorAction SilentlyContinue
-  foreach ($p in $running) { [void] $p.CloseMainWindow() }
+  foreach ($p in @(Get-Process $Exe -ErrorAction SilentlyContinue)) {
+    $h = [TopWindows]::Find($p.Id, $Product)
+    if ($h -ne [IntPtr]::Zero) { [TopWindows]::Close($h) }
+  }
   $deadline = (Get-Date).AddSeconds(15)
   while ((Get-Process $Exe -ErrorAction SilentlyContinue) -and (Get-Date) -lt $deadline) { Start-Sleep -Milliseconds 500 }
-  Get-Process $Exe -ErrorAction SilentlyContinue | Stop-Process -Force
+  $left = @(Get-Process $Exe -ErrorAction SilentlyContinue)
+  if ($left.Count) { Write-Host "  (still running after 15 s: stopped)"; $left | Stop-Process -Force }
   Start-Sleep -Seconds 1
 }
 
