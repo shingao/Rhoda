@@ -13,7 +13,7 @@ import { imageVaultPath, ocrMatches, openOcrText } from "./ocr";
 import { stickersHidden } from "./noteView";
 import { currentMessages } from "./i18n";
 import { noteIndex, resolveTitle } from "./noteIndex";
-import { createNote, revealNote, setFilter } from "./notes";
+import { createNote, hasPendingSave, revealNote, setFilter } from "./notes";
 import { getState, setState, useApp } from "./store";
 
 function resolve(target: string): string | null {
@@ -89,6 +89,7 @@ export function connectEditor(): void {
       return { tags: [...index.tags.byKey.values()].map((n) => n.path), titles };
     },
     backlinks: () => backlinksOf(getState().selectedId),
+    hasUnsavedText: hasPendingSave,
     savedFolds,
     outlineChanged: (outline) => setState({ outline }),
     findChanged: ({ count, current, images, currentImage }) => setState((s) => ({ find: { ...s.find, count, current, images, currentImage } })),

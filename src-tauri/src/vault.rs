@@ -440,6 +440,23 @@ mod tests {
         v
     }
 
+    /// Startup on a big vault: every note read in one pass (`--nocapture` prints the time).
+    #[test]
+    fn scan_reads_2000_notes() {
+        let dir = tempfile::tempdir().unwrap();
+        let body = format!("---\nid: x\n---\n# Note\n\n{}\n", "Un paragraphe de note ordinaire, avec quelques mots. ".repeat(30));
+        for i in 0..2000 {
+            fs::write(dir.path().join(format!("Note {i:04}.md")), &body).unwrap();
+        }
+        let started = std::time::Instant::now();
+        let mut notes = Vec::new();
+        scan_dir(dir.path(), dir.path(), &mut notes);
+        let took = started.elapsed();
+        eprintln!("scan of 2000 notes ({} KB each): {took:?}", body.len() / 1024);
+        assert_eq!(notes.len(), 2000);
+        assert!(took < std::time::Duration::from_secs(2), "scan took {took:?}");
+    }
+
     #[test]
     fn note_rel_filters_internal_and_assets() {
         let root = Path::new("/v");

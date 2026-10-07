@@ -51,7 +51,9 @@ jobs:
       # The real OCR tests run in their own step, at the end.
       - name: Rust tests
         working-directory: src-tauri
-        run: cargo test -- --skip ocr::windows
+        run: |
+          cargo test -- --skip ocr::windows
+          cargo test scan_reads_2000_notes -- --nocapture
 
       - name: Build the installer
         run: npx tauri build

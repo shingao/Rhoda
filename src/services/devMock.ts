@@ -146,7 +146,12 @@ export function installDevMock(): void {
   const manifests = new Map<string, string>();
   // Performance tests: localStorage.setItem("ursa-dev-notes", "1000") adds generated notes.
   const extra = Number(localStorage.getItem("ursa-dev-notes") ?? 0);
-  for (const n of generateNotes(extra, now)) files.set(n.path, { content: n.content, mtime: n.mtime, created: n.mtime });
+  // With localStorage "ursa-dev-note-images" = "1", one generated note in ten has its own picture (OCR load).
+  const pictures = localStorage.getItem("ursa-dev-note-images") === "1";
+  for (const n of generateNotes(extra, now, 42, pictures)) {
+    files.set(n.path, { content: n.content, mtime: n.mtime, created: n.mtime });
+    if (n.image) assetsOf(DEFAULT_VAULT).set(n.image, assetsOf(DEFAULT_VAULT).get("assets/paysage.png")!);
+  }
 
   const toFile = (path: string): NoteFile => ({ path, ...files.get(path)! });
   // Same naming rules as the Rust backend: case-insensitive collisions, " 2" suffix.

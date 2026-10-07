@@ -586,6 +586,11 @@ export async function flushAll(): Promise<void> {
   await Promise.all([...ids].map(flushNote));
 }
 
+/** Text typed and not written yet (waiting for its save, or for a retry). */
+export function hasPendingSave(id: string): boolean {
+  return pendingBodies.has(id) || saveTimers.has(id);
+}
+
 /** Notes whose latest text could not be written, as they would be saved. */
 export function unsavedNotes(): Array<{ id: string; title: string; content: string }> {
   return [...pendingBodies].flatMap(([id, body]) => {

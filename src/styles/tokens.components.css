@@ -55,7 +55,7 @@
   --find-panel-w: 340px;                   /* (decision) Ctrl+F / Ctrl+H panel */
   --find-input-h: 28px;
   --find-count-w: 44px;                       /* (decision) occurrence highlight */
-  --results-page: 30;                      /* (decision) cards rendered per step */
+  --card-estimate: 96px;                   /* (decision P10-18) height guessed for a card not drawn yet */
 
   /* Sidebar item [§2.2] */
   --sidebar-pad: var(--sp-2);              /* (decision) */

@@ -20,6 +20,9 @@ interface NoteCardProps {
   todoLabel: string | null;
   selected: boolean;
   focusable: boolean;
+  /** Place in the whole list (only part of it is in the DOM), for screen readers. */
+  position: number;
+  count: number;
   onSelect: () => void;
   onContextMenu: (e: MouseEvent) => void;
   /** Active search: excerpt around the match, occurrences highlighted [DESIGN §2.3]. */
@@ -92,6 +95,8 @@ export const NoteCard = memo(
       todoLabel,
       selected,
       focusable,
+      position,
+      count,
       onSelect,
       onContextMenu,
       query,
@@ -135,6 +140,8 @@ export const NoteCard = memo(
         id={domId}
         role="option"
         aria-selected={selected}
+        aria-posinset={position}
+        aria-setsize={count}
         tabIndex={focusable ? 0 : -1}
         className={[s.card, selected && s.selected].filter(Boolean).join(" ")}
         onClick={onSelect}

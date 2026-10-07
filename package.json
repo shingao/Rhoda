@@ -17,6 +17,7 @@
     "check:contrast": "node scripts/check-contrast.mjs",
     "test:rhythm": "node scripts/check-rhythm.mjs",
     "test:a11y": "node scripts/check-a11y.mjs",
+    "perf": "node scripts/perf.mjs",
     "sample:images": "node scripts/make-sample-images.mjs"
   },
   "dependencies": {

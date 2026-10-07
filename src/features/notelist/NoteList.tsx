@@ -18,6 +18,7 @@ import { Menu, type MenuEntry } from "../../components/Menu";
 import { useAutoHideScrollbar } from "../../components/useAutoHideScrollbar";
 import { SECTION_ICONS } from "../sidebar/sectionIcons";
 import { NoteCard } from "./NoteCard";
+import { useWindow } from "./useWindow";
 import { confirmDeleteNotes, noteMenuEntries } from "./noteActions";
 import s from "./NoteList.module.css";
 
@@ -45,45 +46,49 @@ export function NoteList() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [notes, sort, filter, now, query, query ? textVersion : 0],
   );
-  // Cards are added by pages as the list scrolls (1 000 notes stay fast; virtualisation in phase 10).
-  const page = cssPx("--results-page");
-  // The page count restarts with every new search or view.
-  const pageKey = `${JSON.stringify(filter)}\u0000${searchText(search)}`;
-  const [paging, setPaging] = useState({ key: pageKey, limit: page });
-  const limit = paging.key === pageKey ? paging.limit : page;
-  const sentinel = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = sentinel.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(([e]) => e?.isIntersecting && setPaging({ key: pageKey, limit: limit + page }), { rootMargin: "400px" });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [list, limit, page, pageKey]);
   const inTrash = filter.kind === "section" && filter.section === "trash";
   const tagNode = filter.kind === "tag" ? noteIndex(notes).tags.byKey.get(filter.key) : undefined;
   const viewTitle = filter.kind === "section" ? t.sidebar.sections[filter.section] : tagNode ? formatTag(tagNode.path) : t.list.title;
   const title = query ? t.search.resultsTitle : viewTitle;
   const scroller = useRef<HTMLDivElement>(null);
-  const cards = useRef(new Map<string, HTMLDivElement>());
   const [menu, setMenu] = useState<MenuState | null>(null);
   useAutoHideScrollbar(scroller);
+  // Only the cards near the visible part are in the DOM (decision P10-18).
+  const ids = useMemo(() => list.map((n) => n.id), [list]);
+  const view = useWindow(scroller, ids, cssPx("--card-spacing"), cssPx("--card-estimate"));
+
+  // A new search or view starts at the top.
+  const viewKey = `${JSON.stringify(filter)}\u0000${searchText(search)}`;
+  useEffect(() => {
+    if (scroller.current) scroller.current.scrollTop = 0;
+  }, [viewKey]);
 
   useEffect(() => {
-    if (selectedId) cards.current.get(selectedId)?.scrollIntoView({ block: "nearest" });
+    if (!selectedId) return;
+    const card = view.element(selectedId);
+    if (card) card.scrollIntoView({ block: "nearest" });
+    else view.reveal(ids.indexOf(selectedId));
+    // Only when the selection changes, not on every scroll.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId]);
 
   const focusId = selectedId && list.some((n) => n.id === selectedId) ? selectedId : list[0]?.id;
+  const focusIndex = focusId ? ids.indexOf(focusId) : -1;
+  const focusDrawn = focusIndex >= view.start && focusIndex < view.end;
 
   const moveTo = (index: number) => {
     const target = list[Math.max(0, Math.min(list.length - 1, index))];
     if (!target) return;
     selectNote(target.id);
-    cards.current.get(target.id)?.focus();
+    view.focus(target.id);
   };
 
   /** After trashing, keyboard focus moves to the newly selected card. */
   const trashAndRefocus = (id: string) =>
-    void trashNote(id).then(() => document.getElementById(cardDomId(useApp.getState().selectedId))?.focus());
+    void trashNote(id).then(() => {
+      const next = useApp.getState().selectedId;
+      if (next) view.focus(next);
+    });
 
   const onKeyDown = (e: KeyboardEvent) => {
     if (matchShortcut(e.nativeEvent, "list") === "note.trash") {
@@ -193,14 +198,25 @@ export function NoteList() {
         ) : list.length === 0 && filter.kind === "section" ? (
           <EmptyState icon={SECTION_ICONS[filter.section]} title={t.list.emptySection[filter.section]} hint={filter.section === "notes" ? undefined : t.list.emptyHint[filter.section]} />
         ) : (
-          <div role="listbox" aria-label={title} className={s.cards} onKeyDown={onKeyDown}>
-            {list.slice(0, limit).map((note) => (
+          <div
+            ref={(el) => view.attachList(el)}
+            role="listbox"
+            aria-label={title}
+            className={s.cards}
+            style={{ paddingTop: view.before, paddingBottom: view.after }}
+            // The current card is outside the window: the list itself takes the Tab stop and hands it over.
+            tabIndex={focusDrawn ? -1 : 0}
+            onFocus={(e) => {
+              if (e.target === e.currentTarget && !view.parked() && focusId) view.focus(focusId);
+            }}
+            onKeyDown={onKeyDown}
+          >
+            {list.slice(view.start, view.end).map((note, i) => (
               <NoteCard
                 key={note.id}
-                ref={(el) => {
-                  if (el) cards.current.set(note.id, el);
-                  else cards.current.delete(note.id);
-                }}
+                ref={view.refFor(note.id)}
+                position={view.start + i + 1}
+                count={list.length}
                 domId={cardDomId(note.id)}
                 note={note}
                 now={now}
@@ -218,7 +234,6 @@ export function NoteList() {
                 }}
               />
             ))}
-            {list.length > limit && <div ref={sentinel} className={s.sentinel} />}
           </div>
         )}
       </div>

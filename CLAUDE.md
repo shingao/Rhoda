@@ -74,6 +74,7 @@ npm run check:contrast   # contrastes AA des paires texte/fond, 6 thèmes (token
 npm run check:tokens     # tokens.css == design/ursa-tokens.css, 6 thèmes, aucune var() indéfinie
 npm run test:rhythm      # Playwright : chaque ligne et bloc (images, cartes) de « Rythme vertical » sur un multiple de 28 (2 polices × 14–20 px)
 npm run test:a11y       # Playwright : axe-core (WCAG 2.1 AA) sur les écrans principaux × 6 thèmes, focus visible au clavier, mouvement réduit, contraste élevé Windows
+npm run perf             # build de production + coffre factice : démarrage à 2 000 notes, OCR au démarrage, frappe dans la recherche, mémoire sur 200 notes ouvertes
 npm run sample:images    # régénère samples/assets (images et PDF d'exemple)
 npm run build            # build frontend
 npm run tauri build      # packaging (.msi en phase 10)
@@ -83,7 +84,8 @@ cd src-tauri && cargo clippy --all-targets -- -D warnings && cargo test
 ## Flux de données et conventions
 
 - `src/app/notes.ts` est le seul endroit qui modifie des notes : sauvegarde (debounce 500 ms), renommage (2 s), création, corbeille, réconciliation avec le watcher. Toutes les opérations disque passent par sa file sérielle.
-- `src/editor/session.ts` possède l'unique `EditorView` et un `EditorState` par note ; les mises à jour venues du disque sont annotées pour ne pas déclencher de sauvegarde.
+- `src/editor/session.ts` possède l'unique `EditorView` et garde l'`EditorState` des 30 dernières notes ouvertes (jamais d'une note au texte non écrit) ; les mises à jour venues du disque sont annotées pour ne pas déclencher de sauvegarde.
+- Liste des notes fenêtrée (`src/features/notelist/useWindow.ts`) : seules les cartes proches de la zone visible sont dans le DOM ; focus et défilement passent par `view.focus` / `view.reveal`, jamais par un `getElementById` de carte.
 - L'éditeur ne lit jamais le store : `src/editor/hooks.ts` déclare ce dont il a besoin (liens, tags, rétroliens, autocomplétion), `src/app/editorBridge.ts` le branche. Confirmations via `confirmAction()` (`src/app/confirm.ts`), messages courts via `showToast()`.
 - Réglages des tags (icône, couleur, épingle, repli) : `.ursa/tags.json`, gérés par `src/app/tagOps.ts`.
 - Sections de note (`src/editor/sections/`) : titres via la grammaire partagée (`headings.ts`), replis (`fold.ts`, état attaché à la ligne du titre), isolement (`focus.ts`), sommaire (`outline.ts`). Ce qui est caché : `visibility.ts` (`hiddenRanges`, `isHidden`, `revealPosition`) — à utiliser par la recherche et les stickers. Replis mémorisés dans `.ursa/folds.json` (`src/app/folds.ts`).

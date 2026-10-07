@@ -24,6 +24,8 @@ export interface EditorHooks {
   backlinks(): Backlink[];
   /** Floating preview of a linked note (hover). */
   linkPreview(target: string): { title: string; text: string } | null;
+  /** Whether a note still has text waiting to be written (its editor state is then never dropped). */
+  hasUnsavedText(noteId: string): boolean;
   /** Folds saved for a note (`.ursa/folds.json`). */
   savedFolds(noteId: string): FoldKey[];
   /** The folds of a note changed (or its folded headings were renamed). */
@@ -81,6 +83,7 @@ let hooks: EditorHooks = {
   completions: () => ({ tags: [], titles: [] }),
   backlinks: () => [],
   linkPreview: () => null,
+  hasUnsavedText: () => false,
   savedFolds: () => [],
   foldsChanged: () => undefined,
   outlineChanged: () => undefined,

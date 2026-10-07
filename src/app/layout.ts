@@ -88,20 +88,20 @@ export function toggleOutline(): void {
 /** Zones in tab order [DESIGN §5]; each container carries `data-zone`. */
 const ZONES = ["titlebar", "sidebar", "list", "editor", "outline"] as const;
 
-/** Where the keyboard lands in a zone: its current roving item, else the first control. */
+/** Where the keyboard lands in each zone, by preference: its current roving item, else a control. */
+const ZONE_TARGETS: Record<(typeof ZONES)[number], readonly string[]> = {
+  titlebar: ["input"],
+  sidebar: ['[data-nav-item][tabindex="0"]', "[data-nav-item]"],
+  list: ['[role="option"][tabindex="0"]', '[role="listbox"][tabindex="0"]', "button"],
+  editor: [".cm-content"],
+  outline: ['[tabindex="0"]', "a[href]", "button"],
+};
+
 function zoneTarget(zone: Element): HTMLElement | null {
-  const name = zone.getAttribute("data-zone");
-  const query =
-    name === "titlebar"
-      ? "input"
-      : name === "sidebar"
-        ? '[data-nav-item][tabindex="0"], [data-nav-item]'
-        : name === "list"
-          ? '[role="option"][tabindex="0"], button'
-          : name === "editor"
-            ? ".cm-content"
-            : 'a[href], button, [tabindex="0"]';
-  for (const el of zone.querySelectorAll<HTMLElement>(query)) if (el.getClientRects().length) return el;
+  const name = zone.getAttribute("data-zone") as (typeof ZONES)[number];
+  for (const selector of ZONE_TARGETS[name] ?? []) {
+    for (const el of zone.querySelectorAll<HTMLElement>(selector)) if (el.getClientRects().length) return el;
+  }
   return null;
 }
 

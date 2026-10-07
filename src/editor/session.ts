@@ -30,6 +30,12 @@ let view: EditorView | null = null;
 let currentId: string | null = null;
 let extensions: Extension = [];
 const states = new Map<string, EditorState>();
+/**
+ * Notes whose state (undo history, selection, scroll) is kept after leaving
+ * them, most recent last (decision P10-17): memory stays flat however many
+ * notes are opened. Older ones reopen from their saved text.
+ */
+const KEPT_STATES = 30;
 /** Scroll position of each note, as an anchor that survives height re-estimation. */
 const scrolls = new Map<string, StateEffect<unknown>>();
 /** Options that can change at runtime (typewriter mode…), re-applied to every note's state. */
@@ -127,7 +133,7 @@ export function showNote(id: string | null, body: string, stickers: readonly Sti
   // A post-it being typed in belongs to the note being left.
   commitStickerEdit(view);
   if (currentId) {
-    states.set(currentId, view.state);
+    keep(currentId, view.state);
     scrolls.set(currentId, view.scrollSnapshot());
   }
   if (foldReport && view) reportFolds(foldReport.id, view.state, true);
@@ -149,6 +155,18 @@ export function showNote(id: string | null, body: string, stickers: readonly Sti
   }
   // A kept state may show stale links or backlinks.
   refreshEditor();
+}
+
+/** Stores a note's state as the most recent one; drops the oldest beyond KEPT_STATES (never one with unsaved text). */
+function keep(id: string, state: EditorState): void {
+  states.delete(id);
+  states.set(id, state);
+  for (const old of states.keys()) {
+    if (states.size <= KEPT_STATES) break;
+    if (old === id || editorHooks().hasUnsavedText(old)) continue;
+    states.delete(old);
+    scrolls.delete(old);
+  }
 }
 
 /** Redraws what depends on other notes (broken links, backlinks). */

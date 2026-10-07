@@ -22,6 +22,8 @@ let started = false;
 export async function bootstrap(): Promise<void> {
   if (started) return;
   started = true;
+  // Startup measurements (scripts/perf.mjs): boot → vault ready → first frame.
+  performance.mark("ursa:boot");
   try {
     const settings = await loadSettings();
     setState({ settings });
@@ -43,6 +45,8 @@ export async function bootstrap(): Promise<void> {
     const path = settings.vaultPath ?? (await vaultApi.defaultPath());
     await openVault(path);
     await welcomeOnFirstLaunch();
+    performance.mark("ursa:ready");
+    requestAnimationFrame(() => requestAnimationFrame(() => performance.mark("ursa:interactive")));
 
     window.addEventListener("blur", () => void flushAll());
     await appWindow.onCloseRequested(async () => {

@@ -1,3 +1,4 @@
+import type { Note } from "../core/note/note";
 import { resolveVaultPath } from "../core/markdown/embeds";
 import { isPdf, matchBoxes, ocrFiles, ocrParts, type OcrBox } from "../core/ocr";
 import { refreshEditor } from "../editor/session";
@@ -28,6 +29,11 @@ let generation = 0;
 
 /** A key pressed less than this ago pauses the queue (typing). */
 const TYPING_PAUSE = 1500;
+/** After a vault opens, the queue waits this long: startup and first clicks come first (ms). */
+const START_DELAY = 2000;
+/** False until START_DELAY after the vault is ready. */
+let started = false;
+let startTimer: ReturnType<typeof setTimeout> | undefined;
 /** A PDF page with less text than this is a scan: OCR. */
 const TEXT_LAYER_MIN = 20;
 /** Longest side of a PDF page drawn for OCR. */
@@ -48,9 +54,16 @@ export function ocrLanguages(): string[] {
 const canOcr = () => Boolean(status?.available) && ocrLanguages().length > 0;
 
 /** Every file used by a note (trash and archive included). */
+/** Pictures and PDFs of each note object (notes are replaced when they change: only those are read again). */
+const filesOf = new WeakMap<Note, string[]>();
+
 function referencedFiles(): Set<string> {
   const files = new Set<string>();
-  for (const note of Object.values(getState().notes)) for (const f of ocrFiles(note.path, note.body)) files.add(f);
+  for (const note of Object.values(getState().notes)) {
+    let list = filesOf.get(note);
+    if (!list) filesOf.set(note, (list = ocrFiles(note.path, note.body)));
+    for (const f of list) files.add(f);
+  }
   return files;
 }
 
@@ -70,6 +83,7 @@ function setResult(path: string, doc: OcrDoc): void {
 
 /** Finds what is new, takes cached results, queues the rest. */
 async function sync(): Promise<void> {
+  if (!started) return;
   const { enabled } = getState().settings.ocr;
   if (!enabled || !status) {
     queue = [];
@@ -238,6 +252,15 @@ export function connectOcr(): void {
     });
   let timer: ReturnType<typeof setTimeout> | undefined;
   useApp.subscribe((state, previous) => {
+    if (state.vault !== previous.vault) {
+      clearTimeout(startTimer);
+      started = false;
+      if (state.vault.kind === "ready")
+        startTimer = setTimeout(() => {
+          started = true;
+          void sync();
+        }, START_DELAY);
+    }
     const settingsChanged = state.settings.ocr !== previous.settings.ocr;
     if (settingsChanged && JSON.stringify(state.settings.ocr.languages) !== JSON.stringify(previous.settings.ocr.languages)) {
       // Other languages: other results (cached separately).

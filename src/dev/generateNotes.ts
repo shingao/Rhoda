@@ -1,6 +1,8 @@
 /**
  * Development only: a deterministic vault of French notes for performance
  * tests (search benchmark, `localStorage.setItem("ursa-dev-notes", "1000")`).
+ * With `images`, one note in ten shows a picture of its own (`assets/scan-<n>.png`),
+ * which the OCR queue has to read.
  */
 
 const WORDS = (
@@ -25,9 +27,11 @@ export interface GeneratedNote {
   path: string;
   content: string;
   mtime: number;
+  /** Picture referenced by the note (vault path), if any. */
+  image?: string;
 }
 
-export function generateNotes(count: number, now = Date.now(), seed = 42): GeneratedNote[] {
+export function generateNotes(count: number, now = Date.now(), seed = 42, images = false): GeneratedNote[] {
   const r = rng(seed);
   const pick = <T>(a: T[]) => a[Math.floor(r() * a.length)]!;
   const sentence = () => {
@@ -39,6 +43,8 @@ export function generateNotes(count: number, now = Date.now(), seed = 42): Gener
   for (let i = 0; i < count; i++) {
     const title = `${sentence().slice(0, 30 + Math.floor(r() * 20)).replace(/[.\s]+$/, "")} ${i}`;
     const lines = [`# ${title}`, `#${pick(TAGS)}${r() < 0.5 ? ` #${pick(TAGS)}` : ""}`, ""];
+    const image = images && i % 10 === 0 ? `assets/scan-${i}.png` : undefined;
+    if (image) lines.push(`![Scan ${i}](${image})`, "");
     // Mostly short notes, some long ones (like a real vault).
     const paragraphs = r() < 0.05 ? 60 : 2 + Math.floor(r() * 8);
     for (let p = 0; p < paragraphs; p++) {
@@ -55,6 +61,7 @@ export function generateNotes(count: number, now = Date.now(), seed = 42): Gener
       path: `Gen ${String(i).padStart(4, "0")}.md`,
       content: `---\nid: gen-${i}\n---\n${lines.join("\n")}`,
       mtime: now - Math.floor(r() * 400) * 86_400_000,
+      image,
     });
   }
   return notes;
