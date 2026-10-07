@@ -18,6 +18,8 @@
 }
 
 .modal {
+  --text-3: var(--text-3-raised);
+
   width: var(--modal-w);
   max-width: calc(100vw - 2 * var(--sp-6));
   padding: var(--modal-pad);

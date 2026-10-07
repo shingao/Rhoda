@@ -30,7 +30,7 @@ import { runEditorCommand } from "../editor/session";
 import type { Messages } from "../i18n";
 import { focusSearch } from "./commands";
 import { openExport } from "./export";
-import { toggleColumn, toggleFocusMode, toggleOutline } from "./layout";
+import { moveFocusZone, toggleColumn, toggleFocusMode, toggleOutline } from "./layout";
 import { createNote, duplicateNote, setArchived, setPinned, trashNote } from "./notes";
 import { toggleStickersHidden } from "./noteView";
 import { reindexOcr } from "./ocr";
@@ -174,6 +174,8 @@ export function globalHandlers(t: () => Messages): Partial<Record<ShortcutId, ()
   const handlers: Partial<Record<ShortcutId, () => void>> = {};
   for (const c of COMMANDS) if (c.shortcut && SHORTCUTS[c.shortcut].scope === "global") handlers[c.shortcut] = run(c);
   handlers["focus.toggleKey"] = toggleFocusMode;
+  handlers["zone.next"] = () => moveFocusZone(1);
+  handlers["zone.previous"] = () => moveFocusZone(-1);
   handlers["palette.open"] = () => setState({ palette: getState().palette ? null : { query: "" } });
   return handlers;
 }

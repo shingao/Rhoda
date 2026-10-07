@@ -1,5 +1,6 @@
 /* Contents panel [DESIGN §2.15]: floating card over the editor, right 16, 8 px below the bar */
 .panel {
+  --text-3: var(--text-3-raised);
   --ring-bg: var(--bg-raised);
 
   position: absolute;
@@ -128,5 +129,11 @@
   from {
     opacity: 0;
     transform: translateX(var(--outline-shift));
+  }
+}
+
+@media (forced-colors: active) {
+  .panel {
+    border: 1px solid CanvasText;
   }
 }

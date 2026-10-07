@@ -69,9 +69,11 @@ npm run dev              # frontend seul dans un navigateur, coffre factice en m
 npm run typecheck        # tsc (app + config Vite)
 npm run lint             # eslint + stylelint (0 warning toléré : --max-warnings 0)
 npm run test             # vitest (logique core/)
-npm run check            # typecheck + lint + tokens + test
+npm run check            # typecheck + lint + tokens + contrastes + test
+npm run check:contrast   # contrastes AA des paires texte/fond, 6 thèmes (tokens.css + tokens.components.css)
 npm run check:tokens     # tokens.css == design/ursa-tokens.css, 6 thèmes, aucune var() indéfinie
 npm run test:rhythm      # Playwright : chaque ligne et bloc (images, cartes) de « Rythme vertical » sur un multiple de 28 (2 polices × 14–20 px)
+npm run test:a11y       # Playwright : axe-core (WCAG 2.1 AA) sur les écrans principaux × 6 thèmes, focus visible au clavier, mouvement réduit, contraste élevé Windows
 npm run sample:images    # régénère samples/assets (images et PDF d'exemple)
 npm run build            # build frontend
 npm run tauri build      # packaging (.msi en phase 10)
@@ -99,7 +101,8 @@ cd src-tauri && cargo clippy --all-targets -- -D warnings && cargo test
 - OCR : Rust `src-tauri/src/ocr/` (interface `Engine`, Windows.Media.Ocr dans `windows.rs` sous `#[cfg(windows)]`, tuiles, EXIF, cache `.ursa/ocr/<sha256>.json` + `index.json`) ; côté app `src/app/ocr.ts` (file d'attente, PDF via `src/app/pdfjs.ts`, source de texte `ocr` avec fichier et page) ; logique pure `src/core/ocr.ts` (fichiers lus, zones, cadrage) ; zones dans Ctrl+F via `findField.images` et `ImageWidget` ; réglages `settings.ocr`. Le vrai test OCR ne tourne que sous Windows (CI) ; coffre factice : `localStorage` `ursa-dev-ocr` = `off` | `en`.
 - Export : modèle de document pur dans `src/core/export/` (`model.ts` depuis la grammaire, `html.ts` échappe tout, `markdown.ts`) ; côté app `src/app/export/` (`page.ts` page autonome avec polices / images / stickers en data URL, `docx.ts`, `raster.ts` PNG/JPG, `index.ts` orchestration) ; styles de la page dans `src/features/export/export.css` (tokens seulement, intégrés en `?raw`). Rust `src-tauri/src/export/` : écriture limitée au dossier choisi par l'utilisateur (jamais d'écrasement), PDF par `PrintToPdf` de WebView2 dans une fenêtre cachée servie par `ursa-export:` ; `URSA_PDF_SMOKE` pour le test CI.
 - Robustesse : `src/app/ErrorBoundary.tsx` (écran `features/crash/`, texte en attente écrit avant « Recharger ») ; journal d'erreurs `src-tauri/src/log.rs` (`%LOCALAPPDATA%\com.ursa.notes\logs`, 5 fichiers max) alimenté par `src/app/log.ts` (`console.error/warn`, erreurs non rattrapées) ; ce qui y entre passe par `src/core/logText.ts` : jamais de texte de note. Coffre factice : `window.__ursaLogs`, `window.__ursaCrash()`.
-- Intégration continue : `.github/workflows/windows.yml` (check, clippy, tests Rust dont l'OCR réel, build Tauri, `.msi` en artefact) à chaque push.
+- Intégration continue : `.github/workflows/windows.yml` (check, test:rhythm, test:a11y, clippy, tests Rust dont l'OCR réel, build Tauri, `.msi` en artefact) à chaque push.
+- Accessibilité : contrastes vérifiés par `scripts/check-contrast.mjs` (toute nouvelle paire texte/fond s'y ajoute ; si un thème est trop juste, jeton dérivé `color-mix` dans `tokens.components.css`, ex. `--text-3-raised` sur les surfaces surélevées) ; en contraste élevé, toute surface surélevée a `border: 1px solid CanvasText` ; les cartes et arbres gardent le titre en premier dans l'ordre de lecture.
 - Tout élément tiers embarqué (police, images, bibliothèque) est listé dans Réglages › À propos (`src/features/settings/AboutPage.tsx`), avec le texte de sa licence dans `src/assets/licenses/`.
 - Identité d'une note : l'`id` du frontmatter (provisoire en mémoire pour une note externe, écrit à la 1re écriture). L'index est indexé par `id`, jamais par chemin.
 - Échecs disque (fichier verrouillé) : jamais bloquants ni destructeurs ; texte gardé en attente, ancien nom conservé, nouvelle tentative plus tard.

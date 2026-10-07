@@ -8,5 +8,5 @@
 .notice {
   margin: var(--sp-3) 0 0;
   font-size: var(--fs-sm);
-  color: var(--danger);
+  color: var(--danger-text);
 }

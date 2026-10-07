@@ -31,7 +31,7 @@
   width: var(--search-icon);
   height: var(--search-icon);
   flex: none;
-  color: var(--chrome-text-3);
+  color: var(--search-hint);
 }
 
 .filled .icon,
@@ -49,7 +49,7 @@
 }
 
 .input::placeholder {
-  color: var(--chrome-text-3);
+  color: var(--search-hint);
 }
 
 .field:focus-within .input::placeholder {
@@ -63,7 +63,7 @@
 .kbd {
   font-family: var(--font-mono);
   font-size: var(--fs-2xs);
-  color: var(--chrome-text-3);
+  color: var(--search-hint);
 }
 
 .field:focus-within .kbd {
@@ -129,6 +129,8 @@
 }
 
 .suggestions {
+  --text-3: var(--text-3-raised);
+
   position: absolute;
   top: calc(100% + var(--sp-1));
   left: 0;
@@ -170,5 +172,12 @@
   from {
     opacity: 0;
     transform: translateY(var(--popover-shift));
+  }
+}
+
+@media (forced-colors: active) {
+  .field,
+  .suggestions {
+    border: 1px solid CanvasText;
   }
 }

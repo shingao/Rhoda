@@ -1,4 +1,6 @@
 .menu {
+  --text-3: var(--text-3-raised);
+
   position: fixed;
   z-index: 900;
   min-width: var(--menu-min-w);
@@ -49,7 +51,7 @@
 
 .danger,
 .danger .iconSlot {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .danger.current {
@@ -66,5 +68,11 @@
   from {
     opacity: 0;
     transform: translateY(var(--popover-shift));
+  }
+}
+
+@media (forced-colors: active) {
+  .menu {
+    border: 1px solid CanvasText;
   }
 }

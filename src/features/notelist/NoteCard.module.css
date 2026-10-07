@@ -32,11 +32,14 @@
 
 .selected,
 .selected:hover {
+  --text-3: var(--text-3-raised);
+
   background: var(--selected);
   box-shadow: var(--shadow-card);
 }
 
 .meta {
+  order: -1;
   display: flex;
   align-items: center;
   gap: var(--sp-1);

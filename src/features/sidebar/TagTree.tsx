@@ -1,4 +1,4 @@
-import { useEffect, useRef, type KeyboardEvent, type MouseEvent } from "react";
+import { useEffect, useId, useRef, type KeyboardEvent, type MouseEvent } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useT } from "../../app/i18n";
 import type { TagSettings } from "../../app/store";
@@ -40,6 +40,7 @@ function TagRow({ node, ...p }: TagTreeProps & { node: TagNode }) {
   const children = node.children.filter((c) => !p.hidden(c));
   const expanded = children.length > 0 && !settings?.collapsed;
   const selected = p.selectedKey === node.key;
+  const groupId = `tag-group-${useId()}`;
 
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.key === "F2") p.onRenameStart(node);
@@ -51,12 +52,18 @@ function TagRow({ node, ...p }: TagTreeProps & { node: TagNode }) {
   };
 
   return (
-    <li role="treeitem" aria-level={node.depth + 1} aria-expanded={children.length ? expanded : undefined} aria-selected={selected}>
+    // The focused row is the tree item (Narrator reads its state); its children are owned by it.
+    <li role="none">
       {p.renamingKey === node.key ? (
         <RenameField node={node} onCommit={(v) => p.onRenameCommit(node, v)} onCancel={p.onRenameCancel} />
       ) : (
         <button
           type="button"
+          role="treeitem"
+          aria-level={node.depth + 1}
+          aria-expanded={children.length ? expanded : undefined}
+          aria-selected={selected}
+          aria-owns={expanded && children.length ? groupId : undefined}
           data-nav-item
           data-tag-key={node.key}
           tabIndex={selected ? 0 : -1}
@@ -70,7 +77,7 @@ function TagRow({ node, ...p }: TagTreeProps & { node: TagNode }) {
         >
           <span
             className={s.chevron}
-            aria-label={children.length ? (expanded ? t.sidebar.collapse : t.sidebar.expand) : undefined}
+            aria-hidden
             onClick={(e) => {
               if (!children.length) return;
               e.stopPropagation();
@@ -87,7 +94,7 @@ function TagRow({ node, ...p }: TagTreeProps & { node: TagNode }) {
         </button>
       )}
       {expanded && (
-        <ul role="group" className={s.tree}>
+        <ul role="group" id={groupId} className={s.tree}>
           {children.map((child) => (
             <TagRow key={child.key} node={child} {...p} />
           ))}

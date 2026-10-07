@@ -1,5 +1,6 @@
 /* Find / replace in the note (decision P5-7): floating card under the editor bar, right */
 .panel {
+  --text-3: var(--text-3-raised);
   --ring-bg: var(--bg-raised);
 
   position: absolute;
@@ -50,7 +51,7 @@
 }
 
 .none {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .toggle svg {
@@ -77,4 +78,10 @@
 .inImages {
   margin-left: var(--sp-1);
   color: var(--accent-text);
+}
+
+@media (forced-colors: active) {
+  .panel {
+    border: 1px solid CanvasText;
+  }
 }

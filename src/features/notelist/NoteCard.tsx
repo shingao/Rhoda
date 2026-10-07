@@ -142,6 +142,18 @@ export const NoteCard = memo(
         onContextMenu={onContextMenu}
       >
         <div className={s.text}>
+          {/* Title first in reading order (Narrator); the date row is shown above it. */}
+          <div
+            className={[s.title, !note.title && s.untitled]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            {note.title ? (
+              <Marked text={note.title} ranges={found?.title ?? []} />
+            ) : (
+              t.untitled
+            )}
+          </div>
           <div className={s.meta}>
             {note.pinned && (
               <Pin className={s.metaIcon} aria-label={t.list.pinned} />
@@ -172,17 +184,6 @@ export const NoteCard = memo(
               </span>
             )}
           </div>
-          <div
-            className={[s.title, !note.title && s.untitled]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            {note.title ? (
-              <Marked text={note.title} ranges={found?.title ?? []} />
-            ) : (
-              t.untitled
-            )}
-          </div>
           {found
             ? found.excerpt.text && (
                 <div className={s.preview}>
@@ -192,7 +193,11 @@ export const NoteCard = memo(
                   />
                 </div>
               )
-            : note.preview && <div className={s.preview}>{note.preview}</div>}
+            : note.preview && (
+                <div className={s.preview}>
+                  {note.preview}
+                </div>
+              )}
         </div>
         {(ocrImage ?? image) && <Thumb path={(ocrImage ?? image)!} zone={zone} />}
       </div>

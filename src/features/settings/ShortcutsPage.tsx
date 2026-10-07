@@ -23,7 +23,7 @@ import s from "./Settings.module.css";
 
 /** Settings › Shortcuts, by theme (decision P10-8). */
 const GROUPS: ReadonlyArray<{ id: "general" | "view" | "editor" | "list"; ids: readonly ShortcutId[] }> = [
-  { id: "general", ids: ["palette.open", "note.new", "search.focus", "export.open", "settings.open"] },
+  { id: "general", ids: ["palette.open", "note.new", "search.focus", "export.open", "settings.open", "zone.next", "zone.previous"] },
   { id: "view", ids: ["layout.toggleSidebar", "layout.toggleList", "outline.toggle", "focus.toggle", "focus.toggleKey", "stickers.drawer", "stickers.hide"] },
   { id: "editor", ids: ["find.open", "find.replace", "task.toggle", "fold.section", "unfold.section", "fold.all", "unfold.all", "section.isolate"] },
   { id: "list", ids: ["note.trash", "find.next", "find.previous"] },
@@ -129,7 +129,6 @@ export function ShortcutsPage() {
                   <button
                     type="button"
                     className={[s.shortcutKeys, isActive && s.shortcutRecording].filter(Boolean).join(" ")}
-                    aria-label={p.record(name(id))}
                     aria-describedby={problem?.id === id ? `shortcut-problem-${id}` : undefined}
                     onClick={() => {
                       setPending(null);
@@ -140,6 +139,8 @@ export function ShortcutsPage() {
                     onKeyDown={onKey(id)}
                     onBlur={() => isActive && stop()}
                   >
+                    {/* The name read out ends with what is shown (WCAG 2.5.3). */}
+                    <span className="u-visually-hidden">{p.record(name(id))} : </span>
                     {isActive ? <span className={s.shortcutPrompt}>{p.recording}</span> : keys.length ? <Kbd keys={keys} /> : <span className={s.shortcutNone}>{p.none}</span>}
                   </button>
                   <span className={s.shortcutActions}>

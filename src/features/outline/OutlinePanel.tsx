@@ -64,7 +64,7 @@ export function OutlinePanel({ docked }: { docked: boolean }) {
   };
 
   return (
-    <aside className={[s.panel, docked && s.docked].filter(Boolean).join(" ")} aria-label={t.outline.title} onKeyDown={onKeyDown}>
+    <aside className={[s.panel, docked && s.docked].filter(Boolean).join(" ")} aria-label={t.outline.title} onKeyDown={onKeyDown} data-zone="outline">
       <header className={s.head}>
         <h2 className={s.title}>{t.outline.title}</h2>
         <IconButton icon={X} label={t.outline.close} className={s.close} onClick={toggleOutline} />

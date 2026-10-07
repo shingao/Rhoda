@@ -1,5 +1,7 @@
 /* Sticker drawer [DESIGN §10]: floating on the right of the editor body */
 .drawer {
+  --text-3: var(--text-3-raised);
+
   position: absolute;
   top: var(--drawer-top);
   right: var(--drawer-right);
@@ -273,4 +275,10 @@
   opacity: var(--drawer-ghost-opacity);
   pointer-events: none;
   transform: none;
+}
+
+@media (forced-colors: active) {
+  .drawer {
+    border: 1px solid CanvasText;
+  }
 }

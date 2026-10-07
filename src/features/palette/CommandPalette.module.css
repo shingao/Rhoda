@@ -5,6 +5,8 @@
 }
 
 .palette {
+  --text-3: var(--text-3-raised);
+
   display: flex;
   flex-direction: column;
   width: var(--cmd-w);

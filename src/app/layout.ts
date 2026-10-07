@@ -84,3 +84,40 @@ export function useEscapeLeavesFocus(): void {
 export function toggleOutline(): void {
   updateSettings((s) => ({ ...s, layout: { ...s.layout, outlineOpen: !s.layout.outlineOpen } }));
 }
+
+/** Zones in tab order [DESIGN §5]; each container carries `data-zone`. */
+const ZONES = ["titlebar", "sidebar", "list", "editor", "outline"] as const;
+
+/** Where the keyboard lands in a zone: its current roving item, else the first control. */
+function zoneTarget(zone: Element): HTMLElement | null {
+  const name = zone.getAttribute("data-zone");
+  const query =
+    name === "titlebar"
+      ? "input"
+      : name === "sidebar"
+        ? '[data-nav-item][tabindex="0"], [data-nav-item]'
+        : name === "list"
+          ? '[role="option"][tabindex="0"], button'
+          : name === "editor"
+            ? ".cm-content"
+            : 'a[href], button, [tabindex="0"]';
+  for (const el of zone.querySelectorAll<HTMLElement>(query)) if (el.getClientRects().length) return el;
+  return null;
+}
+
+/** F6 / Maj+F6: the next or previous zone that can take the focus (hidden columns are skipped). */
+export function moveFocusZone(step: 1 | -1): void {
+  const current = document.activeElement?.closest("[data-zone]")?.getAttribute("data-zone");
+  const index = ZONES.indexOf(current as (typeof ZONES)[number]);
+  // Outside every zone: F6 starts at the first one, Maj+F6 at the last.
+  const from = index >= 0 ? index : step > 0 ? -1 : ZONES.length;
+  for (let i = 1; i <= ZONES.length; i++) {
+    const name = ZONES[(from + step * i + 2 * ZONES.length) % ZONES.length]!;
+    const zone = [...document.querySelectorAll(`[data-zone="${name}"]`)].find((z) => z.getClientRects().length);
+    const target = zone && zoneTarget(zone);
+    if (target) {
+      target.focus();
+      return;
+    }
+  }
+}

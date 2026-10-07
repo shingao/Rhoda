@@ -534,6 +534,8 @@
 }
 
 .cm-editor .cm-image-bar {
+  --text-3: var(--text-3-raised);
+
   position: absolute;
   display: none;
   z-index: 3;
@@ -702,6 +704,8 @@
 }
 
 .cm-editor .cm-link-card-menu {
+  --text-3: var(--text-3-raised);
+
   position: absolute;
   top: var(--sp-2);
   right: calc(var(--link-card-thumb-w) + var(--sp-2));
@@ -978,6 +982,8 @@
 
 /* Hover preview of a wiki link [§3] */
 .cm-editor .cm-tooltip.cm-tooltip-hover {
+  --text-3: var(--text-3-raised);
+
   border: 0;
   border-radius: var(--r-lg);
   background: var(--bg-raised);
@@ -1009,6 +1015,8 @@
 
 /* Autocompletion of # and [[ (same surface as menus [§2.13]) */
 .cm-editor .cm-tooltip.cm-tooltip-autocomplete {
+  --text-3: var(--text-3-raised);
+
   padding: var(--menu-pad);
   border: 0;
   border-radius: var(--r-lg);
@@ -1455,6 +1463,8 @@
 
 /* Hover bar: colours, collapse, delete; kept horizontal */
 .cm-postit-bar {
+  --text-3: var(--text-3-raised);
+
   position: absolute;
   bottom: calc(100% + var(--postit-bar-offset) - var(--postit-bar-h));
   left: 50%;

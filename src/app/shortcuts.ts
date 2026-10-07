@@ -38,6 +38,9 @@ export const SHORTCUTS = {
   // Maquette 03: Ctrl Maj F or F11; Escape also leaves it (see App).
   "focus.toggle": { keys: "Ctrl+Shift+F", scope: "global" },
   "focus.toggleKey": { keys: "F11", scope: "global" },
+  // Next / previous zone: titlebar, sidebar, list, editor, outline [DESIGN §5].
+  "zone.next": { keys: "F6", scope: "global" },
+  "zone.previous": { keys: "Shift+F6", scope: "global" },
   // Sticker drawer [DESIGN §10].
   "stickers.drawer": { keys: "Ctrl+Shift+S", scope: "global" },
   // "Hide stickers" of the open note.

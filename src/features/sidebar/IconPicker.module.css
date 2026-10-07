@@ -5,6 +5,7 @@
 }
 
 .picker {
+  --text-3: var(--text-3-raised);
   --ring-bg: var(--bg-raised);
 
   position: fixed;
@@ -180,5 +181,11 @@
   from {
     opacity: 0;
     transform: translateY(var(--popover-shift));
+  }
+}
+
+@media (forced-colors: active) {
+  .picker {
+    border: 1px solid CanvasText;
   }
 }

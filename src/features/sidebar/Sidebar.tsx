@@ -124,7 +124,7 @@ export function Sidebar() {
   };
 
   return (
-    <nav ref={navRef} className={s.sidebar} aria-label={t.sidebar.label} onKeyDown={onKeyDown}>
+    <nav ref={navRef} className={s.sidebar} aria-label={t.sidebar.label} onKeyDown={onKeyDown} data-zone="sidebar">
       <ul className={s.items}>
         {SECTIONS.map((id) => {
           const Icon = SECTION_ICONS[id];

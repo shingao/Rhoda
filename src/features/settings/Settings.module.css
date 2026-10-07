@@ -1,5 +1,6 @@
 /* [§2.17] 860×660, nav 200 px on --bg-1, content padding 24 32, sections 22 apart */
 .dialog {
+  --text-3: var(--text-3-raised);
   --ring-bg: var(--bg-raised);
 
   display: flex;
@@ -566,7 +567,7 @@
 
 .shortcutProblem {
   margin: 0 0 var(--sp-2);
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: var(--settings-hint-fs);
   line-height: var(--lh-ui);
 }

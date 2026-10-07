@@ -604,6 +604,8 @@ export const en: Messages = {
       "settings.open": "Settings",
       "focus.toggle": "Focus mode",
       "focus.toggleKey": "Focus mode (second key)",
+      "zone.next": "Next area (sidebar, list, editor…)",
+      "zone.previous": "Previous area",
       "stickers.drawer": "Sticker drawer",
       "stickers.hide": "Hide the note's stickers",
       "export.open": "Export note",

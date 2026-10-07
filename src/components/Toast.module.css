@@ -49,3 +49,9 @@
     transform: translateY(calc(-1 * var(--popover-shift)));
   }
 }
+
+@media (forced-colors: active) {
+  .toast {
+    border: 1px solid CanvasText;
+  }
+}

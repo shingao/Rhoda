@@ -29,3 +29,9 @@
     transform: translate(-50%, calc(var(--tooltip-offset) + var(--popover-shift)));
   }
 }
+
+@media (forced-colors: active) {
+  .tooltip {
+    border: 1px solid CanvasText;
+  }
+}

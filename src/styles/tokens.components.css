@@ -10,6 +10,14 @@
   --device-px: calc(1px / var(--dpr));
   --hairline: calc(max(1, round(var(--dpr))) * var(--device-px));
 
+  /* Text colours derived for AA contrast [§5] where a theme falls short
+     (decision P10-16, checked by scripts/check-contrast.mjs) */
+  --text-3-raised: color-mix(in oklab, var(--text-3) 70%, var(--text-2)); /* menus, modals, palette, selected card */
+  --search-hint: color-mix(in oklab, var(--chrome-text-3) 70%, var(--chrome-text)); /* titlebar search field */
+  --danger-text: color-mix(in oklab, var(--danger) 80%, var(--text));
+  --chrome-count-active: color-mix(in oklab, var(--chrome-text-3) 55%, var(--chrome-text)); /* count of the selected sidebar item */
+  --accent-text-sunken: color-mix(in oklab, var(--accent-text) 85%, var(--text)); /* link-like button on --bg-sunken */
+
   /* Focus ring [§2] — gap colour comes from --ring-bg, set by each zone */
   --focus-gap: round(2px, var(--device-px));
   --focus-outer: round(4px, var(--device-px));

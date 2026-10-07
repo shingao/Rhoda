@@ -86,7 +86,7 @@ export function EditorPane() {
   const edited = mtime !== undefined ? relativeDate(mtime, now, t.dates) : null;
 
   return (
-    <section className={[s.pane, focusMode && s.focus].filter(Boolean).join(" ")} aria-label={t.editor.label}>
+    <section className={[s.pane, focusMode && s.focus].filter(Boolean).join(" ")} aria-label={t.editor.label} data-zone="editor">
       <div className={s.bar} inert={focusMode}>
         <Breadcrumb />
         <div className={s.spacer} />

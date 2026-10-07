@@ -20,7 +20,7 @@ export function Titlebar() {
   const t = useT();
 
   return (
-    <header className={[s.titlebar, focus && s.focus].filter(Boolean).join(" ")} data-tauri-drag-region>
+    <header className={[s.titlebar, focus && s.focus].filter(Boolean).join(" ")} data-tauri-drag-region data-zone="titlebar">
       <div
         className={[s.left, s.chrome, resizing && s.noTransition].filter(Boolean).join(" ")}
         style={collapsed || focus ? undefined : { width }}

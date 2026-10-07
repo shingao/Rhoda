@@ -1,5 +1,7 @@
 /* Text read in an image (decision P9): same surface as the note info popover [§2.21] */
 .popover {
+  --text-3: var(--text-3-raised);
+
   position: fixed;
   z-index: 900;
   display: flex;
@@ -52,4 +54,10 @@
 .actions {
   display: flex;
   justify-content: flex-end;
+}
+
+@media (forced-colors: active) {
+  .popover {
+    border: 1px solid CanvasText;
+  }
 }

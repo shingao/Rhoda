@@ -140,7 +140,7 @@ export function NoteList() {
       : noteMenuEntries(notes[m.id], t, trashAndRefocus);
 
   return (
-    <section className={s.panel} aria-label={title}>
+    <section className={s.panel} aria-label={title} data-zone="list">
       <header className={s.header}>
         <h2 className={s.title}>{title}</h2>
         {query && <span className={s.resultCount}>{t.search.notesCount(list.length)}</span>}

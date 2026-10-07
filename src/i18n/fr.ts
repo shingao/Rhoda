@@ -615,6 +615,8 @@ export const fr = {
       "settings.open": "Réglages",
       "focus.toggle": "Mode focus",
       "focus.toggleKey": "Mode focus (seconde touche)",
+      "zone.next": "Zone suivante (barre latérale, liste, éditeur…)",
+      "zone.previous": "Zone précédente",
       "stickers.drawer": "Tiroir à stickers",
       "stickers.hide": "Masquer les stickers de la note",
       "export.open": "Exporter la note",

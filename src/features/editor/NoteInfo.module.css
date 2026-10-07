@@ -1,5 +1,7 @@
 /* Same surface as the page background popover [§7, §2.21] */
 .popover {
+  --text-3: var(--text-3-raised);
+
   position: fixed;
   z-index: 900;
   display: flex;
@@ -52,5 +54,11 @@
   from {
     opacity: 0;
     transform: translateY(var(--popover-shift));
+  }
+}
+
+@media (forced-colors: active) {
+  .popover {
+    border: 1px solid CanvasText;
   }
 }

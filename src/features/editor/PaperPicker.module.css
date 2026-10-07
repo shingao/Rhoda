@@ -1,5 +1,6 @@
 /* [§7] popover 288 px, 4 thumbnails 52 px, selection = double accent ring */
 .popover {
+  --text-3: var(--text-3-raised);
   --ring-bg: var(--bg-raised);
 
   position: fixed;
@@ -77,5 +78,11 @@
   from {
     opacity: 0;
     transform: translateY(var(--popover-shift));
+  }
+}
+
+@media (forced-colors: active) {
+  .popover {
+    border: 1px solid CanvasText;
   }
 }

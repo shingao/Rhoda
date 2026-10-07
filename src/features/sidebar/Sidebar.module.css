@@ -70,6 +70,10 @@
   color: var(--chrome-icon-active);
 }
 
+.selected .count {
+  color: var(--chrome-count-active);
+}
+
 .item:focus-visible {
   box-shadow:
     0 0 0 var(--focus-gap) var(--ring-bg),
@@ -193,6 +197,10 @@
 .treeItem:focus-visible .treeCount,
 .treeItem.selected .treeCount {
   opacity: 1;
+}
+
+.treeItem.selected .treeCount {
+  color: var(--chrome-count-active);
 }
 
 .treeItem.selected .treeIcon {
