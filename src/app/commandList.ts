@@ -30,7 +30,7 @@ import { runEditorCommand } from "../editor/session";
 import type { Messages } from "../i18n";
 import { focusSearch } from "./commands";
 import { openExport } from "./export";
-import { moveFocusZone, toggleColumn, toggleFocusMode, toggleOutline } from "./layout";
+import { moveFocusZone, toggleColumn, toggleFocusMode, toggleTypewriter, toggleOutline } from "./layout";
 import { createNote, duplicateNote, setArchived, setPinned, trashNote } from "./notes";
 import { toggleStickersHidden } from "./noteView";
 import { reindexOcr } from "./ocr";
@@ -134,7 +134,7 @@ export const COMMANDS: readonly AppCommand[] = [
     id: "editor.typewriter",
     label: (t) => t.editor.typewriter,
     icon: TextCursorInput,
-    run: () => updateSettings((s) => ({ ...s, editor: { ...s.editor, typewriter: !s.editor.typewriter } })),
+    run: toggleTypewriter,
   },
   { id: "stickers.drawer", label: (t) => t.stickers.open, icon: Sticker, shortcut: "stickers.drawer", unavailable: needsLiveNote, run: () => toggleStickerDrawer() },
   {

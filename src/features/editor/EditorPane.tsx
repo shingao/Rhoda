@@ -4,11 +4,11 @@ import { openExport } from "../../app/export";
 import { useT } from "../../app/i18n";
 import { cssPx } from "../../app/cssTokens";
 import { insertFromDialog } from "../../app/attachments";
-import { toggleColumn, toggleFocusMode, toggleOutline } from "../../app/layout";
+import { toggleColumn, toggleFocusMode, toggleOutline, toggleTypewriter } from "../../app/layout";
 import { editNote, trashNote } from "../../app/notes";
 import { shortcutLabel } from "../../app/shortcuts";
 import { EmptyState } from "../../components/EmptyState";
-import { setState, updateSettings, useApp } from "../../app/store";
+import { setState, useApp } from "../../app/store";
 import { useNow } from "../../app/useNow";
 import { relativeDate } from "../../core/dates";
 import { attachAutoHideScrollbar } from "../../components/useAutoHideScrollbar";
@@ -241,7 +241,7 @@ export function EditorPane() {
               label: t.editor.typewriter,
               checked: typewriterOn,
               toggle: true,
-              onSelect: () => updateSettings((st) => ({ ...st, editor: { ...st.editor, typewriter: !st.editor.typewriter } })),
+              onSelect: toggleTypewriter,
             },
             {
               id: "focusMode",

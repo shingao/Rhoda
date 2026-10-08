@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { cssPx } from "./cssTokens";
+import { focusEditor } from "../editor/session";
 import { getState, setState, updateSettings, useApp } from "./store";
 
 type Column = "sidebar" | "list";
@@ -120,4 +121,13 @@ export function moveFocusZone(step: 1 | -1): void {
       return;
     }
   }
+}
+
+/**
+ * Typewriter mode, from the "…" menu or the palette: once the menu has closed,
+ * the editor gets the focus back, its cursor's line centred.
+ */
+export function toggleTypewriter(): void {
+  updateSettings((s) => ({ ...s, editor: { ...s.editor, typewriter: !s.editor.typewriter } }));
+  requestAnimationFrame(() => focusEditor());
 }

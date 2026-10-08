@@ -65,7 +65,7 @@ export function Menu({ at, entries, label, align = "start", onClose }: MenuProps
       window.removeEventListener("pointerdown", onPointerDown, true);
       window.removeEventListener("blur", onClose);
       window.removeEventListener("resize", onClose);
-      if (focusTarget instanceof HTMLElement && document.activeElement === document.body) focusTarget.focus();
+      if (focusTarget instanceof HTMLElement && document.activeElement === document.body) focusTarget.focus({ preventScroll: true });
     };
   }, [onClose]);
 

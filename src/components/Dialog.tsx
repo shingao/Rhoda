@@ -43,7 +43,9 @@ export function Dialog({ onClose, labelledBy, className, children, initialFocus,
     const controls = dialog.current?.querySelectorAll<HTMLElement>(FOCUSABLE);
     (initialFocus?.current ?? controls?.[1] ?? controls?.[0])?.focus();
     return () => {
-      if (previous instanceof HTMLElement) previous.focus();
+      // Without scrolling: the editor's text stays where it was (an editor scrolled
+      // far down would otherwise jump to show its top).
+      if (previous instanceof HTMLElement) previous.focus({ preventScroll: true });
     };
   }, [initialFocus]);
 

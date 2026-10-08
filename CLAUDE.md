@@ -76,6 +76,7 @@ npm run check:contrast   # contrastes AA des paires texte/fond, 6 thèmes (token
 npm run check:tokens     # tokens.css == design/ursa-tokens.css, 6 thèmes, aucune var() indéfinie
 npm run test:rhythm      # Playwright : chaque ligne et bloc (images, cartes) de « Rythme vertical » sur un multiple de 28 (2 polices × 14–20 px)
 npm run test:a11y       # Playwright : axe-core (WCAG 2.1 AA) sur les écrans principaux × 6 thèmes, focus visible au clavier, mouvement réduit, contraste élevé Windows
+npm run test:typewriter  # Playwright : mode machine à écrire sur la note de 5 000 lignes (activation centrée, clic / souris / molette sans saut, recentrage doux à la frappe et aux flèches, rythme)
 npm run perf             # build de production + coffre factice : démarrage à 2 000 notes, OCR au démarrage, frappe dans la recherche, mémoire sur 200 notes ouvertes
 npm run sample:images    # régénère samples/assets (images et PDF d'exemple)
 npm run build            # build frontend
