@@ -140,6 +140,10 @@ Quit
 $notes = Snapshot $Vault
 Check ($notes.Count -ge 3) "notes folder: $($notes.Count) files (witness, Kyoto, welcome note)"
 Check (Test-Path (Join-Path $ConfigDir "settings.json")) "settings written"
+$welcome = Join-Path $Vault "Bienvenue dans Bullshit.md"
+Check (Test-Path $welcome) "welcome note « Bienvenue dans Bullshit »"
+$welcomeText = Get-Content $welcome -Raw -Encoding utf8
+Check ($welcomeText -match "#bullshit/bienvenue" -and $welcomeText -notmatch "(?<!\.)\bursa\b") "welcome note tagged #bullshit/bienvenue, no « Ursa »"
 
 Step "Silent uninstall"
 Uninstall

@@ -12,7 +12,7 @@ import s from "./Settings.module.css";
 type Licence = "mit" | "ofl" | "isc" | "apache" | "mitApache";
 const TEXTS: Partial<Record<Licence, string>> = { mit, ofl, isc, apache };
 
-/** What Ursa ships that others made; `use` keys are in i18n (settings.credits). */
+/** What the app ships that others made; `use` keys are in i18n (settings.credits). */
 const CREDITS: ReadonlyArray<{ name: string; author: string; licence: Licence; use: "stickers" | "hand" | "ui" | "serif" | "mono" | "icons" | "pdf" | "editor" | "app" | "shell" | "store" | "yaml" | "docx" }> = [
   { name: "Fluent Emoji 3D", author: "Microsoft", licence: "mit", use: "stickers" },
   { name: "Caveat", author: "The Caveat Project Authors", licence: "ofl", use: "hand" },

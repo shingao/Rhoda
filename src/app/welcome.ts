@@ -34,7 +34,7 @@ export function welcomeContent(now = Date.now()): { title: string; content: stri
   return { title: t.welcome.title, content: joinFrontmatter(frontmatter, body) };
 }
 
-/** Very first launch: a note that presents Ursa, deletable like any other. */
+/** Very first launch: a note that presents the app, deletable like any other. */
 export async function welcomeOnFirstLaunch(): Promise<void> {
   if (getState().settings.welcomed) return;
   updateSettings((s) => ({ ...s, welcomed: true }));

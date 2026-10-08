@@ -1,5 +1,5 @@
-//! Error journal: `%LOCALAPPDATA%\com.bullshit.notes\logs\ursa.log`, rotated to
-//! `ursa.1.log` … `ursa.4.log` (5 files at most). Lines come from the frontend
+//! Error journal: `%LOCALAPPDATA%\com.bullshit.notes\logs\bullshit.log`, rotated to
+//! `bullshit.1.log` … `bullshit.4.log` (5 files at most). Lines come from the frontend
 //! (already stripped of note text, see `src/core/logText.ts`) and from Rust
 //! panics. Never blocks or fails the app: a journal that cannot be written is
 //! simply skipped.
@@ -14,7 +14,8 @@ use tauri::{AppHandle, Manager};
 
 use crate::error::{CmdError, CmdResult};
 
-const FILE: &str = "ursa";
+/// Seen by the user (Settings › About › log folder): the app's public name.
+const FILE: &str = "bullshit";
 /// Current file plus 4 older ones.
 const KEEP: usize = 5;
 const MAX_BYTES: u64 = 512 * 1024;
@@ -49,7 +50,7 @@ fn path(dir: &Path, n: usize) -> PathBuf {
     }
 }
 
-/// `ursa.log` → `ursa.1.log` → … ; the oldest beyond `KEEP` is dropped.
+/// `bullshit.log` → `bullshit.1.log` → … ; the oldest beyond `KEEP` is dropped.
 fn rotate(dir: &Path) {
     let _ = fs::remove_file(path(dir, KEEP - 1));
     for n in (0..KEEP - 1).rev() {
@@ -136,7 +137,7 @@ mod tests {
         }
         let mut names: Vec<String> = fs::read_dir(dir.path()).unwrap().map(|e| e.unwrap().file_name().to_string_lossy().into_owned()).collect();
         names.sort();
-        assert_eq!(names, ["ursa.1.log", "ursa.2.log", "ursa.3.log", "ursa.4.log", "ursa.log"]);
+        assert_eq!(names, ["bullshit.1.log", "bullshit.2.log", "bullshit.3.log", "bullshit.4.log", "bullshit.log"]);
         for name in &names {
             assert!(fs::metadata(dir.path().join(name)).unwrap().len() <= MAX_BYTES + MAX_LINE as u64 + 64);
         }

@@ -2,7 +2,7 @@
 
 Application de prise de notes locale pour Windows (usage perso). Esthétique et UX inspirées de Bear, identité **originale** : ne jamais reprendre le nom, le logo ni les icônes de Bear.
 
-Nom public depuis la 1.0 : **Bullshit** (identifiant `com.bullshit.notes`, dossier par défaut `Documents\Bullshit`, exécutable `bullshit.exe`, icône `design/app-icon-1024.png`). « Ursa » reste le nom de code interne : dossier `.ursa/` du coffre, clés `ursa-*`, protocole `ursa-export:`, crate `ursa_lib`, journal `ursa.log`. La migration depuis Ursa (réglages `com.ursa.notes`, dossier `Documents\Ursa`) est dans `src-tauri/src/legacy.rs`.
+Nom public depuis la 1.0 : **Bullshit** (identifiant `com.bullshit.notes`, dossier par défaut `Documents\Bullshit`, exécutable `bullshit.exe`, icône `design/app-icon-1024.png`). « Ursa » reste le nom de code interne : dossier `.ursa/` du coffre, clés `ursa-*`, protocole `ursa-export:`, crate `ursa_lib`. Tout texte vu par l'utilisateur dit Bullshit (`src/app/brand.test.ts`, journal `bullshit.log`). La migration depuis Ursa (réglages `com.ursa.notes`, dossier `Documents\Ursa`) est dans `src-tauri/src/legacy.rs`.
 
 ## Sources de vérité
 
