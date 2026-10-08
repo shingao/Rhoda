@@ -1,5 +1,6 @@
 import type * as Docx from "docx";
-import { headingSlug, plainText, withoutTags, parseDocument, type Block, type Inline } from "../../core/export/model";
+import { headingSlug, plainText, withoutTags, parseDocument, type Block, type Inline, type TextAlign } from "../../core/export/model";
+import { alignedLinesOf } from "../../core/align";
 import type { Note } from "../../core/note/note";
 import { blocksOf, resolveAnchor } from "../../core/stickers";
 import { editorStickers } from "../../editor/session";
@@ -102,7 +103,7 @@ async function picture(blob: Blob): Promise<Picture | null> {
 export async function noteDocx(note: Note, options: DocxOptions): Promise<Blob> {
   const d: typeof Docx = await import("docx");
   const c = themeColors(options.palette);
-  const parsed = parseDocument(note.body);
+  const parsed = parseDocument(note.body, alignedLinesOf(note.aligns, note.body));
   const blocks = options.tags ? parsed : withoutTags(parsed);
 
   // Images first (async), then the document is built synchronously.
@@ -240,21 +241,26 @@ export async function noteDocx(note: Note, options: DocxOptions): Promise<Blob> 
     postits.delete(line);
   };
 
-  const block = (b: Block, level = 0, quote = false): void => {
+  /** Paragraph alignment of a block aligned in the note (left: Word's default). */
+  const aligned = (a: TextAlign | undefined) =>
+    a ? { alignment: a === "center" ? d.AlignmentType.CENTER : a === "right" ? d.AlignmentType.RIGHT : d.AlignmentType.BOTH } : {};
+
+  /** `inherited`: alignment of the enclosing quote. */
+  const block = (b: Block, level = 0, quote = false, inherited?: TextAlign): void => {
     const quoteStyle = quote ? { indent: { left: INDENT }, shading: { type: d.ShadingType.CLEAR, color: "auto", fill: c.quote } } : {};
     const qs: Style = quote ? { italics: true, color: c.text2 } : {};
     switch (b.t) {
       case "heading": {
         const levels = [d.HeadingLevel.HEADING_1, d.HeadingLevel.HEADING_2, d.HeadingLevel.HEADING_3, d.HeadingLevel.HEADING_4, d.HeadingLevel.HEADING_5, d.HeadingLevel.HEADING_6];
         const id = ids[nextHeading++] ?? bookmark(headingSlug(plainText(b.children)));
-        out.push(new d.Paragraph({ heading: levels[b.level - 1], children: [new d.Bookmark({ id, children: runs(b.children, { color: c.text }) as Docx.TextRun[] })] }));
+        out.push(new d.Paragraph({ heading: levels[b.level - 1], ...aligned(b.textAlign ?? inherited), children: [new d.Bookmark({ id, children: runs(b.children, { color: c.text }) as Docx.TextRun[] })] }));
         break;
       }
       case "paragraph":
-        out.push(new d.Paragraph({ spacing, ...quoteStyle, children: runs(b.children, qs) }));
+        out.push(new d.Paragraph({ spacing, ...quoteStyle, ...aligned(b.textAlign ?? inherited), children: runs(b.children, qs) }));
         break;
       case "quote":
-        b.blocks.forEach((x) => block(x, level, true));
+        b.blocks.forEach((x) => block(x, level, true, b.textAlign ?? inherited));
         break;
       case "code": {
         if (b.lang) out.push(new d.Paragraph({ children: [text(b.lang, { color: c.text3 }, { size: 16 })] }));
@@ -279,9 +285,9 @@ export async function noteDocx(note: Note, options: DocxOptions): Promise<Blob> 
               const box = item.checked === null ? [] : [new d.TextRun({ text: item.checked ? "☑ " : "☐ ", font: SYMBOL, color: c.text3 })];
               const style: Style = item.checked ? { ...qs, color: c.text3 } : qs;
               const numbering = item.checked !== null ? {} : b.ordered ? { numbering: { reference: "ursa-ordered", level: Math.min(level, 8), instance } } : { bullet: { level: Math.min(level, 8) } };
-              out.push(new d.Paragraph({ ...numbering, ...(item.checked !== null && { indent: { left: INDENT * (level + 1) } }), children: [...box, ...runs(x.children, style)] }));
-            } else if (x.t === "list") block(x, level + 1, quote);
-            else block(x, level + 1, quote);
+              out.push(new d.Paragraph({ ...numbering, ...(item.checked !== null && { indent: { left: INDENT * (level + 1) } }), ...aligned(item.textAlign ?? inherited), children: [...box, ...runs(x.children, style)] }));
+            } else if (x.t === "list") block(x, level + 1, quote, inherited);
+            else block(x, level + 1, quote, item.textAlign ?? inherited);
           });
           after(item.line);
         }

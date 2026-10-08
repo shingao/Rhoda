@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fitInMargin, postitInMargin } from "./layer";
+import { avoidText, fitInMargin, postitInMargin } from "./layer";
 
 // Column 100–700, visible area 0–800: right margin 100 px (minus an 8 px edge).
 const g = { colLeft: 100, colWidth: 600, viewLeft: 0, viewRight: 800 };
@@ -36,5 +36,24 @@ describe("stickers in a narrow window", () => {
     // A wider margin (75 %): only shrunk.
     const wide = fitInMargin({ x: 750, y: 0 }, 168, { ...g, viewRight: 834 }, 8, 0.4);
     expect(postitInMargin(wide, 168, 0.7, pill, false).pill).toBeNull();
+  });
+});
+
+describe("stickers over aligned text (decision P11-4)", () => {
+  const view = { viewLeft: 0, viewRight: 1000 };
+  // A right-aligned heading: its text runs from 700 to 900, on one line (y 100–128).
+  const spans = [{ top: 100, bottom: 128, left: 700, right: 900 }];
+
+  it("steps aside to the nearer side that fits", () => {
+    expect(avoidText({ x: 710, y: 90 }, 80, 80, spans, view, 8)).toBe(612); // left of the text
+    expect(avoidText({ x: 820, y: 90 }, 80, 80, spans, view, 8)).toBe(908); // right of it
+    // No room on the right (narrow view): the left side.
+    expect(avoidText({ x: 820, y: 90 }, 80, 80, spans, { viewLeft: 0, viewRight: 960 }, 8)).toBe(612);
+  });
+
+  it("stays where it is when nothing is under it, or nothing fits", () => {
+    expect(avoidText({ x: 500, y: 90 }, 80, 80, spans, view, 8)).toBe(500);
+    expect(avoidText({ x: 820, y: 300 }, 80, 80, spans, view, 8)).toBe(820);
+    expect(avoidText({ x: 820, y: 90 }, 80, 80, [{ top: 100, bottom: 128, left: 20, right: 980 }], view, 8)).toBe(820);
   });
 });

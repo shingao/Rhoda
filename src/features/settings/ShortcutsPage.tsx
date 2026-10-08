@@ -25,7 +25,7 @@ import s from "./Settings.module.css";
 const GROUPS: ReadonlyArray<{ id: "general" | "view" | "editor" | "list"; ids: readonly ShortcutId[] }> = [
   { id: "general", ids: ["palette.open", "note.new", "search.focus", "export.open", "settings.open", "zone.next", "zone.previous"] },
   { id: "view", ids: ["layout.toggleSidebar", "layout.toggleList", "outline.toggle", "focus.toggle", "focus.toggleKey", "stickers.drawer", "stickers.hide"] },
-  { id: "editor", ids: ["find.open", "find.replace", "task.toggle", "fold.section", "unfold.section", "fold.all", "unfold.all", "section.isolate"] },
+  { id: "editor", ids: ["find.open", "find.replace", "task.toggle", "align.left", "align.center", "align.right", "align.justify", "fold.section", "unfold.section", "fold.all", "unfold.all", "section.isolate"] },
   { id: "list", ids: ["note.trash", "find.next", "find.previous"] },
 ];
 

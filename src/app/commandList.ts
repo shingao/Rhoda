@@ -1,4 +1,8 @@
 import {
+  AlignCenter,
+  AlignJustify,
+  AlignLeft,
+  AlignRight,
   Archive,
   ChevronsDownUp,
   ChevronsUpDown,
@@ -26,7 +30,7 @@ import {
   Trash2,
   type LucideIcon,
 } from "lucide-react";
-import { runEditorCommand } from "../editor/session";
+import { alignmentHere, runEditorCommand } from "../editor/session";
 import type { Messages } from "../i18n";
 import { focusSearch } from "./commands";
 import { openExport } from "./export";
@@ -66,6 +70,8 @@ const needsLiveNote = (t: Messages) => {
   return !note ? t.commands.reasons.noNote : note.trashed ? t.commands.reasons.inTrash : null;
 };
 const editor = (id: ShortcutId) => () => void runEditorCommand(id);
+/** Alignment: an open note, and a block that can be aligned at the cursor (not code, table, image). */
+const needsAlignableBlock = (t: Messages) => needsLiveNote(t) ?? (alignmentHere().available ? null : t.align.unavailable);
 
 export const COMMANDS: readonly AppCommand[] = [
   { id: "note.new", label: (t) => t.commands.newNote, icon: FilePlus2, shortcut: "note.new", run: () => void createNote() },
@@ -81,6 +87,10 @@ export const COMMANDS: readonly AppCommand[] = [
     run: () => openExport(currentList().map((n) => n.id)),
   },
   { id: "task.toggle", label: (t) => t.commands.toggleTask, icon: ListChecks, shortcut: "task.toggle", unavailable: needsLiveNote, run: editor("task.toggle") },
+  { id: "align.left", label: (t) => t.align.left, icon: AlignLeft, shortcut: "align.left", unavailable: needsAlignableBlock, run: editor("align.left") },
+  { id: "align.center", label: (t) => t.align.center, icon: AlignCenter, shortcut: "align.center", unavailable: needsAlignableBlock, run: editor("align.center") },
+  { id: "align.right", label: (t) => t.align.right, icon: AlignRight, shortcut: "align.right", unavailable: needsAlignableBlock, run: editor("align.right") },
+  { id: "align.justify", label: (t) => t.align.justify, icon: AlignJustify, shortcut: "align.justify", unavailable: needsAlignableBlock, run: editor("align.justify") },
   {
     id: "note.pin",
     label: (t) => (openNote()?.pinned ? t.list.unpin : t.list.pin),

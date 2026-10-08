@@ -289,6 +289,42 @@ body {
   color: var(--text-3);
 }
 
+/* Block alignment set in the note (decision P11-2), as in the editor */
+.u-page .u-align-center {
+  text-align: center;
+}
+
+.u-page .u-align-right {
+  text-align: right;
+}
+
+.u-page .u-align-justify {
+  text-align: justify;
+}
+
+/* Centred or right list item: the bullet or number goes right before its text. */
+.u-page li:not(.u-task):is(.u-align-center, .u-align-right) {
+  margin-left: calc(-1 * var(--list-indent));
+  list-style-position: inside;
+}
+
+.u-page li:not(.u-task):is(.u-align-center, .u-align-right) > p:first-child {
+  display: inline;
+}
+
+/* …and the checkbox right before the task's text. */
+.u-task.u-align-center {
+  justify-content: center;
+}
+
+.u-task.u-align-right {
+  justify-content: flex-end;
+}
+
+.u-task:is(.u-align-center, .u-align-right) > div {
+  flex: initial;
+}
+
 /* Quote [§2.9] */
 .u-page blockquote {
   padding: 0 var(--quote-pad-x);

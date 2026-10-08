@@ -63,6 +63,8 @@ interface AppState {
   palette: { query: string } | null;
   /** Context menu of a sticker or post-it of the open note. */
   stickerMenu: { noteId: string; id: string; at: { x: number; y: number } } | null;
+  /** Right-click in the text of the open note: the block's menu (alignment). */
+  blockMenu: { at: { x: number; y: number } } | null;
 }
 
 export type SettingsPage = "general" | "editor" | "shortcuts" | "ocr" | "backups" | "about";
@@ -111,6 +113,7 @@ export const useApp = create<AppState>()(() => ({
   crop: null,
   cardMenu: null,
   stickerMenu: null,
+  blockMenu: null,
   stickerDrawer: false,
   stickerLibrary: [],
   hiddenStickers: {},

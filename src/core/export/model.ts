@@ -20,8 +20,12 @@ export type Inline =
 
 export type Align = "left" | "center" | "right" | null;
 
+/** Block alignment set in the note (frontmatter `align:`); left when absent. */
+export type TextAlign = "center" | "right" | "justify";
+
 export interface ListItem {
   line: number;
+  textAlign?: TextAlign;
   /** null: not a task. */
   checked: boolean | null;
   blocks: Block[];
@@ -29,10 +33,10 @@ export interface ListItem {
 
 /** `line`: where the block starts; `gap`: a blank line before it in the note (the editor's spacing). */
 export type Block = { line: number; gap?: boolean } & (
-  | { t: "heading"; level: number; children: Inline[] }
-  | { t: "paragraph"; children: Inline[] }
+  | { t: "heading"; level: number; children: Inline[]; textAlign?: TextAlign }
+  | { t: "paragraph"; children: Inline[]; textAlign?: TextAlign }
   | { t: "list"; ordered: boolean; start: number; items: ListItem[] }
-  | { t: "quote"; blocks: Block[] }
+  | { t: "quote"; blocks: Block[]; textAlign?: TextAlign }
   | { t: "code"; lang: string; text: string }
   | { t: "rule" }
   | { t: "table"; align: Align[]; head: Inline[][]; rows: Inline[][][] }
@@ -206,10 +210,38 @@ function trimRuns(input: Inline[]): Inline[] {
   return runs.filter((r) => r.t !== "text" || r.text !== "");
 }
 
-/** The document of a note body (without its frontmatter). */
-export function parseDocument(body: string): Block[] {
+/**
+ * The document of a note body (without its frontmatter). `aligned`: block
+ * alignments by the line their block starts on (`alignedLinesOf`).
+ */
+export function parseDocument(body: string, aligned?: ReadonlyMap<number, TextAlign>): Block[] {
   const reader = new Reader(body);
-  return blocksOfNode(reader, ursaParser.parse(body).topNode);
+  const blocks = blocksOfNode(reader, ursaParser.parse(body).topNode);
+  return aligned?.size ? withAlignment(blocks, aligned) : blocks;
+}
+
+/** Headings, paragraphs, quotes and list items starting on an aligned line take its alignment. */
+function withAlignment(blocks: Block[], aligned: ReadonlyMap<number, TextAlign>): Block[] {
+  return blocks.map((b): Block => {
+    const textAlign = aligned.get(b.line);
+    switch (b.t) {
+      case "heading":
+      case "paragraph":
+        return textAlign ? { ...b, textAlign } : b;
+      case "quote":
+        return { ...b, ...(textAlign && { textAlign }), blocks: withAlignment(b.blocks, aligned) };
+      case "list":
+        return {
+          ...b,
+          items: b.items.map((item) => {
+            const own = aligned.get(item.line);
+            return { ...item, ...(own && { textAlign: own }), blocks: withAlignment(item.blocks, aligned) };
+          }),
+        };
+      default:
+        return b;
+    }
+  });
 }
 
 function blocksOfNode(r: Reader, parent: SyntaxNode): Block[] {

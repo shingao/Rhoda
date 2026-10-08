@@ -33,6 +33,11 @@ export const SHORTCUTS = {
   "fold.all": { keys: "Ctrl+Shift+PageUp", scope: "editor" },
   "unfold.all": { keys: "Ctrl+Shift+PageDown", scope: "editor" },
   "section.isolate": { keys: "Ctrl+Shift+Enter", scope: "editor" },
+  // Alignment of the blocks of the selection: digits by physical key (AZERTY: no Shift needed to reach them).
+  "align.left": { keys: "Ctrl+Shift+Digit1", scope: "editor" },
+  "align.center": { keys: "Ctrl+Shift+Digit2", scope: "editor" },
+  "align.right": { keys: "Ctrl+Shift+Digit3", scope: "editor" },
+  "align.justify": { keys: "Ctrl+Shift+Digit4", scope: "editor" },
   // Physical key: the key right of M on QWERTY (it prints ";" on AZERTY, shown as such).
   "settings.open": { keys: "Ctrl+Comma", scope: "global" },
   // Maquette 03: Ctrl Maj F or F11; Escape also leaves it (see App).

@@ -66,6 +66,8 @@ export interface EditorHooks {
   stickersHidden(noteId: string): boolean;
   /** Right-click (or context menu key) on a sticker or post-it. */
   openStickerMenu(id: string, at: { x: number; y: number }): void;
+  /** Right-click (or context menu key) in the text: the block's menu (alignment). */
+  openBlockMenu(at: { x: number; y: number }): void;
 }
 
 export interface Backlink {
@@ -104,6 +106,7 @@ let hooks: EditorHooks = {
   imageMatches: () => null,
   openOcrText: () => undefined,
   openStickerMenu: () => undefined,
+  openBlockMenu: () => undefined,
 };
 
 export function setEditorHooks(next: Partial<EditorHooks>): void {

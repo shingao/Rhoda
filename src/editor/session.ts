@@ -16,6 +16,16 @@ import { placeSticker, runStickerCommand, type NewSticker, type StickerCommand }
 import { changesStickers, hideStickers, loadStickers, placeStickers, stickersField, storedStickers } from "./stickers/state";
 import { commitStickerEdit } from "./stickers/layer";
 import { EDITOR_COMMANDS } from "./setup";
+import { alignField, alignmentAt, canAlignAt, changesAligns, loadAligns, placeAligns, storedAligns } from "./align";
+import { serializeAligns, type Alignment, type BlockAlign } from "../core/align";
+
+/** What a note carries besides its text, kept in the editor state: stickers and block alignments. */
+export interface NoteExtras {
+  stickers: readonly Sticker[];
+  aligns: readonly BlockAlign[];
+}
+
+export const NO_EXTRAS: NoteExtras = { stickers: [], aligns: [] };
 import type { ShortcutId } from "../app/shortcuts";
 
 /**
@@ -96,7 +106,7 @@ export function mountEditor(parent: HTMLElement, ext: Extension, onEdit: (id: st
     ext,
     EditorView.updateListener.of((u) => {
       // Sticker changes are saved with the note's frontmatter, through the same autosave.
-      const edited = (u.docChanged && !u.transactions.some((t) => t.annotation(fromDisk))) || u.transactions.some(changesStickers);
+      const edited = (u.docChanged && !u.transactions.some((t) => t.annotation(fromDisk))) || u.transactions.some((t) => changesStickers(t) || changesAligns(t));
       if (edited && currentId) {
         onEdit(currentId, u.state.doc.toString());
       }
@@ -128,7 +138,7 @@ export function resetEditor(): void {
 }
 
 /** Shows a note instantly (no animation, DESIGN §4). */
-export function showNote(id: string | null, body: string, stickers: readonly Sticker[]): void {
+export function showNote(id: string | null, body: string, extras: NoteExtras): void {
   if (!view || id === currentId) return;
   // A post-it being typed in belongs to the note being left.
   commitStickerEdit(view);
@@ -150,7 +160,7 @@ export function showNote(id: string | null, body: string, stickers: readonly Sti
   editorHooks().findChanged(findInfo(view.state));
   if (!kept && id) {
     restoreFolds(editorHooks().savedFolds(id));
-    loadFromDisk(stickers);
+    loadFromDisk(extras);
     if (editorHooks().stickersHidden(id)) view.dispatch({ effects: hideStickers.of(true), annotations: Transaction.addToHistory.of(false) });
   }
   // A kept state may show stale links or backlinks.
@@ -174,26 +184,27 @@ export function refreshEditor(): void {
   view?.dispatch({ effects: refreshPreview.of(null) });
 }
 
-/** Puts the stickers read from the file in the open note (not undoable, not saved back). */
-function loadFromDisk(stickers: readonly Sticker[]): void {
+/** Puts the stickers and alignments read from the file in the open note (not undoable, not saved back). */
+function loadFromDisk({ stickers, aligns }: NoteExtras): void {
   if (!view) return;
-  const same = JSON.stringify(serializeStickers(storedStickers(view.state))) === JSON.stringify(serializeStickers(stickers));
-  if (same) return;
+  const sameStickers = JSON.stringify(serializeStickers(storedStickers(view.state))) === JSON.stringify(serializeStickers(stickers));
+  const sameAligns = JSON.stringify(serializeAligns(storedAligns(view.state))) === JSON.stringify(serializeAligns(aligns));
+  if (sameStickers && sameAligns) return;
   view.dispatch({
-    effects: loadStickers.of(placeStickers(stickers, view.state.doc)),
+    effects: [...(sameStickers ? [] : [loadStickers.of(placeStickers(stickers, view.state.doc))]), ...(sameAligns ? [] : [loadAligns.of(placeAligns(aligns, view.state.doc))])],
     annotations: [fromDisk.of(true), Transaction.addToHistory.of(false)],
   });
 }
 
 /** Applies a change made outside Ursa, keeping the cursor where it can. */
-export function replaceFromDisk(id: string, body: string, stickers: readonly Sticker[]): void {
+export function replaceFromDisk(id: string, body: string, extras: NoteExtras): void {
   if (id !== currentId || !view) {
     states.delete(id);
     return;
   }
   const { state } = view;
   if (state.doc.toString() === body) {
-    loadFromDisk(stickers);
+    loadFromDisk(extras);
     return;
   }
   const keys = currentFoldKeys(state);
@@ -204,7 +215,19 @@ export function replaceFromDisk(id: string, body: string, stickers: readonly Sti
     annotations: [fromDisk.of(true)],
   });
   restoreFolds(keys);
-  loadFromDisk(stickers);
+  loadFromDisk(extras);
+}
+
+/** Block alignments of a note as they should be saved (anchors from its current text), or null if the editor does not hold it. */
+export function editorAligns(id: string): BlockAlign[] | null {
+  const state = id === currentId && view ? view.state : states.get(id);
+  return state?.field(alignField, false) ? storedAligns(state) : null;
+}
+
+/** Alignment of the block at the cursor of the open note, and whether it can be aligned (menus, palette). */
+export function alignmentHere(): { align: Alignment; available: boolean } {
+  if (!view || !currentId) return { align: "left", available: false };
+  return { align: alignmentAt(view.state), available: canAlignAt(view.state) };
 }
 
 /** Stickers of a note as they should be saved (anchors from its current text), or null if the editor does not hold it. */

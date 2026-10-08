@@ -22,7 +22,8 @@ import { assetsApi } from "../services/assets";
 
 /** Attachments folder of the vault (the Rust side uses the same name). */
 const ASSETS_DIR = "assets";
-import { editorStickers, editorText, focusEditor, forgetNote, removeStickerAsset, replaceFromDisk, rewriteInEditor, showNote } from "../editor/session";
+import { editorAligns, editorStickers, editorText, focusEditor, forgetNote, NO_EXTRAS, removeStickerAsset, replaceFromDisk, rewriteInEditor, showNote } from "../editor/session";
+import { serializeAligns } from "../core/align";
 import { cloneStickers, serializeStickers, stickerId } from "../core/stickers";
 import { patchFrontmatter } from "../core/note/frontmatter";
 import { uuidv7 } from "../core/id";
@@ -105,9 +106,21 @@ function withEditorStickers(note: Note): Note {
   return withFrontmatter(note, { stickers: next });
 }
 
+/** The note with the block alignments of its editor state (anchors recomputed from the text). */
+function withEditorAligns(note: Note): Note {
+  const list = editorAligns(note.id);
+  if (!list) return note;
+  const next = serializeAligns(list);
+  if (JSON.stringify(next) === JSON.stringify(serializeAligns(note.aligns))) return note;
+  return withFrontmatter(note, { align: next });
+}
+
+/** What the editor holds of a note besides its text: stickers and alignments. */
+const withEditorData = (note: Note) => withEditorAligns(withEditorStickers(note));
+
 /** Writes a note (adding its id to the frontmatter if needed). Runs inside the queue; may throw. */
 async function persist(note: Note): Promise<Note> {
-  const toWrite = withStoredId(withEditorStickers(note));
+  const toWrite = withStoredId(withEditorData(note));
   const content = serializeNote(toWrite);
   if (content === toWrite.diskContent) {
     putNote(toWrite);
@@ -326,7 +339,7 @@ async function restoreItems(name: string, items: UndoItem[]): Promise<Note[]> {
     const note = noteFromFile(file, id);
     putNote(note);
     lastTitles.set(note.id, note.title);
-    if (existed) replaceFromDisk(id, note.body, note.stickers);
+    if (existed) replaceFromDisk(id, note.body, note);
     return note;
   });
 }
@@ -595,7 +608,7 @@ export function hasPendingSave(id: string): boolean {
 export function unsavedNotes(): Array<{ id: string; title: string; content: string }> {
   return [...pendingBodies].flatMap(([id, body]) => {
     const note = noteById(id);
-    return note ? [{ id, title: note.title, content: serializeNote(withStoredId(withEditorStickers(withBody(note, body)))) }] : [];
+    return note ? [{ id, title: note.title, content: serializeNote(withStoredId(withEditorData(withBody(note, body)))) }] : [];
   });
 }
 
@@ -636,7 +649,7 @@ export function selectNote(id: string | null): void {
   if (previous) void flushNote(previous);
   setState({ selectedId: id });
   const note = id ? noteById(id) : undefined;
-  showNote(id, note?.body ?? "", note?.stickers ?? []);
+  showNote(id, note?.body ?? "", note ?? NO_EXTRAS);
 }
 
 /** Writes a new note file (name made unique on disk) and adds it to the index. */
@@ -679,6 +692,7 @@ export async function duplicateNote(id: string): Promise<void> {
       pinned: undefined,
       trashed: undefined,
       stickers: serializeStickers(stickers),
+      align: serializeAligns(editorAligns(id) ?? source.aligns),
     });
     const content = serializeNote({ frontmatter, body: currentText(id), eol: source.eol });
     const created = noteFromFile(await vaultApi.create(sanitizeStem(source.title, untitled), content));
@@ -913,7 +927,7 @@ export function handleDiskChanges(paths: string[]): Promise<void> {
         if (updated.id === existing.id) {
           putNote(updated);
           lastTitles.set(updated.id, updated.title);
-          replaceFromDisk(existing.id, updated.body, updated.stickers);
+          replaceFromDisk(existing.id, updated.body, updated);
         } else {
           // Its id was edited by hand: treat as a different note.
           vanished.set(existing.id, existing);
@@ -928,11 +942,11 @@ export function handleDiskChanges(paths: string[]): Promise<void> {
       if (holder && vanished.has(note.id)) {
         vanished.delete(note.id);
         putNote(note);
-        replaceFromDisk(note.id, note.body, note.stickers);
+        replaceFromDisk(note.id, note.body, note);
       } else if (holder && (await vaultApi.read(holder.path)) === null) {
         // Moved outside Ursa, the old path being reported in another batch.
         putNote(note);
-        replaceFromDisk(note.id, note.body, note.stickers);
+        replaceFromDisk(note.id, note.body, note);
       } else if (holder) {
         await reidentify(note);
       } else {
@@ -942,7 +956,7 @@ export function handleDiskChanges(paths: string[]): Promise<void> {
     }
 
     const selectedVanished = vanished.has(getState().selectedId ?? "");
-    if (selectedVanished) showNote(null, "", []);
+    if (selectedVanished) showNote(null, "", NO_EXTRAS);
     for (const id of vanished.keys()) forget(id);
     removeNotes([...vanished.keys()]);
     if (selectedVanished) selectNote(currentList()[0]?.id ?? null);

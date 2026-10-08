@@ -7,6 +7,7 @@ import { backlinks } from "./backlinks";
 import { embeds } from "./embeds/field";
 import { stickerLayer } from "./stickers/layer";
 import { stickerState } from "./stickers/state";
+import { alignCommand, alignState, blockMenuHandlers } from "./align";
 import { completions } from "./completion";
 import { markdownLanguage } from "./language";
 import { linkPreview } from "./linkPreview";
@@ -28,6 +29,10 @@ export const EDITOR_COMMANDS: Partial<Record<ShortcutId, Command>> = {
   "unfold.all": unfoldAll,
   "section.isolate": toggleIsolation,
   "task.toggle": toggleTasks,
+  "align.left": alignCommand("left"),
+  "align.center": alignCommand("center"),
+  "align.right": alignCommand("right"),
+  "align.justify": alignCommand("justify"),
 };
 
 /** Editor frame, driven by design tokens only. Markdown rendering lives in livePreview/ and editor.css. */
@@ -79,6 +84,8 @@ export function editorExtensions(): Extension {
     // Always in the state (saved with the note); drawn unless showing raw Markdown.
     stickerState,
     rawMarkdown ? [] : stickerLayer,
+    alignState,
+    blockMenuHandlers,
     completions(),
     folding,
     isolationField,

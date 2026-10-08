@@ -273,6 +273,37 @@ try {
     }
   }
 
+  // Block alignment (decision P11-2): every paragraph, heading, quote and list
+  // item centred, right-aligned or justified in turn; the rhythm must not move.
+  const alignedCount = await page.evaluate(async () => {
+    const v = window.__ursaView;
+    const { blocksOf } = await import("/src/core/stickers.ts");
+    const { isAlignable } = await import("/src/core/align.ts");
+    const { alignTransaction } = await import("/src/editor/align.ts");
+    const blocks = blocksOf(v.state.doc.toString().split("\n")).filter((b) => isAlignable(b.type));
+    const kinds = ["center", "right", "justify"];
+    v.dispatch(alignTransaction(blocks.map((b, i) => ({ pos: v.state.doc.line(b.from).from, before: null, after: kinds[i % 3] }))));
+    return { blocks: blocks.length, lines: document.querySelectorAll(".cm-align-center, .cm-align-right, .cm-align-justify").length };
+  });
+  if (alignedCount.lines === 0) {
+    failures++;
+    console.error("✗ alignement : aucune ligne alignée");
+  }
+  for (const font of FONTS) {
+    for (const size of [14, 16.5, 20]) {
+      const { out: problems, lines } = await page.evaluate(lineCheck, { font, size, EPS });
+      const tag = `aligné ${font} ${size}px`;
+      if (problems.length) {
+        failures += problems.length;
+        console.error(`✗ ${tag}\n  ${problems.slice(0, 12).join("\n  ")}`);
+      } else console.log(`✓ ${tag} (${alignedCount.blocks} blocs centrés, à droite ou justifiés, ${lines} lignes)`);
+    }
+  }
+  await page.evaluate(async () => {
+    const { loadAligns } = await import("/src/editor/align.ts");
+    window.__ursaView.dispatch({ effects: loadAligns.of([]) });
+  });
+
   // Windows display scaling (decision P10-15): a real scale factor, as on
   // Windows (Playwright's emulated one lays the page out differently).
   for (const dpr of SCALES) {

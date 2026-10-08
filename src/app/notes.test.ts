@@ -1,3 +1,4 @@
+import type { BlockAlign } from "../core/align";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { NoteFile } from "../core/note/note";
 import type { Sticker } from "../core/stickers";
@@ -104,6 +105,7 @@ const editor = vi.hoisted(() => ({
   text: "",
   rewrites: [] as Array<{ id: string; changes: unknown }>,
   stickers: null as Sticker[] | null,
+  aligns: null as BlockAlign[] | null,
 }));
 vi.mock("../editor/session", () => ({
   showNote: vi.fn(),
@@ -112,6 +114,8 @@ vi.mock("../editor/session", () => ({
   focusEditor: vi.fn(),
   editorText: (id: string) => (id === editor.openId ? editor.text : null),
   editorStickers: (id: string) => (id === editor.openId ? editor.stickers : null),
+  editorAligns: (id: string) => (id === editor.openId ? editor.aligns : null),
+  NO_EXTRAS: { stickers: [], aligns: [] },
   removeStickerAsset: (id: string, asset: string) => {
     if (id !== editor.openId || !editor.stickers) return false;
     editor.stickers = editor.stickers.filter((s) => s.asset !== asset);
@@ -182,6 +186,7 @@ beforeEach(async () => {
   editor.text = "";
   editor.rewrites = [];
   editor.stickers = null;
+  editor.aligns = null;
   vi.mocked(session.replaceFromDisk).mockClear();
 });
 
@@ -253,7 +258,39 @@ describe("stickers", () => {
     await loadNotes(diskFiles());
     fake.files.set("K.md", { ...fake.files.get("K.md")!, content: "---\nid: k\nstickers:\n  - { id: x, type: sticker, asset: fluent/sun, anchor: { block: heading, text: k, index: 0 } }\n---\n# K\n" });
     await handleDiskChanges(["K.md"]);
-    expect(session.replaceFromDisk).toHaveBeenCalledWith("k", "# K\n", [expect.objectContaining({ id: "x", asset: "fluent/sun" })]);
+    expect(session.replaceFromDisk).toHaveBeenCalledWith("k", "# K\n", expect.objectContaining({ stickers: [expect.objectContaining({ id: "x", asset: "fluent/sun" })] }));
+  });
+});
+
+describe("block alignment", () => {
+  it("saves the editor's alignments in the frontmatter (align:), removed with the last one", async () => {
+    seed("A.md", "---\nid: a\nmood: calme\n---\n# Titre\n\nTexte.\n");
+    await loadNotes(diskFiles());
+    editor.openId = "a";
+    editor.text = "# Titre\n\nTexte.\n";
+    editor.aligns = [{ anchor: { type: "heading", text: "titre", index: 0 }, align: "center" }];
+    editNote("a", editor.text);
+    await vi.advanceTimersByTimeAsync(600);
+    const content = fake.files.get("A.md")!.content;
+    expect(content).toContain("mood: calme");
+    expect(content).toMatch(/align:\n\s+- block: heading\n\s+text: titre\n\s+index: 0\n\s+align: center/);
+    expect(getState().notes.a?.aligns).toEqual(editor.aligns);
+    expect(content.endsWith("# Titre\n\nTexte.\n")).toBe(true);
+    editor.aligns = [];
+    editNote("a", editor.text);
+    await vi.advanceTimersByTimeAsync(600);
+    expect(fake.files.get("A.md")!.content).not.toContain("align");
+  });
+
+  it("passes alignments edited elsewhere to the editor; a copy keeps them", async () => {
+    seed("B.md", "---\nid: b\n---\n# B\n");
+    await loadNotes(diskFiles());
+    fake.files.set("B.md", { ...fake.files.get("B.md")!, content: "---\nid: b\nalign:\n  - { block: heading, text: b, index: 0, align: right }\n---\n# B\n" });
+    await handleDiskChanges(["B.md"]);
+    expect(session.replaceFromDisk).toHaveBeenCalledWith("b", "# B\n", expect.objectContaining({ aligns: [{ anchor: { type: "heading", text: "b", index: 0 }, align: "right" }] }));
+    const { duplicateNote } = await import("./notes");
+    await duplicateNote("b");
+    expect(notes().find((n) => n.id !== "b")?.aligns).toEqual([{ anchor: { type: "heading", text: "b", index: 0 }, align: "right" }]);
   });
 });
 
@@ -416,7 +453,7 @@ describe("external edits", () => {
     fake.files.set("A.md", { content: "---\nid: a\n---\n# A\nfrom Notepad\n", mtime: 5000, created: 1 });
     await handleDiskChanges(["A.md"]);
     expect(getState().notes.a?.body).toContain("from Notepad");
-    expect(session.replaceFromDisk).toHaveBeenCalledWith("a", "# A\nfrom Notepad\n", []);
+    expect(session.replaceFromDisk).toHaveBeenCalledWith("a", "# A\nfrom Notepad\n", expect.objectContaining({ stickers: [], aligns: [] }));
   });
 });
 
@@ -585,7 +622,7 @@ describe("safety backups before bulk operations", () => {
     expect(toast.action?.label).toBe("Annuler");
     const backup = [...fake.backups.keys()].find((k) => k.endsWith("-update-links"))!;
     expect(await undoBulk(backup)).toBe("undone");
-    expect(session.replaceFromDisk).toHaveBeenCalledWith("l", "# L\nVoir [[Voyage]]\n", []);
+    expect(session.replaceFromDisk).toHaveBeenCalledWith("l", "# L\nVoir [[Voyage]]\n", expect.objectContaining({ stickers: [], aligns: [] }));
   });
 
   it("emptying the trash can be undone: the notes come back, in the trash", async () => {

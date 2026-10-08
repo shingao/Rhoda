@@ -11,6 +11,7 @@ import { CropDialog } from "../editor/CropDialog";
 import { ExportDialog } from "../export/ExportDialog";
 import { CommandPalette } from "../palette/CommandPalette";
 import { CardMenu } from "../editor/CardMenu";
+import { BlockMenu } from "../editor/BlockMenu";
 import { StickerMenu } from "../stickers/StickerMenu";
 import { OcrText } from "../editor/OcrText";
 import { EditorPane } from "../editor/EditorPane";
@@ -62,6 +63,7 @@ export function AppLayout() {
       <CommandPalette />
       <CardMenu />
       <StickerMenu />
+      <BlockMenu />
       <OcrText />
       <CloseDialog />
       <ConfirmHost />

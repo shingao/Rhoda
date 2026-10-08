@@ -98,6 +98,7 @@
   --hmarker-fs: var(--fs-2xs);
   --hmarker-opacity: .55;
   --hmarker-nudge: 1px;                    /* (decision) optical alignment on the x-height */
+  --hmarker-gap: var(--sp-2);              /* (decision P11-3) marker right before a centred or right-aligned heading [§2.14] */
   --h1-shift: 10px;                        /* [§3] baseline on the 2nd rule */
   --h1-tracking: -0.015em;
   --inline-code-pad: 1px 5px;

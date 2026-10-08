@@ -4,6 +4,7 @@ import { joinFrontmatter, parseFrontmatter, patchFrontmatter, splitFrontmatter, 
 import { applyEol, detectEol, normalizeEol, previewFromBody, titleFromBody, type Eol } from "./text";
 import { extractSyntax, type NoteSyntax } from "../markdown/extract";
 import { parseStickers, type Sticker } from "../stickers";
+import { parseAligns, type BlockAlign } from "../align";
 
 /** A note file as returned by the backend. */
 export interface NoteFile {
@@ -40,8 +41,12 @@ export interface Note {
   /** Page background and red margin from the frontmatter; null = default setting. */
   paper: Paper | null;
   margin: boolean | null;
+  /** Text column on the page (`column: left | center`); null = default setting. */
+  column: ColumnPosition | null;
   /** Stickers and post-its from the frontmatter (`stickers:`), in place order. */
   stickers: Sticker[];
+  /** Blocks not aligned left (`align:`), anchored like stickers. */
+  aligns: BlockAlign[];
   /** Tags, wiki links and todos; null until indexed (done in the background at startup). */
   syntax: NoteSyntax | null;
 }
@@ -59,6 +64,10 @@ function readStoredId(data: FrontmatterData): string | null {
   if (typeof id === "number") return String(id);
   return null;
 }
+
+/** Where the text column sits on the page: centred (default) or against the left. */
+export const COLUMN_POSITIONS = ["center", "left"] as const;
+export type ColumnPosition = (typeof COLUMN_POSITIONS)[number];
 
 /** Page background of a note [DESIGN §7]. */
 export const PAPERS = ["plain", "lined", "grid", "dots"] as const;
@@ -87,7 +96,9 @@ function deriveFromFrontmatter(frontmatter: string | null, file: { created: numb
     pinned: data.pinned === true,
     archived: data.archived === true,
     trashed: data.trashed !== undefined && data.trashed !== false && data.trashed !== null,
+    column: (COLUMN_POSITIONS as readonly unknown[]).includes(data.column) ? (data.column as ColumnPosition) : null,
     stickers: parseStickers(data.stickers),
+    aligns: parseAligns(data.align),
   };
 }
 

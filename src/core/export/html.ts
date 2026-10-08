@@ -1,4 +1,4 @@
-import { headingSlug, plainText, type Block, type Inline } from "./model";
+import { headingSlug, plainText, type Block, type Inline, type TextAlign } from "./model";
 
 /**
  * A note's document as HTML (the body of an export page; styles in
@@ -127,11 +127,11 @@ class Renderer {
     const line = ` data-line="${b.line}"${b.gap ? " data-gap" : ""}`;
     switch (b.t) {
       case "heading":
-        return `${at}<h${b.level} id="${this.ids.take()}"${line}>${this.inlines(b.children)}</h${b.level}>`;
+        return `${at}<h${b.level} id="${this.ids.take()}"${alignClass(b.textAlign)}${line}>${this.inlines(b.children)}</h${b.level}>`;
       case "paragraph":
-        return `${at}<p${line}>${this.inlines(b.children)}</p>`;
+        return `${at}<p${alignClass(b.textAlign)}${line}>${this.inlines(b.children)}</p>`;
       case "quote":
-        return `${at}<blockquote${line}>${this.blocks(b.blocks)}</blockquote>`;
+        return `${at}<blockquote${alignClass(b.textAlign)}${line}>${this.blocks(b.blocks)}</blockquote>`;
       case "code":
         return `${at}<figure class="u-code"${line}>${b.lang ? `<figcaption>${escapeHtml(b.lang)}</figcaption>` : ""}<pre><code>${escapeHtml(b.text)}</code></pre></figure>`;
       case "rule":
@@ -143,10 +143,11 @@ class Renderer {
         const items = b.items
           .map((item) => {
             const inner = this.decorationsUpTo(item.line) + this.blocks(item.blocks);
-            if (item.checked === null) return `<li data-line="${item.line}">${inner}</li>`;
+            const aligned = item.textAlign ? ` u-align-${item.textAlign}` : "";
+            if (item.checked === null) return `<li${alignClass(item.textAlign)} data-line="${item.line}">${inner}</li>`;
             const label = item.checked ? this.o.labels.done : this.o.labels.todo;
             const box = `<input type="checkbox" disabled${item.checked ? " checked" : ""} aria-label="${escapeHtml(label)}">`;
-            return `<li class="u-task${item.checked ? " u-done" : ""}" data-line="${item.line}">${box}<div>${inner}</div></li>`;
+            return `<li class="u-task${item.checked ? " u-done" : ""}${aligned}" data-line="${item.line}">${box}<div>${inner}</div></li>`;
           })
           .join("");
         return `${at}<${tag}${start}${tasks}${line}>${items}</${tag}>`;
@@ -236,4 +237,9 @@ function decodeURIComponentSafe(s: string): string {
   } catch {
     return s;
   }
+}
+
+/** Class of a block aligned in the note (export.css: .u-align-*); none when left. */
+function alignClass(align: TextAlign | undefined): string {
+  return align ? ` class="u-align-${align}"` : "";
 }

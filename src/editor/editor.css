@@ -88,6 +88,19 @@
   user-select: none;
 }
 
+/* Centred or right-aligned heading (decision P11-3): the marker goes right
+   before the text instead of the margin. An inline box of zero advance and
+   zero height: it neither moves the centred text nor the rhythm. */
+.cm-editor .cm-line.cm-h:is(.cm-align-center, .cm-align-right)::before {
+  position: relative;
+  left: auto;
+  display: inline-block;
+  height: 0;
+  margin-left: calc(-1 * (var(--hmarker-w) + var(--hmarker-gap)));
+  margin-right: var(--hmarker-gap);
+  vertical-align: top;
+}
+
 /* Settings › Éditeur › margin markers off [§2.14] */
 :root[data-no-heading-markers] .cm-editor .cm-line.cm-h::before {
   display: none;
@@ -1641,4 +1654,25 @@
     outline: 1px solid CanvasText;
     outline-offset: -1px;
   }
+}
+
+/* Block alignment (decision P11-2): paragraphs, headings, quotes, list items.
+   Never code blocks, tables or images (the editor gives them no class). */
+.cm-editor .cm-line.cm-align-center {
+  text-align: center;
+}
+
+.cm-editor .cm-line.cm-align-right {
+  text-align: right;
+}
+
+.cm-editor .cm-line.cm-align-justify {
+  text-align: justify;
+}
+
+/* Centred or right: the bullet, number or checkbox stays right before its text
+   (no hanging indent, no level indent: the text is not on the left edge). */
+.cm-editor .cm-line:is(.cm-align-center, .cm-align-right):is(.cm-list-line, .cm-task-line, .cm-list-cont, .cm-task-cont) {
+  padding-left: 0;
+  text-indent: 0;
 }

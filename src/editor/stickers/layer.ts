@@ -6,6 +6,7 @@ import { editorHooks } from "../hooks";
 import { isHidden } from "../sections/visibility";
 import { buildPostit, fillPostit } from "./postit";
 import { blockStartAt, stickerTransaction, stickersField, stickersOf, stickersVisible, type Placed } from "./state";
+import { alignField } from "../align";
 
 /**
  * Stickers and post-its drawn above the text, in an absolute layer of the
@@ -107,6 +108,33 @@ export function fitInMargin(box: Box, width: number, g: Pick<Geometry, "colLeft"
   return { x: box.x, scale: 1, side: null, room: 0, limit: 0 };
 }
 
+/** Horizontal extent of the text of a line, and its vertical span (layer coordinates). */
+export interface TextSpan {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+}
+
+/**
+ * A sticker over the text of centred, right-aligned or justified lines
+ * (decision P11-4): drawn just beside that text instead, on the nearer side
+ * that fits in view (display only, like `fitInMargin`). Text aligned left is
+ * never avoided: a sticker put on it was put there on purpose.
+ */
+export function avoidText(box: Box, width: number, height: number, spans: readonly TextSpan[], g: Pick<Geometry, "viewLeft" | "viewRight">, gap: number): number {
+  const under = spans.filter((s) => s.top < box.y + height && s.bottom > box.y);
+  if (under.length === 0) return box.x;
+  const left = Math.min(...under.map((s) => s.left));
+  const right = Math.max(...under.map((s) => s.right));
+  if (box.x >= right || box.x + width <= left) return box.x;
+  const before = left - gap - width;
+  const after = right + gap;
+  const fits = (x: number) => x >= g.viewLeft && x + width <= g.viewRight;
+  const options = [before, after].filter(fits).sort((a, b) => Math.abs(a - box.x) - Math.abs(b - box.x));
+  return options[0] ?? box.x;
+}
+
 /**
  * A post-it that would shrink below `pillBelow` of its size becomes a pill
  * filling the margin room instead (display only); `open` shows it whole
@@ -179,7 +207,9 @@ class StickerLayer implements PluginValue {
       if (!visible && this.dom.contains(document.activeElement)) this.view.focus();
       this.dom.hidden = !visible;
     }
-    if (items !== u.startState.field(stickersField) || u.docChanged || u.geometryChanged || u.heightChanged || u.viewportChanged) this.measure();
+    // An alignment changed: the text under a sticker may have moved (see avoidText).
+    const realigned = u.state.field(alignField, false) !== u.startState.field(alignField, false);
+    if (items !== u.startState.field(stickersField) || realigned || u.docChanged || u.geometryChanged || u.heightChanged || u.viewportChanged) this.measure();
   }
 
   /** Holding Alt: stickers turn see-through and let clicks reach the text. AltGr (Ctrl+Alt) is typing, not this. */
@@ -302,17 +332,27 @@ class StickerLayer implements PluginValue {
         const tops = this.items.map((p) => (isHidden(view.state, p.pos) ? null : view.lineBlockAt(p.pos).top));
         // A collapsed post-it is as wide as its pill.
         const widths = this.items.map((p) => (p.collapsed ? (this.nodes.get(p.id)?.offsetWidth ?? p.size) : p.size));
+        // Text of the aligned lines on screen (stickers over them step aside).
+        const range = document.createRange();
+        const spans: TextSpan[] = [...view.contentDOM.querySelectorAll<HTMLElement>(".cm-line.cm-align-center, .cm-line.cm-align-right, .cm-line.cm-align-justify")].flatMap((el) => {
+          range.selectNodeContents(el);
+          const rects = [...range.getClientRects()].filter((r) => r.width > 0);
+          if (rects.length === 0) return [];
+          const line = el.getBoundingClientRect();
+          return [{ top: line.top - geometry.originY, bottom: line.bottom - geometry.originY, left: Math.min(...rects.map((r) => r.left)) - geometry.originX, right: Math.max(...rects.map((r) => r.right)) - geometry.originX }];
+        });
         return {
           geometry,
           tops,
           widths,
+          spans,
           edge: cssPx("--sticker-edge"),
           minScale: cssPx("--sticker-fit-min"),
           pillBelow: cssPx("--postit-fit-pill"),
           pill: { min: cssPx("--postit-pill-h"), max: cssPx("--postit-pill-max") + cssPx("--postit-pill-h") },
         };
       },
-      write: ({ geometry, tops, widths, edge, minScale, pillBelow, pill }) => {
+      write: ({ geometry, tops, widths, spans, edge, minScale, pillBelow, pill }) => {
         this.geometry = geometry;
         this.items.forEach((p, i) => {
           const node = this.nodes.get(p.id);
@@ -321,7 +361,9 @@ class StickerLayer implements PluginValue {
           node.hidden = top === null || top === undefined;
           if (node.hidden) return;
           const box = { x: geometry.colLeft + (p.dx / 100) * geometry.colWidth, y: geometry.docTop + top! + p.dy };
-          const natural = fitInMargin(box, widths[i]!, geometry, edge, minScale);
+          const fitted = fitInMargin(box, widths[i]!, geometry, edge, minScale);
+          const height = p.kind === "postit" && !p.collapsed ? p.size : widths[i]!;
+          const natural = fitted.side ? fitted : { ...fitted, x: avoidText(box, widths[i]!, height, spans, { viewLeft: geometry.viewLeft + edge, viewRight: geometry.viewRight - edge }, edge) };
           let fit: { x: number; scale: number; pill?: number | null } = natural;
           if (p.kind === "postit" && !p.collapsed) {
             // The window widened: the popover is no longer needed.

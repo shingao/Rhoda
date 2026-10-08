@@ -16,7 +16,7 @@ import { IconButton } from "../../components/IconButton";
 import { Menu } from "../../components/Menu";
 import { Tooltip } from "../../components/Tooltip";
 import { editorExtensions } from "../../editor/setup";
-import { isSectionIsolated, mountEditor, runSectionCommand, setEditorOption, showNote, unmountEditor } from "../../editor/session";
+import { isSectionIsolated, mountEditor, NO_EXTRAS, runSectionCommand, setEditorOption, showNote, unmountEditor } from "../../editor/session";
 import { focusDim, focusDimCompartment } from "../../editor/focusDim";
 import { typewriter, typewriterCompartment } from "../../editor/typewriter";
 import { noteMenuEntries } from "../notelist/noteActions";
@@ -25,6 +25,7 @@ import { FindPanel } from "./FindPanel";
 import { NoteInfo } from "./NoteInfo";
 import { useNoteStats } from "./useNoteStats";
 import { PaperPicker } from "./PaperPicker";
+import { alignEntries } from "./alignEntries";
 import paperStyles from "./paper.module.css";
 import { FindPill } from "./FindPill";
 import { OutlinePanel } from "../outline/OutlinePanel";
@@ -68,7 +69,7 @@ export function EditorPane() {
     const detach = attachAutoHideScrollbar(view.scrollDOM);
     const { selectedId: id, notes } = useApp.getState();
     const note = id ? notes[id] : undefined;
-    showNote(id, note?.body ?? "", note?.stickers ?? []);
+    showNote(id, note?.body ?? "", note ?? NO_EXTRAS);
     return () => {
       detach();
       unmountEditor();
@@ -215,6 +216,10 @@ export function EditorPane() {
                     shortcut: shortcutLabel("section.isolate", t),
                     onSelect: () => runSectionCommand("toggleIsolation"),
                   },
+                  ...(() => {
+                    const align = alignEntries(t);
+                    return align.length ? [{ kind: "separator" as const, id: "sep-align" }, ...align, { kind: "separator" as const, id: "sep-align-end" }] : [];
+                  })(),
                   {
                     id: "attach",
                     label: t.images.insert,

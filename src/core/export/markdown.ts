@@ -7,7 +7,7 @@ import { parseEmbedLine, resolveVaultPath } from "../markdown/embeds";
  */
 
 /** Frontmatter keys managed by Ursa (identity, flags, page, stickers): not exported. */
-export const URSA_KEYS = ["id", "created", "pinned", "archived", "trashed", "paper", "margin", "page", "stickers"] as const;
+export const URSA_KEYS = ["id", "created", "pinned", "archived", "trashed", "paper", "margin", "page", "column", "stickers", "align"] as const;
 
 const DEST = String.raw`(<[^>\n]+>|[^\s()<>]+(?:\([^\s()]*\)[^\s()<>]*)*)`;
 const LINK = new RegExp(String.raw`(!?\[[^\]\n]*\]\()${DEST}((?:\s+"[^"\n]*")?\))`, "g");

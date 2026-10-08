@@ -61,6 +61,7 @@ export function connectEditor(): void {
     openCardMenu,
     stickerUrl,
     openStickerMenu,
+    openBlockMenu: (at) => setState({ blockMenu: { at } }),
     stickersHidden,
     linkExists: (target) => resolve(target) !== null,
     openWikiLink: (target) => {

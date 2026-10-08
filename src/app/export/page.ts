@@ -1,5 +1,6 @@
 import { renderHtml, type Decoration, type LinkPreviewData } from "../../core/export/html";
 import { parseDocument, withoutTags, type Block } from "../../core/export/model";
+import { alignedLinesOf } from "../../core/align";
 import { isRemote, resolveVaultPath } from "../../core/markdown/embeds";
 import type { Note, Paper } from "../../core/note/note";
 import { blocksOf, resolveAnchor, type Sticker } from "../../core/stickers";
@@ -198,7 +199,7 @@ export interface ExportPage {
 export async function exportPage(note: Note, options: PageOptions): Promise<ExportPage> {
   const t = currentMessages();
   const { settings } = getState();
-  const parsed = parseDocument(note.body);
+  const parsed = parseDocument(note.body, alignedLinesOf(note.aligns, note.body));
   const blocks = options.tags ? parsed : withoutTags(parsed);
   const [images, cards, decos, fonts] = await Promise.all([
     options.images ? noteImages(note, blocks) : Promise.resolve(new Map<string, string>()),
