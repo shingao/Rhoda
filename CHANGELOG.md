@@ -2,7 +2,7 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
-## [1.0.0] — 2026-10-07
+## [1.0.0] — 2026-10-08
 
 Première version publique. L'app s'appelait Ursa pendant le développement : réglages et dossier de notes d'Ursa sont repris automatiquement.
 
@@ -19,6 +19,9 @@ Première version publique. L'app s'appelait Ursa pendant le développement : r�
 - Fonds de page (uni, ligné, quadrillé, pointillé, marge rouge) alignés sur un rythme vertical de 28 px, à toutes les échelles d'affichage de Windows.
 - Images (coller, déposer, importer ; redimensionner, recadrer sans perte), cartes PDF, aperçus de liens (désactivables, seule requête réseau de l'app).
 - Stickers (environ 200 Fluent Emoji et vos propres images) et post-it, ancrés au texte, annulables.
+- Alignement par bloc : à gauche, centré, à droite ou justifié, pour les paragraphes, titres, citations et éléments de liste (clic droit dans le texte, menu …, palette, Ctrl+Maj+1 à 4) ; enregistré en tête de note, le Markdown reste propre ; respecté par les exports.
+- Colonne de texte centrée ou contre le bord gauche, pour toutes les notes ou note par note ; la marge rouge suit.
+- Mode machine à écrire : la ligne en cours reste au centre pendant l'écriture et aux flèches haut / bas, avec un défilement doux ; un clic, la souris ou la molette ne déplacent jamais le texte.
 
 ### Recherche
 - Recherche instantanée dans tout le coffre : syntaxe (`#tag`, `"expression"`, `-exclusion`, `@images`…), insensible à la casse et aux accents, extraits.

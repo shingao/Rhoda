@@ -510,6 +510,8 @@ export const fr = {
     center: "Centrer",
     right: "Aligner à droite",
     justify: "Justifier",
+    /** Palette: one prefix, so "align", "centr" or "justif" find them all. */
+    commands: { left: "Alignement : à gauche", center: "Alignement : centré", right: "Alignement : à droite", justify: "Alignement : justifié" },
     unavailable: "pas d'alignement dans un bloc de code, un tableau ou une image",
   },
   folding: {

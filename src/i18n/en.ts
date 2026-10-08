@@ -500,6 +500,7 @@ export const en: Messages = {
     center: "Centre",
     right: "Align right",
     justify: "Justify",
+    commands: { left: "Alignment: left", center: "Alignment: centred", right: "Alignment: right", justify: "Alignment: justified" },
     unavailable: "no alignment in a code block, table or image",
   },
   folding: {

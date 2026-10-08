@@ -1,6 +1,6 @@
 # Bullshit (nom de code Ursa) — PROGRESS
 
-État : **Phase 10d (nom, icône, installeur, version 1.0.0) terminée** (à valider sur Windows) — fusion dans `main` préparée, pas faite.
+État : **Retours sur la 1.0 traités** sur la branche `fix/retours-v1` (machine à écrire, nom, alignement, colonne) — à valider sur Windows ; release 1.0.0 brouillon recréée par la CI ; fusion dans `main` préparée, pas faite.
 
 | Phase | Sujet | État |
 |---|---|---|
@@ -14,7 +14,7 @@
 | 7 | Images, aperçus de liens, PDF | ✅ validée |
 | 8 | Stickers et post-it | ✅ validée |
 | 9 | OCR local | ✅ validée |
-| 10 | Export, raccourcis, palette, packaging | 🟡 10a, 10b et 10c validées ; 10d terminée, à valider |
+| 10 | Export, raccourcis, palette, packaging | 🟡 10a à 10d validées ; retours sur la 1.0 traités, à valider |
 
 ---
 
@@ -1125,7 +1125,7 @@ Captures de l'installeur réel (artefact `installer-captures` du run, 7 images) 
 |---|---|---|
 | P10-20 | Icône | Aucune icône carrée finale dans `design/` : tuile recadrée de la référence du coquelicot (choix de l'utilisateur). La référence fait 304 px : la version 1 024 px est agrandie (douce), les tailles jusqu'à 256 px sont nettes. Remplaçable par une source vectorielle plus tard sans rien changer d'autre (`npm run icon`). |
 | P10-21 | MSI abandonné | Le `.msi` de Tauri s'installe par machine (droits administrateur) et ne partage pas l'entrée de mise à jour du NSIS par utilisateur : deux installations concurrentes possibles. Seul l'installeur NSIS est produit. |
-| P10-22 | Noms internes gardés | `.ursa/` dans le coffre, clés `ursa-*` (localStorage de dev, événements de performance), protocole `ursa-export:`, `URSA_PDF_SMOKE`, crate `ursa_lib`, journal `ursa.log`, branche Git : invisibles pour l'utilisateur, et renommer `.ursa/` obligerait à migrer chaque coffre. |
+| P10-22 | Noms internes gardés | `.ursa/` dans le coffre, clés `ursa-*` (localStorage de dev, événements de performance), protocole `ursa-export:`, `URSA_PDF_SMOKE`, crate `ursa_lib`, branche Git (journal : voir P11-9) : invisibles pour l'utilisateur, et renommer `.ursa/` obligerait à migrer chaque coffre. |
 | P10-23 | Migration non destructive | Réglages copiés (pas déplacés) ; dossier de notes renommé seulement vers un dossier inexistant, sinon laissé tel quel ; aucune migration du cache WebView (le thème mis en cache se reconstruit au premier lancement : au pire un clignement du thème par défaut, une seule fois). |
 | P10-24 | Raccourci bureau | Proposé (case cochée) sur la dernière page de l'installeur ; une installation silencieuse le crée, comme le fait le modèle de Tauri. |
 | P10-25 | Fermeture pendant le démarrage | Elle attend le démarrage au plus 5 s (un disque lent ou absent ne bloque jamais la fermeture), puis la file d'écriture ; les réglages en attente sont écrits sans attendre leur délai de 300 ms. |
@@ -1140,20 +1140,20 @@ Captures de l'installeur réel (artefact `installer-captures` du run, 7 images) 
 
 ### Fusion dans `main` (à faire après validation, pas faite)
 
-Le dépôt n'a pas encore de branche `main` : la branche de travail `claude/ursa-notes-app-j3yanr` porte tout l'historique. Deux possibilités, au choix :
-1. **Sur GitHub** : *Code* › menu des branches › taper `main` › « Create branch main from claude/ursa-notes-app-j3yanr », puis *Settings* › *General* › *Default branch* › `main`. Rien à fusionner : `main` part du dernier commit validé.
+Le dépôt n'a pas encore de branche `main`. La branche `fix/retours-v1` contient tout l'historique de `claude/ursa-notes-app-j3yanr` plus les corrections des retours sur la 1.0 : c'est d'elle que `main` doit partir. Deux possibilités, au choix :
+1. **Sur GitHub** : *Code* › menu des branches › taper `main` › « Create branch main from fix/retours-v1 », puis *Settings* › *General* › *Default branch* › `main`. Rien à fusionner : `main` part du dernier commit validé.
 2. **En ligne de commande** :
    ```bash
-   git fetch origin claude/ursa-notes-app-j3yanr
-   git push origin origin/claude/ursa-notes-app-j3yanr:refs/heads/main
+   git fetch origin fix/retours-v1
+   git push origin origin/fix/retours-v1:refs/heads/main
    ```
    puis la branche par défaut comme en 1.
 
-Si une branche `main` existe déjà d'ici là, ouvrir une pull request `claude/ursa-notes-app-j3yanr` → `main` (je peux la préparer sur demande) et fusionner sans *squash*, pour garder un commit par phase.
+Si une branche `main` existe déjà d'ici là, ouvrir une pull request `fix/retours-v1` → `main` (je peux la préparer sur demande) et fusionner sans *squash*, pour garder un commit par phase.
 
 Ensuite :
 - le badge du README pointe sur la branche de travail (`?branch=claude/ursa-notes-app-j3yanr`) : le passer à `?branch=main` ;
-- le tag `v1.0.0` et la release brouillon ont été créés par la CI (lancement manuel avec « release ») sur le dernier commit de la branche : relire la release dans *Releases*, puis *Publish release*. Si la validation demande des corrections : supprimer la release brouillon et le tag, puis relancer le workflow avec « release » sur le nouveau commit.
+- le tag `v1.0.0` et la release brouillon sont créés par la CI (*Actions* › *Windows* › *Run workflow* avec « release ») sur le dernier commit de la branche choisie : relire la release dans *Releases*, puis *Publish release*. Pour corriger encore avant publication, relancer simplement le workflow avec « release » sur le nouveau commit : il remplace le brouillon et le tag (P11-10).
 
 ### Checklist de test manuel finale (10d, Windows)
 1. Télécharge `Bullshit_1.0.0_x64-setup.exe` (release brouillon ou artefact `bullshit-setup`), débloque-le (Propriétés › Débloquer) et lance-le : **aucune demande d'administrateur**, pages en français, icône du coquelicot sur l'installeur.
@@ -1166,6 +1166,64 @@ Ensuite :
 8. *Paramètres* › *Applications* › **Bullshit** › *Désinstaller* : la case « Supprimer aussi les réglages et caches » est **décochée**. Désinstalle sans la cocher : le dossier `Documents\Bullshit` est intact, `%APPDATA%\com.bullshit.notes` aussi ; raccourcis retirés.
 9. Réinstalle : les réglages reviennent. Désinstalle en cochant la case : `%APPDATA%\com.bullshit.notes` et `%LOCALAPPDATA%\com.bullshit.notes` disparaissent, `Documents\Bullshit` reste intact.
 10. Sur un Windows 10 sans WebView2 (machine virtuelle), avec Internet : l'installeur installe WebView2 puis l'app, qui démarre.
+
+### Retours sur la 1.0 (branche `fix/retours-v1`) : fait
+
+Retours de test de la 1.0 avant publication. La release brouillon et le tag `v1.0.0` sont recréés par la CI sur le dernier commit de cette branche (P11-10).
+
+- **Mode machine à écrire** (bug) :
+  - à l'activation (menu …, palette), la ligne centrée est celle du curseur, c'est-à-dire la dernière position connue dans la note (l'état de l'éditeur la garde même sans focus), et le focus revient à l'éditeur ; avant : début de la note centré, focus resté sur le menu ;
+  - plus de lignes qui « sautent » : seuls l'écriture (frappe, suppression, annuler / rétablir) et les déplacements au clavier vers une autre ligne (↑ ↓, Pg préc / Pg suiv, Ctrl+Début / Fin) recentrent, avec un défilement doux (aucun avec le mouvement réduit). Un clic, une sélection à la souris, la molette ne bougent jamais le texte ; la frappe suivante recentre. À la désactivation, la ligne reste à sa place à l'écran (P11-1) ;
+  - trouvé en route : fermer la palette, les réglages, l'export ou un menu rendait le focus à l'éditeur **avec** un défilement du navigateur (texte qui sautait, tout en haut avec la marge du mode machine à écrire). Le focus est rendu sans défilement (P11-8) ;
+  - `npm run test:typewriter` (en CI) sur la note de 5 000 lignes, fond ligné, trois sections repliées, un sticker : il échouait sur l'ancien code (ligne à 241 px du centre, focus perdu, 235 px de saut au clic), il passe (20 vérifications).
+- **Note de bienvenue et nom** : une installation neuve crée « Bienvenue dans Bullshit » taguée `#bullshit/bienvenue` (vérifié aussi par le test d'installation Windows). Il restait « Ursa » dans un seul texte vu par l'utilisateur : le nom du journal d'erreurs, devenu `bullshit.log` (P11-9). `src/app/brand.test.ts` vérifie tous les textes fr / en, la note de bienvenue dans les deux langues, les notes d'exemple, l'installeur et les titres ; le chemin du dossier interne `.ursa/` (Réglages › Sauvegardes) est la seule mention admise.
+- **Alignement par bloc** (nouveau) : à gauche (défaut), centré, à droite, justifié pour les paragraphes, titres, citations et éléments de liste ; jamais pour les blocs de code, tableaux et images (P11-2).
+  - Stocké dans le frontmatter (`align:`), ancré comme les stickers et les replis (type, début du texte, rang) : le Markdown reste propre, l'alignement suit son bloc quand le texte change ailleurs. À gauche n'est jamais écrit ;
+  - dans l'état de l'éditeur avec des effets inversibles : Ctrl+Z l'annule avec le texte ;
+  - accessible par le **clic droit dans le texte** (menu du bloc), le menu …, la palette (« Alignement : … ») et **Ctrl+Maj+1 / 2 / 3 / 4** (touches physiques, personnalisables) (P11-5, P11-6) ;
+  - puces, numéros et cases à cocher restent juste avant leur texte dans un bloc centré ou à droite ; le marqueur H1–H6 se place juste avant un titre centré ou à droite, sans le décaler (P11-3) ;
+  - un sticker ou post-it posé sur du texte centré, à droite ou justifié s'affiche juste à côté (affichage seulement, sa position enregistrée ne change pas) ; ceux des marges ne sont jamais concernés : la colonne ne change pas de largeur (P11-4) ;
+  - exports : HTML, PDF, PNG / JPG (classes), DOCX (alignement de paragraphe) ; ignoré en Markdown (clé retirée). Une note dupliquée le garde.
+- **Colonne de texte sur la feuille** (nouveau) : centrée (défaut) ou contre le bord gauche, en réglage global (Réglages › Éditeur) et par note (Fond de page… ; frontmatter `column:`). La marge rouge et les marqueurs H suivent la colonne (P11-7).
+- `test:rhythm` passe avec chaque bloc de « Rythme vertical » centré, à droite ou justifié (2 polices × 14 / 16,5 / 20 px) et avec la colonne à gauche à 150 % (rythme, réglure, quadrillage, pointillés, marge rouge). `npm run test:align` (en CI) : raccourcis par touche physique, annulation, menu du bloc, menu système dans le code et sur une sélection, sticker qui s'écarte d'un titre aligné à droite, frontmatter, réouverture (18 vérifications).
+
+### Captures (retours v1)
+
+`docs/captures/retours-v1/` :
+- `typewriter-avant-*.png` / `typewriter-apres-*.png` : même note, même curseur (ligne 1 500), activation par le menu … ; la ligne du curseur est encadrée. Avant : à 243 px du centre, focus perdu, un clic fait défiler de 233 px ; après : centrée, focus dans l'éditeur, un clic ne bouge rien ;
+- `alignement-1-blocs.png` (titre centré avec son marqueur, titre à droite avec un sticker qui l'évite, paragraphe justifié, citation, puce, tâche et numéro alignés, code à gauche), `alignement-2-menu-du-bloc.png`, `alignement-3-menu-plus.png`, `alignement-4-palette.png`, `alignement-5-export-html.png` ;
+- `colonne-1-a-gauche-fond-de-page.png`, `colonne-2-reglage.png`.
+
+### Décisions (retours v1)
+
+| # | Sujet | Décision |
+|---|---|---|
+| P11-1 | Machine à écrire | Recentrage uniquement sur l'écriture et les touches qui changent de ligne (↑ ↓ Pg préc / suiv, Ctrl+Début / Fin), par `EditorView.scrollHandler` ; défilement doux natif (`scrollTo smooth`, comme le sommaire), instantané avec le mouvement réduit. ← / → ne recentrent pas : la frappe suivante le fait. |
+| P11-2 | Alignement : modèle | Liste `align:` dans le frontmatter (`block`, `text`, `index`, `align`), mêmes clés que les stickers ; une citation s'aligne en entier, une liste élément par élément ; un alignement dont le bloc a fusionné avec un autre (ligne vide supprimée) aligne le bloc obtenu. DESIGN est muet : rendu par `text-align` sur les lignes. |
+| P11-3 | Marqueurs et puces | Titre centré / à droite : marqueur juste avant le texte, boîte de largeur et de hauteur nulles (centrage et rythme intacts). Liste centrée / à droite : ni retrait suspendu ni retrait de niveau, la puce reste collée au texte. Justifié : mise en page de gauche. |
+| P11-4 | Stickers | Évitement à l'affichage, comme l'ajustement en fenêtre étroite (`avoidText`) : du côté le plus proche qui tient à l'écran. Seulement au-dessus de texte centré, à droite ou justifié : un sticker posé sur du texte à gauche y a été posé exprès. |
+| P11-5 | Menu du bloc | Clic droit dans le texte sans sélection = menu du bloc. Maj+clic droit, clic droit sur une sélection, dans un bloc de code ou un tableau = menu système (presse-papiers, suggestions d'orthographe, que l'app ne peut pas reproduire). Touche Menu = menu du bloc au curseur. |
+| P11-6 | Raccourcis | Ctrl+Maj+1 / 2 / 3 / 4 (gauche, centré, droite, justifié), par touche physique : sans Maj supplémentaire sur AZERTY, aucun conflit (Ctrl+Maj+E reste Exporter). Ctrl+Maj+L / C / R / J écartés : Ctrl+Maj+R et Ctrl+Maj+J sont des touches de WebView2. |
+| P11-7 | Colonne | Réglage global + `column:` par note. Les exports gardent leur page (le PDF a ses marges, la page HTML est centrée) ; le Markdown retire la clé. |
+| P11-8 | Focus rendu | Modales et menus rendent le focus `preventScroll` : l'éditeur ne défile plus à la fermeture d'une palette ou d'un menu. |
+| P11-9 | Journal | `bullshit.log` (le dossier s'ouvre depuis À propos : l'utilisateur voit le nom). Remplace la ligne « journal `ursa.log` » de P10-22. |
+| P11-10 | Release | Le workflow « release » (lancement manuel) supprime d'abord un brouillon de la même version et son tag, puis tague le commit et recrée le brouillon ; il échoue si la version est déjà publiée. |
+
+### Comparaison avec les maquettes (retours v1)
+
+Aucune maquette ne montre l'alignement, la colonne à gauche ni le menu du bloc : le menu du bloc est le menu contextuel de DESIGN §2.21 (icône, libellé, raccourci, coche), la colonne à gauche garde les espacements de §6 et §7. Par défaut (tout à gauche, colonne centrée), le rendu de l'éditeur est inchangé par rapport à la maquette 02 (vérifié par `test:rhythm` et `test:a11y`, inchangés).
+
+### Checklist de test manuel (retours v1, Windows)
+1. Une longue note sur fond ligné, deux sections repliées, un sticker : clique au milieu du texte, menu … › « Mode machine à écrire » : la ligne du curseur vient au centre et on peut taper aussitôt (focus dans l'éditeur).
+2. Mode actif : clique sur une autre ligne, sélectionne à la souris, fais défiler à la molette : rien ne saute. Tape une lettre : la ligne revient doucement au centre. ↑ / ↓ : recentrage doux à chaque ligne.
+3. Ouvre puis ferme la palette (Ctrl+P, Échap) et les réglages : le texte ne bouge pas. Désactive le mode par la palette : la ligne reste où elle est.
+4. Vide le dossier de réglages, lance l'app : « Bienvenue dans Bullshit », tag `#bullshit/bienvenue`. Réglages › À propos › dossier des journaux : `bullshit.log`.
+5. Dans un paragraphe : clic droit › Centrer ; Ctrl+Maj+3 (à droite) ; Ctrl+Maj+4 (justifié) ; Ctrl+Z revient en arrière. Sur un titre, une citation, une puce, une tâche : la puce et la case suivent le texte, le marqueur H est juste avant le titre.
+6. Clic droit dans un bloc de code, sur un mot mal orthographié avec Maj, sur une sélection : menu Windows habituel (suggestions, copier / coller).
+7. Un sticker à droite d'un titre court, puis titre aligné à droite : le sticker se range à côté du texte, sans le couvrir.
+8. Ferme et rouvre la note, relance l'app : alignements conservés. Ouvre le `.md` dans le Bloc-notes : texte propre, alignements dans `align:` en tête.
+9. Exporte la note en PDF, DOCX et PNG : mêmes alignements (le Markdown exporté n'en a pas).
+10. Fond de page… › Colonne « À gauche » : la colonne se colle à gauche, la marge rouge suit ; Réglages › Éditeur › « Colonne de texte sur la page » pour les autres notes. Échelle Windows 150 % : traits nets.
 
 ### Arborescence
 
