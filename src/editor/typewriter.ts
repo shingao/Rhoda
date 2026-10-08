@@ -1,5 +1,7 @@
 import { Compartment, type Extension, type Transaction } from "@codemirror/state";
 import { EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
+import { cssMs } from "../app/cssTokens";
+import { parseEasing } from "../core/easing";
 
 /**
  * Typewriter mode: the line being written stays vertically centred.
@@ -50,7 +52,43 @@ function offsetFromCentre(view: EditorView, pos: number): number {
   return rect ? (rect.top + rect.bottom) / 2 - centre : 0;
 }
 
-const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+/**
+ * Smooth scroll of the editor to `top`, timed by the design tokens (--dur-slow,
+ * --ease-out; 0 with reduced motion: a jump). Driven here rather than by the
+ * browser's smooth scrolling, which Windows turns off with its animation
+ * setting. The user takes over at once (wheel, click); a new target restarts
+ * from where the scroll is.
+ */
+function glide(scroller: HTMLElement, top: number, animate: boolean): void {
+  gliding?.stop();
+  const duration = animate ? cssMs("--dur-slow") : 0;
+  if (duration <= 0) {
+    scroller.scrollTop = top;
+    return;
+  }
+  const ease = parseEasing(getComputedStyle(document.documentElement).getPropertyValue("--ease-out"));
+  const from = scroller.scrollTop;
+  const start = performance.now();
+  let frame = 0;
+  const stop = () => {
+    cancelAnimationFrame(frame);
+    scroller.removeEventListener("wheel", stop);
+    scroller.removeEventListener("pointerdown", stop);
+    if (gliding?.stop === stop) gliding = null;
+  };
+  const step = (now: number) => {
+    const t = Math.min(1, (now - start) / duration);
+    scroller.scrollTop = from + (top - from) * ease(t);
+    if (t < 1) frame = requestAnimationFrame(step);
+    else stop();
+  };
+  scroller.addEventListener("wheel", stop, { passive: true });
+  scroller.addEventListener("pointerdown", stop);
+  frame = requestAnimationFrame(step);
+  gliding = { stop };
+}
+
+let gliding: { stop: () => void } | null = null;
 
 class Typewriter {
   /** How the next scroll request of the editor is answered: centred (smoothly or at once), or left to CodeMirror. */
@@ -85,9 +123,7 @@ class Typewriter {
     this.recentre = null;
     const scroller = this.view.scrollDOM;
     const delta = offsetFromCentre(this.view, pos);
-    if (Math.abs(delta) >= 1) {
-      scroller.scrollTo({ top: scroller.scrollTop + delta, behavior: mode === "smooth" && !reducedMotion() ? "smooth" : "auto" });
-    }
+    if (Math.abs(delta) >= 1) glide(scroller, scroller.scrollTop + delta, mode === "smooth");
     return true;
   }
 
