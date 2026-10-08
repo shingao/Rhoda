@@ -14,6 +14,7 @@ import {
   type Note,
   type NoteFile,
   type Paper,
+  type ColumnPosition,
 } from "../core/note/note";
 import { applyChanges, wikiLinkRenameChanges, type TextChange } from "../core/rewrite";
 import { restoreTagScopes } from "../core/tags";
@@ -728,6 +729,8 @@ export const setPinned = (id: string, pinned: boolean) => patchFlags(id, { pinne
 export const setArchived = (id: string, archived: boolean) => patchFlags(id, { archived: archived || undefined });
 /** Page background of a note, written to its frontmatter [DESIGN §7]. */
 export const setPaper = (id: string, paper: Paper, margin: boolean) => patchFlags(id, { paper, margin });
+/** Text column of the note on the page (`column:` in its frontmatter). */
+export const setColumn = (id: string, column: ColumnPosition) => patchFlags(id, { column });
 
 /**
  * "Delete permanently" from the trash: after a safety copy, the files go to

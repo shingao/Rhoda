@@ -5,7 +5,7 @@ import { Select } from "../../components/Select";
 import { Slider } from "../../components/Slider";
 import { Stepper } from "../../components/Stepper";
 import { Toggle } from "../../components/Toggle";
-import { PaperChoices } from "../editor/PaperPicker";
+import { ColumnChoice, PaperChoices } from "../editor/PaperPicker";
 import { COLUMN_WIDTH, FONT_SIZE, type EditorSettings, type Settings } from "../../services/settings";
 import { Field } from "./fields";
 import s from "./Settings.module.css";
@@ -68,6 +68,10 @@ export function EditorPage() {
           <PaperChoices label={t.settings.paper} value={e.paper} margin={e.margin} onChange={(paper) => setEditor({ paper })} />
         </div>
         <Toggle checked={e.margin} onChange={(margin) => setEditor({ margin })} label={t.paper.margin} />
+      </Field>
+
+      <Field label={t.settings.columnPosition} hint={t.settings.columnPositionHint}>
+        <ColumnChoice value={e.columnPosition} onChange={(columnPosition) => setEditor({ columnPosition })} />
       </Field>
     </>
   );

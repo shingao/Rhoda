@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { PAPERS, type Paper } from "../core/note/note";
+import { COLUMN_POSITIONS, PAPERS, type ColumnPosition, type Paper } from "../core/note/note";
 import type { SortKey } from "../core/note/sort";
 import { DEFAULT_LANGUAGE, isLanguage, type Language } from "../i18n";
 
@@ -66,6 +66,8 @@ export interface EditorSettings {
   /** Default page background of notes without their own [DESIGN §7]. */
   paper: Paper;
   margin: boolean;
+  /** Where the text column sits on the page, for notes without their own (`column:`). */
+  columnPosition: ColumnPosition;
   /** Focus mode fades the paragraphs other than the current one (maquette 03). */
   focusDim: boolean;
   /** Link preview cards (phase 7): the only network request of the app. */
@@ -119,6 +121,7 @@ export const DEFAULT_SETTINGS: Settings = {
     headingMarkers: true,
     paper: "plain",
     margin: false,
+    columnPosition: "center",
     focusDim: true,
     linkPreviews: true,
   },
@@ -177,6 +180,7 @@ export function sanitizeSettings(s: Settings): Settings {
       fontSize: Math.round(clamp(e.fontSize, FONT_SIZE.min, FONT_SIZE.max) / FONT_SIZE.step) * FONT_SIZE.step,
       columnWidth: Math.round(clamp(e.columnWidth, COLUMN_WIDTH.min, COLUMN_WIDTH.max) / COLUMN_WIDTH.step) * COLUMN_WIDTH.step,
       paper: oneOf(e.paper, PAPERS, "plain"),
+      columnPosition: oneOf(e.columnPosition, COLUMN_POSITIONS, "center"),
     },
     ocr: {
       enabled: s.ocr.enabled,

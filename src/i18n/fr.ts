@@ -347,6 +347,8 @@ export const fr = {
     decorationsInFocus: "Masquer les décorations en mode focus",
     paper: "Fond de page par défaut",
     paperHint: "Pour les notes sans fond choisi. Chaque note peut changer le sien depuis le menu … de l'éditeur.",
+    columnPosition: "Colonne de texte sur la page",
+    columnPositionHint: "Centrée, ou contre le bord gauche (la marge rouge suit). Chaque note peut changer la sienne dans Fond de page…",
   },
   images: {
     ocrText: "Texte de l'image (OCR)",
@@ -498,6 +500,8 @@ export const fr = {
     menu: "Fond de page…",
     names: { plain: "Uni", lined: "Lignes", grid: "Quadrillage", dots: "Pointillés" },
     margin: "Marge rouge",
+    column: "Colonne",
+    columns: { center: "Centrée", left: "À gauche" },
     saved: "Enregistré dans le frontmatter de la note :",
   },
   align: {

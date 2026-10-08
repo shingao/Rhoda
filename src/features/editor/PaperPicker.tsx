@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useT } from "../../app/i18n";
-import { setPaper } from "../../app/notes";
-import { PAPERS, type Note, type Paper } from "../../core/note/note";
+import { setColumn, setPaper } from "../../app/notes";
+import { COLUMN_POSITIONS, PAPERS, type ColumnPosition, type Note, type Paper } from "../../core/note/note";
+import { Segmented } from "../../components/Segmented";
 import { Toggle } from "../../components/Toggle";
 import paper from "./paper.module.css";
 import s from "./PaperPicker.module.css";
@@ -12,13 +13,14 @@ interface PaperPickerProps {
   /** Effective values (the note's, else the default setting). */
   current: Paper;
   margin: boolean;
+  column: ColumnPosition;
   /** Top-right corner of the popover (under the "…" button). */
   at: { x: number; y: number };
   onClose: () => void;
 }
 
-/** "Fond de page" popover [DESIGN §7]: 4 thumbnails + red margin, saved in the note's frontmatter. */
-export function PaperPicker({ note, current, margin, at, onClose }: PaperPickerProps) {
+/** "Fond de page" popover [DESIGN §7]: 4 thumbnails, red margin and text column, saved in the note's frontmatter. */
+export function PaperPicker({ note, current, margin, column, at, onClose }: PaperPickerProps) {
   const t = useT();
   const root = useRef<HTMLDivElement>(null);
 
@@ -48,14 +50,26 @@ export function PaperPicker({ note, current, margin, at, onClose }: PaperPickerP
       <div className={s.title}>{t.paper.title}</div>
       <PaperChoices value={current} margin={margin} label={t.paper.title} onChange={(p) => void setPaper(note.id, p, margin)} />
       <Toggle checked={margin} onChange={(m) => void setPaper(note.id, current, m)} label={t.paper.margin} />
+      <ColumnChoice value={column} onChange={(c) => void setColumn(note.id, c)} />
       <p className={s.hint}>
         {t.paper.saved}{" "}
         <code className={s.code}>
-          paper: {current}, margin: {String(margin)}
+          paper: {current}, margin: {String(margin)}, column: {column}
         </code>
       </p>
     </div>,
     document.body,
+  );
+}
+
+/** Centred or left text column (the note's, or the default in the settings). */
+export function ColumnChoice({ value, onChange }: { value: ColumnPosition; onChange: (column: ColumnPosition) => void }) {
+  const t = useT();
+  return (
+    <div className={s.column}>
+      <span className={s.columnLabel}>{t.paper.column}</span>
+      <Segmented label={t.paper.column} value={value} options={COLUMN_POSITIONS.map((c) => ({ value: c, label: t.paper.columns[c] }))} onChange={onChange} />
+    </div>
   );
 }
 

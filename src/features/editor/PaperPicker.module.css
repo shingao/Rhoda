@@ -58,6 +58,19 @@
   text-align: center;
 }
 
+/* Text column: label left, segmented control right (like the toggle above) */
+.column {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.columnLabel {
+  font-size: var(--fs-md);
+  color: var(--text);
+}
+
 .selected .label {
   color: var(--text);
   font-weight: var(--fw-semibold);

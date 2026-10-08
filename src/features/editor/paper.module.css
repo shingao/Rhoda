@@ -48,6 +48,14 @@
   pointer-events: none;
 }
 
+/* Text column against the left edge (setting or `column: left`): the space is
+   on the right, where stickers and post-its go. The red margin and the H
+   markers belong to the column and follow it. */
+.surface.columnLeft :global(.cm-content) {
+  margin-left: 0;
+  margin-right: auto;
+}
+
 /* The H markers move between the red line and the text instead of crossing it */
 .margin {
   --hmarker-left: var(--hmarker-left-margin);

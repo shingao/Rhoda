@@ -198,6 +198,14 @@ describe("snippetAround", () => {
 
 describe("page background", () => {
   const read = (fm: string) => noteFromFile({ path: "a.md", content: `---\n${fm}\n---\n# A\n`, mtime: 1, created: 1 });
+  it("reads the text column position and block alignments", () => {
+    expect(read("column: left").column).toBe("left");
+    expect(read("column: center").column).toBe("center");
+    expect(read("column: middle").column).toBeNull();
+    expect(read("paper: lined").column).toBeNull();
+    expect(read("align:\n  - { block: paragraph, text: bonjour, index: 1, align: justify }").aligns).toEqual([{ anchor: { type: "paragraph", text: "bonjour", index: 1 }, align: "justify" }]);
+  });
+
   it("reads paper and margin, and DESIGN's page key", () => {
     expect([read("paper: grid").paper, read("paper: grid").margin]).toEqual(["grid", null]);
     expect([read("paper: lined\nmargin: true").paper, read("paper: lined\nmargin: true").margin]).toEqual(["lined", true]);

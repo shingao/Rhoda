@@ -338,6 +338,8 @@ export const en: Messages = {
     decorationsInFocus: "Hide decorations in focus mode",
     paper: "Default page background",
     paperHint: "For notes without their own. Each note can change it from the editor's … menu.",
+    columnPosition: "Text column on the page",
+    columnPositionHint: "Centred, or against the left edge (the red margin follows). Each note can change its own in Page background…",
   },
   images: {
     ocrText: "Text in the image (OCR)",
@@ -488,6 +490,8 @@ export const en: Messages = {
     menu: "Page background…",
     names: { plain: "Plain", lined: "Ruled", grid: "Grid", dots: "Dots" },
     margin: "Red margin",
+    column: "Column",
+    columns: { center: "Centred", left: "Left" },
     saved: "Saved in the note's front matter:",
   },
   align: {

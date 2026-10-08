@@ -62,6 +62,7 @@ export function EditorPane() {
   const defaults = useApp((st) => st.settings.editor);
   const paper = note?.paper ?? defaults.paper;
   const margin = note?.margin ?? defaults.margin;
+  const column = note?.column ?? defaults.columnPosition;
 
   useEffect(() => {
     if (!host.current) return;
@@ -159,7 +160,7 @@ export function EditorPane() {
       </div>
       <div
         ref={body}
-        className={[s.body, outlineOpen && docked && s.docked, paperStyles.surface, paperStyles[paper], margin && paperStyles.margin]
+        className={[s.body, outlineOpen && docked && s.docked, paperStyles.surface, paperStyles[paper], margin && paperStyles.margin, column === "left" && paperStyles.columnLeft]
           .filter(Boolean)
           .join(" ")}
       >
@@ -178,7 +179,7 @@ export function EditorPane() {
         </footer>
       )}
       {infoAt && note && <NoteInfo note={note} at={infoAt} onClose={() => setInfoAt(null)} />}
-      {paperAt && note && <PaperPicker note={note} current={paper} margin={margin} at={paperAt} onClose={() => setPaperAt(null)} />}
+      {paperAt && note && <PaperPicker note={note} current={paper} margin={margin} column={column} at={paperAt} onClose={() => setPaperAt(null)} />}
       {menuAt && (
         <Menu
           at={menuAt}

@@ -162,15 +162,25 @@ const paperCheck = async ({ b64, paper }) => {
     const offset = (((first.at - expected) % pitch) + pitch) % pitch;
     if (Math.min(offset, pitch - offset) > 1) out.push(`rules ${offset.toFixed(2)} physical pixels off the rhythm`);
   } else {
-    // Dots: every dot drawn alike (same pixels around each centre).
+    // Dots: every dot drawn alike (same pixels around each centre), compared
+    // where the page is blank: outside the text column (left or right of it,
+    // depending on where the column sits).
     const cell = (cx, cy) => pixels(cx - 3, cy - 3, 7, 7).map(lum);
-    const ox = Math.round((paperLeft + 14) * dpr);
+    const content = v.contentDOM.getBoundingClientRect();
+    const blank = (cssX) => (cssX > box.left + 8 && cssX < content.left - 8) || (cssX > content.right + 8 && cssX < box.right - 8);
+    const columns = [];
+    for (let i = 0; paperLeft + 14 + i * 28 < box.right; i++) if (blank(paperLeft + 14 + i * 28)) columns.push(i);
     const oy = Math.round((paperTop + px("--paper-rule-y") + 28 * 2) * dpr);
-    const ref = cell(ox, oy);
-    for (const [i, j] of [[3, 0], [7, 1], [11, 2], [5, 3]]) {
-      const other = cell(ox + i * pitch, oy + j * pitch);
-      const diff = Math.max(...other.map((l, k) => Math.abs(l - ref[k])));
-      if (diff > 3) out.push(`dot ${i},${j} drawn differently (${diff.toFixed(0)})`);
+    const ox = (i) => Math.round((paperLeft + 14 + i * 28) * dpr);
+    if (columns.length < 2) out.push(`dots: no blank area to compare (${columns.length} column)`);
+    else {
+      const ref = cell(ox(columns[0]), oy);
+      const picks = [columns[columns.length - 1], columns[Math.floor(columns.length / 2)], columns[1] ?? columns[0]];
+      picks.forEach((i, j) => {
+        const other = cell(ox(i), oy + (j + 1) * pitch);
+        const diff = Math.max(...other.map((l, k) => Math.abs(l - ref[k])));
+        if (diff > 3) out.push(`dot ${i},${j + 1} drawn differently (${diff.toFixed(0)})`);
+      });
     }
   }
 
@@ -319,6 +329,21 @@ try {
       } else console.log(`✓ ${label} ${font} 16.5px : rythme tenu`);
     }
     failures += await checkPaper(scaled, label);
+
+    // Text column against the left edge (setting): rhythm, rules and red margin hold.
+    if (dpr === 1.5) {
+      await scaled.evaluate(async () => {
+        const { updateSettings } = await import("/src/app/store.ts");
+        updateSettings((s) => ({ ...s, editor: { ...s.editor, columnPosition: "left" } }));
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      });
+      const { out } = await scaled.evaluate(lineCheck, { font: "sans", size: 16.5, EPS });
+      if (out.length) {
+        failures += out.length;
+        console.error(`✗ ${label} colonne à gauche\n  ${out.slice(0, 8).join("\n  ")}`);
+      } else console.log(`✓ ${label} colonne à gauche : rythme tenu`);
+      failures += await checkPaper(scaled, `${label} colonne à gauche`);
+    }
 
     // Moving the window to a screen with another scale, without reloading:
     // the app follows (--dpr, red margin measured again).
