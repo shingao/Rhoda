@@ -343,6 +343,30 @@ try {
         console.error(`✗ ${label} colonne à gauche\n  ${out.slice(0, 8).join("\n  ")}`);
       } else console.log(`✓ ${label} colonne à gauche : rythme tenu`);
       failures += await checkPaper(scaled, `${label} colonne à gauche`);
+      // H1–H6 markers next to the red margin: a fixed gap, never on the line (decision P12-1).
+      for (const font of FONTS) {
+        const gaps = await scaled.evaluate(async (font) => {
+          const { updateSettings, getState } = await import("/src/app/store.ts");
+          const { setPaper } = await import("/src/app/notes.ts");
+          updateSettings((s) => ({ ...s, editor: { ...s.editor, font, fontSize: 20 } }));
+          await setPaper(getState().selectedId, "lined", true);
+          await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+          const v = window.__ursaView;
+          const c = v.contentDOM.getBoundingClientRect();
+          const m = getComputedStyle(v.contentDOM, "::before");
+          const marginRight = c.left + parseFloat(m.left) + parseFloat(m.width);
+          const want = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sp-2"));
+          return [...v.contentDOM.querySelectorAll(".cm-line.cm-h")].map((line) => {
+            const b = getComputedStyle(line, "::before");
+            return { level: line.dataset.heading, gap: line.getBoundingClientRect().left + parseFloat(b.left) - marginRight, want };
+          });
+        }, font);
+        const bad = gaps.filter((g) => Math.abs(g.gap - g.want) > 1);
+        if (bad.length || gaps.length === 0) {
+          failures += bad.length || 1;
+          console.error(`✗ ${label} colonne à gauche ${font} : marqueurs H ${bad.map((g) => `${g.level} à ${g.gap.toFixed(1)} px`).join(", ") || "absents"}`);
+        } else console.log(`✓ ${label} colonne à gauche ${font} : ${gaps.length} marqueurs H à ${gaps[0].want} px de la marge rouge`);
+      }
     }
 
     // Moving the window to a screen with another scale, without reloading:

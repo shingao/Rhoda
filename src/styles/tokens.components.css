@@ -433,7 +433,11 @@
   --paper-thumb-h: 52px;                   /* [§7] vignettes */
   --paper-thumb-margin-x: 10px;            /* (decision) margin inside a thumbnail */
   --paper-thumb-scale: .4;                 /* (decision) patterns drawn at 40 % in thumbnails */
-  --hmarker-left-margin: calc(var(--hmarker-w) + var(--sp-2)); /* (decision P6) H markers between the red margin and the text */
+  /* (decisions P6, P12-1) With the red margin, the H marker is placed from the
+     margin, not from the text: its left edge at a fixed gap right of the line,
+     whatever the column position, font or size (it never touches the line). */
+  --hmarker-margin-gap: var(--sp-2);
+  --hmarker-left-margin: calc(var(--paper-margin-x) - var(--paper-margin-w) - var(--hmarker-margin-gap));
 
   /* Folding chevron and badge [§2.13] */
   --fold-chevron: 18px;

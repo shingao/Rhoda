@@ -56,9 +56,16 @@
   margin-right: auto;
 }
 
-/* The H markers move between the red line and the text instead of crossing it */
+/* The H markers move between the red line and the text instead of crossing it:
+   left-aligned from a fixed gap after the line (decision P12-1). */
 .margin {
   --hmarker-left: var(--hmarker-left-margin);
+}
+
+.margin :global(.cm-editor .cm-line.cm-h:not(.cm-align-center, .cm-align-right))::before {
+  width: auto;
+  text-align: left;
+  white-space: nowrap;
 }
 
 /* Thumbnails of the picker: same patterns, drawn smaller (inner layer scaled) */
