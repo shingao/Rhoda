@@ -93,6 +93,7 @@ export function connectEditor(): void {
     hasUnsavedText: hasPendingSave,
     savedFolds,
     outlineChanged: (outline) => setState({ outline }),
+    formatChanged: (format) => setState({ format }),
     findChanged: ({ count, current, images, currentImage }) => setState((s) => ({ find: { ...s.find, count, current, images, currentImage } })),
     imageMatches: (src, needles) => {
       const path = imageVaultPath(src);

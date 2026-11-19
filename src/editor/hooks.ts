@@ -4,6 +4,7 @@ import type { CardState } from "./embeds/linkCard";
 import type { PdfState } from "./embeds/pdfCard";
 import type { RemoteImageState } from "./embeds/remoteImage";
 import type { OutlineData } from "./sections/outline";
+import type { FormatState } from "./format";
 
 /**
  * What the editor needs from the rest of the app, injected at startup so the
@@ -68,6 +69,8 @@ export interface EditorHooks {
   openStickerMenu(id: string, at: { x: number; y: number }): void;
   /** Right-click (or context menu key) in the text: the block's menu (alignment). */
   openBlockMenu(at: { x: number; y: number }): void;
+  /** Formatting at the cursor changed (toolbar state). */
+  formatChanged(format: FormatState): void;
 }
 
 export interface Backlink {
@@ -107,6 +110,7 @@ let hooks: EditorHooks = {
   openOcrText: () => undefined,
   openStickerMenu: () => undefined,
   openBlockMenu: () => undefined,
+  formatChanged: () => undefined,
 };
 
 export function setEditorHooks(next: Partial<EditorHooks>): void {

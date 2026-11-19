@@ -10,6 +10,8 @@ export type MenuEntry =
       label: string;
       icon?: LucideIcon;
       shortcut?: string;
+      /** Colour dot before the label: a colour token name ("--hl-green"). */
+      swatch?: string;
       danger?: boolean;
       /** Shows a check mark; turns the item into a radio item (or a checkbox item with `toggle`). */
       checked?: boolean;
@@ -133,6 +135,7 @@ export function Menu({ at, entries, label, align = "start", onClose }: MenuProps
             onClick={() => select(index)}
           >
             <span className={s.iconSlot}>{Icon && <Icon className={s.icon} aria-hidden />}</span>
+            {entry.swatch && <span className={s.swatch} style={{ background: `var(${entry.swatch})` }} aria-hidden />}
             <span className={s.label}>{entry.label}</span>
             {entry.shortcut && <span className={s.shortcut}>{entry.shortcut}</span>}
           </div>

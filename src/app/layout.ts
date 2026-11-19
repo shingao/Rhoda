@@ -131,3 +131,9 @@ export function toggleTypewriter(): void {
   updateSettings((s) => ({ ...s, editor: { ...s.editor, typewriter: !s.editor.typewriter } }));
   requestAnimationFrame(() => focusEditor());
 }
+
+/** Formatting toolbar shown or hidden (menu "…", palette, Settings); the editor keeps the focus. */
+export function toggleFormatBar(): void {
+  updateSettings((s) => ({ ...s, editor: { ...s.editor, formatBar: !s.editor.formatBar } }));
+  requestAnimationFrame(() => focusEditor());
+}

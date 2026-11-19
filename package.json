@@ -19,6 +19,7 @@
     "test:a11y": "node scripts/check-a11y.mjs",
     "test:typewriter": "node scripts/check-typewriter.mjs",
     "test:align": "node scripts/check-align.mjs",
+    "test:format": "node scripts/check-format.mjs",
     "perf": "node scripts/perf.mjs",
     "sample:images": "node scripts/make-sample-images.mjs",
     "icon": "node scripts/make-app-icon.cjs"

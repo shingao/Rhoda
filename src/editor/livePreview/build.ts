@@ -3,6 +3,7 @@ import type { EditorState, Range } from "@codemirror/state";
 import { Decoration, type DecorationSet, type EditorView } from "@codemirror/view";
 import type { SyntaxNode, SyntaxNodeRef } from "@lezer/common";
 import { isInHeading } from "../../core/markdown/syntax";
+import { pairInlineTags, type TagSpan } from "../../core/markdown/inlineTags";
 import { editorHooks } from "../hooks";
 import { BulletWidget, CheckboxWidget, CopyCodeWidget, NumberWidget } from "./widgets";
 
@@ -183,6 +184,32 @@ export function buildDecorations(view: EditorView, revealed: ReadonlySet<number>
     }
   }
 
+  /**
+   * The app's inline tags in a paragraph or heading (`<u>`, `<span data-size>`,
+   * `<mark data-color>`): hidden like syntax, their content styled. A line
+   * holding large text is two rhythm units tall (decision P12-4).
+   */
+  function inlineTags(node: SyntaxNode) {
+    const tags: TagSpan[] = [];
+    // Every tag inside the node, nested in emphasis or links too (depth-first walk).
+    const cursor = node.cursor();
+    while (cursor.next() && cursor.from < node.to) {
+      if (cursor.name === "HTMLTag") tags.push({ from: cursor.from, to: cursor.to, text: doc.sliceString(cursor.from, cursor.to) });
+    }
+    if (tags.length === 0) return;
+    tags.sort((a, b) => a.from - b.from);
+    for (const pair of pairInlineTags(tags)) {
+      const reveal = isRevealed(pair.open.from);
+      syntax(pair.open.from, pair.open.to, reveal);
+      syntax(pair.close.from, pair.close.to, isRevealed(pair.close.from));
+      const cls = pair.kind === "underline" ? "cm-underline" : pair.kind === "size" ? `cm-size-${pair.size}` : `cm-highlight cm-mark-${pair.color}`;
+      addMark(cls, pair.open.to, pair.close.from);
+      if (pair.kind === "size" && pair.size === "lg") {
+        for (let n = lineOf(pair.open.to).number; n <= lineOf(pair.close.from).number; n++) addLine(doc.line(n).from, lineDeco("cm-line-lg"));
+      }
+    }
+  }
+
   function listItem(node: SyntaxNode, rangeFrom: number, rangeTo: number) {
     const listMark = node.getChild("ListMark");
     if (!listMark) return;
@@ -305,12 +332,17 @@ export function buildDecorations(view: EditorView, revealed: ReadonlySet<number>
     const atx = /^ATXHeading(\d)$/.exec(name);
     if (atx) {
       heading(ref.node, Number(atx[1]));
+      inlineTags(ref.node);
       return true;
     }
     switch (name) {
       case "SetextHeading1":
       case "SetextHeading2":
         setextHeading(ref.node, name === "SetextHeading1" ? 1 : 2);
+        inlineTags(ref.node);
+        return true;
+      case "Paragraph":
+        inlineTags(ref.node);
         return true;
       case "Emphasis":
         addMark("cm-em", ref.from, ref.to);

@@ -43,6 +43,15 @@
   flex: 1;
 }
 
+/* Colour dot of a highlight colour (decision P12-2) */
+.swatch {
+  width: var(--formatbar-swatch);
+  height: var(--formatbar-swatch);
+  flex: none;
+  border-radius: var(--r-pill);
+  box-shadow: inset 0 0 0 var(--hairline) var(--separator);
+}
+
 .shortcut {
   margin-left: var(--sp-6);
   color: var(--text-3);

@@ -18,6 +18,7 @@ import { commitStickerEdit } from "./stickers/layer";
 import { EDITOR_COMMANDS } from "./setup";
 import { alignField, alignmentAt, canAlignAt, changesAligns, loadAligns, placeAligns, storedAligns } from "./align";
 import { serializeAligns, type Alignment, type BlockAlign } from "../core/align";
+import { runFormat, type FormatAction } from "./format";
 
 /** What a note carries besides its text, kept in the editor state: stickers and block alignments. */
 export interface NoteExtras {
@@ -353,6 +354,14 @@ export function insertAtCursor(noteId: string, text: string): boolean {
   view.dispatch(view.state.replaceSelection(text), { userEvent: "input", scrollIntoView: true });
   view.focus();
   return true;
+}
+
+/** A toolbar action on the selection of the open note (one undo step); the editor keeps the focus. */
+export function formatSelection(action: FormatAction): boolean {
+  if (!view || !currentId) return false;
+  const done = runFormat(view, action);
+  view.focus();
+  return done;
 }
 
 /** An editor shortcut's command on the open note (command palette); false when there is none. */

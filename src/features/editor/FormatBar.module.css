@@ -1,0 +1,66 @@
+/* Formatting toolbar (decision P12-2): editor background, no border [§2.13],
+   ghost buttons [§2.18]; its first icon lines up with the text column. */
+.bar {
+  --formatbar-inset: calc((var(--icon-btn) - var(--icon-btn-icon)) / 2);
+  --formatbar-column-left: max(0px, (100% - var(--editor-max) - 2 * var(--editor-pad-x)) / 2);
+
+  display: flex;
+  align-items: center;
+  gap: var(--formatbar-group-gap);
+  box-sizing: border-box;
+  width: 100%;
+  height: var(--formatbar-h);
+  flex: none;
+
+  /* Starts where the text starts (the first icon on the text's left edge) and
+     runs to the right of the pane: room for every group on a common window. */
+  padding: 0 calc(var(--editor-pad-x) - var(--formatbar-inset)) 0 calc(var(--formatbar-column-left) + var(--editor-pad-x) - var(--formatbar-inset));
+  overflow: hidden;
+  transition: opacity var(--dur-slow) var(--ease-in-out);
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  gap: var(--formatbar-gap);
+  flex: none;
+}
+
+.select {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-1);
+  width: var(--formatbar-select-w);
+  height: var(--icon-btn);
+  padding: 0 var(--sp-2);
+  border: 0;
+  border-radius: var(--r-md);
+  background: none;
+  color: var(--text-2);
+  font: inherit;
+  font-size: var(--btn-fs-small);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.select:hover {
+  background: var(--hover);
+}
+
+.select:active {
+  background: var(--active);
+}
+
+.selectLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  width: var(--icon-btn-icon);
+  height: var(--icon-btn-icon);
+  flex: none;
+  color: var(--text-3);
+}

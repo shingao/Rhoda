@@ -38,6 +38,20 @@ export const SHORTCUTS = {
   "align.center": { keys: "Ctrl+Shift+Digit2", scope: "editor" },
   "align.right": { keys: "Ctrl+Shift+Digit3", scope: "editor" },
   "align.justify": { keys: "Ctrl+Shift+Digit4", scope: "editor" },
+  // Formatting toolbar (decision P12-2). Ctrl+U underlines (decision D12); no Ctrl+Alt (AltGr on AZERTY).
+  "format.bold": { keys: "Ctrl+B", scope: "editor" },
+  "format.italic": { keys: "Ctrl+I", scope: "editor" },
+  "format.underline": { keys: "Ctrl+U", scope: "editor" },
+  "format.strike": { keys: "Ctrl+Shift+X", scope: "editor" },
+  "format.highlight": { keys: "Ctrl+Shift+Y", scope: "editor" },
+  "format.larger": { keys: "Ctrl+Shift+Period", scope: "editor" },
+  "format.smaller": { keys: "Ctrl+Shift+Comma", scope: "editor" },
+  "format.link": { keys: "Ctrl+L", scope: "editor" },
+  "format.clear": { keys: "Ctrl+Shift+Space", scope: "editor" },
+  // Lists: digits by physical key, after the alignment ones.
+  "list.bullet": { keys: "Ctrl+Shift+Digit7", scope: "editor" },
+  "list.ordered": { keys: "Ctrl+Shift+Digit8", scope: "editor" },
+  "list.task": { keys: "Ctrl+Shift+Digit9", scope: "editor" },
   // Physical key: the key right of M on QWERTY (it prints ";" on AZERTY, shown as such).
   "settings.open": { keys: "Ctrl+Comma", scope: "global" },
   // Maquette 03: Ctrl Maj F or F11; Escape also leaves it (see App).

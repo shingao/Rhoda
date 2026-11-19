@@ -56,6 +56,8 @@ export function EditorPage() {
         </div>
       </Field>
 
+      <Toggle checked={e.formatBar} onChange={(formatBar) => setEditor({ formatBar })} label={t.settings.formatBar} hint={t.settings.formatBarHint} />
+
       <Toggle checked={e.headingMarkers} onChange={(headingMarkers) => setEditor({ headingMarkers })} label={t.settings.headingMarkers} hint={t.settings.headingMarkersHint} />
 
       <Toggle checked={e.focusDim} onChange={(focusDim) => setEditor({ focusDim })} label={t.settings.focusDim} hint={t.settings.focusDimHint(shortcutLabel("focus.toggle", t))} />

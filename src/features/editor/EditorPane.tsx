@@ -4,7 +4,7 @@ import { openExport } from "../../app/export";
 import { useT } from "../../app/i18n";
 import { cssPx } from "../../app/cssTokens";
 import { insertFromDialog } from "../../app/attachments";
-import { toggleColumn, toggleFocusMode, toggleOutline, toggleTypewriter } from "../../app/layout";
+import { toggleColumn, toggleFocusMode, toggleFormatBar, toggleOutline, toggleTypewriter } from "../../app/layout";
 import { editNote, trashNote } from "../../app/notes";
 import { shortcutLabel } from "../../app/shortcuts";
 import { EmptyState } from "../../components/EmptyState";
@@ -28,6 +28,7 @@ import { PaperPicker } from "./PaperPicker";
 import { alignEntries } from "./alignEntries";
 import paperStyles from "./paper.module.css";
 import { FindPill } from "./FindPill";
+import { FormatBar } from "./FormatBar";
 import { OutlinePanel } from "../outline/OutlinePanel";
 import { StickerDrawer } from "../stickers/StickerDrawer";
 import { toggleStickerDrawer } from "../../app/stickers";
@@ -63,6 +64,7 @@ export function EditorPane() {
   const paper = note?.paper ?? defaults.paper;
   const margin = note?.margin ?? defaults.margin;
   const column = note?.column ?? defaults.columnPosition;
+  const formatBarOn = defaults.formatBar;
 
   useEffect(() => {
     if (!host.current) return;
@@ -158,6 +160,11 @@ export function EditorPane() {
           }}
         />
       </div>
+      {formatBarOn && selectedId && !note?.trashed && (
+        <div className={[s.formatRow, outlineOpen && docked && s.docked, column === "left" && s.left].filter(Boolean).join(" ")} inert={focusMode}>
+          <FormatBar />
+        </div>
+      )}
       <div
         ref={body}
         className={[s.body, outlineOpen && docked && s.docked, paperStyles.surface, paperStyles[paper], margin && paperStyles.margin, column === "left" && paperStyles.columnLeft]
@@ -242,6 +249,13 @@ export function EditorPane() {
                   { kind: "separator" as const, id: "sep-view" },
                 ]
               : []),
+            {
+              id: "formatBar",
+              label: t.format.bar,
+              checked: formatBarOn,
+              toggle: true,
+              onSelect: toggleFormatBar,
+            },
             {
               id: "typewriter",
               label: t.editor.typewriter,

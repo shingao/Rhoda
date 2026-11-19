@@ -591,6 +591,35 @@
   --export-postit-max: 40%;                /* post-it width at most, in the text column */
   --export-postit-gap: var(--sp-6);        /* text flowing around a post-it */
   --export-check: 2px;                     /* check mark stroke in exported tasks */
+
+  /* Formatting toolbar (decision P12-2): one thin line under the editor bar
+     [§2.13], aligned on the text column, ghost buttons [§2.18], no border. */
+  --formatbar-h: 40px;
+  --formatbar-gap: 2px;
+  --formatbar-group-gap: var(--sp-3);
+  --formatbar-select-w: 112px;             /* block style / font menus: the longest label fits */
+  --formatbar-swatch: 12px;                /* colour dot of a highlight menu entry */
+
+  /* Inline formatting (decision P12-3). Sizes of the selection: a large run
+     makes its line exactly two rhythm units [§6]; a small one stays in one. */
+  --text-size-sm: .85em;
+  --text-size-lg: 1.5em;
+  --line-lg-h: calc(var(--rhythm) * 2);
+  --underline-w: round(1.5px, var(--device-px));
+  --underline-offset: 3px;
+  /* Highlight colours: the post-it hues [§2.16] laid on the page, as light as
+     --highlight (yellow, the default `==…==`). Dark palettes mix less. */
+  --hl-yellow: var(--highlight);
+  --hl-green: color-mix(in oklab, var(--postit-green) 80%, var(--bg-2));
+  --hl-blue: color-mix(in oklab, var(--postit-blue) 80%, var(--bg-2));
+  --hl-pink: color-mix(in oklab, var(--postit-pink) 80%, var(--bg-2));
+}
+
+[data-theme="graphite"],
+[data-theme="blue"] {
+  --hl-green: color-mix(in oklab, var(--postit-green) 25%, var(--bg-2));
+  --hl-blue: color-mix(in oklab, var(--postit-blue) 25%, var(--bg-2));
+  --hl-pink: color-mix(in oklab, var(--postit-pink) 25%, var(--bg-2));
 }
 
 /* Reduced motion [§4]: everything instant except opacity fades (80 ms). */

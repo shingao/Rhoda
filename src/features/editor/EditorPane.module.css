@@ -41,6 +41,28 @@
   opacity: 0;
 }
 
+/* Formatting toolbar row: follows the text column (left position, docked
+   Contents panel) like .cm-content does (decision P12-2). */
+.formatRow {
+  display: flex;
+  flex: none;
+  transition:
+    padding-right var(--dur-slow) var(--ease-in-out),
+    opacity var(--dur-slow) var(--ease-in-out);
+}
+
+.formatRow.docked {
+  padding-right: var(--outline-reserve);
+}
+
+.formatRow.left > * {
+  --formatbar-column-left: 0px;
+}
+
+.focus .formatRow {
+  opacity: 0;
+}
+
 .focusFooter {
   display: flex;
   align-items: center;

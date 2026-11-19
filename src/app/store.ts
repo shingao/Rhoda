@@ -1,4 +1,5 @@
 import type { OutlineData } from "../editor/sections/outline";
+import type { FormatState } from "../editor/format";
 import type { CropRequest } from "./crops";
 import { create } from "zustand";
 import type { Note } from "../core/note/note";
@@ -36,6 +37,8 @@ interface AppState {
   search: SearchInput;
   /** Find in the note (Ctrl+F / Ctrl+H) and the occurrences in the open note. */
   find: FindState;
+  /** Formatting at the cursor of the open note, for the toolbar (reported by the editor). */
+  format: FormatState | null;
   /** Focus mode (Ctrl+Shift+F): only the editor, the rest of the chrome fades out. Not persisted. */
   focusMode: boolean;
   /** Settings dialog and its current page; null = closed. */
@@ -124,6 +127,7 @@ export const useApp = create<AppState>()(() => ({
   recordingShortcut: false,
   palette: null,
   focusMode: false,
+  format: null,
 }));
 
 export const getState = useApp.getState;

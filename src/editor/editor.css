@@ -126,6 +126,40 @@
   background: var(--highlight);
 }
 
+/* Highlight colours and underline (decision P12-3): `<mark data-color>`, `<u>` */
+.cm-mark-green {
+  background: var(--hl-green);
+}
+
+.cm-mark-blue {
+  background: var(--hl-blue);
+}
+
+.cm-mark-pink {
+  background: var(--hl-pink);
+}
+
+.cm-underline {
+  text-decoration: underline;
+  text-decoration-thickness: var(--underline-w);
+  text-underline-offset: var(--underline-offset);
+}
+
+/* Relative size of a run: never taller than its line's box, so the line keeps
+   one rhythm unit (small) or exactly two (large, see .cm-line-lg). */
+.cm-size-sm,
+.cm-size-lg {
+  line-height: 1;
+}
+
+.cm-size-sm {
+  font-size: var(--text-size-sm);
+}
+
+.cm-size-lg {
+  font-size: var(--text-size-lg);
+}
+
 .cm-inline-code {
   padding: var(--inline-code-pad);
   border-radius: var(--r-xs);
@@ -1654,6 +1688,11 @@
     outline: 1px solid CanvasText;
     outline-offset: -1px;
   }
+}
+
+/* A line holding large text is two rhythm units tall [§6] (decision P12-3). */
+.cm-editor .cm-line.cm-line-lg {
+  line-height: var(--line-lg-h);
 }
 
 /* Block alignment (decision P11-2): paragraphs, headings, quotes, list items.

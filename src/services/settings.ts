@@ -72,6 +72,8 @@ export interface EditorSettings {
   focusDim: boolean;
   /** Link preview cards (phase 7): the only network request of the app. */
   linkPreviews: boolean;
+  /** Formatting toolbar under the editor bar (decision P12-2). */
+  formatBar: boolean;
 }
 
 export interface OcrSettings {
@@ -124,6 +126,7 @@ export const DEFAULT_SETTINGS: Settings = {
     columnPosition: "center",
     focusDim: true,
     linkPreviews: true,
+    formatBar: true,
   },
   layout: { sidebarWidth: null, listWidth: null, sidebarCollapsed: false, listCollapsed: false, outlineOpen: false },
   ocr: { enabled: true, languages: null, pdfPages: PDF_PAGES.default },

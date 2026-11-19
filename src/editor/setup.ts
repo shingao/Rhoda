@@ -5,6 +5,7 @@ import { cssMs } from "../app/cssTokens";
 import { currentMessages } from "../app/i18n";
 import { backlinks } from "./backlinks";
 import { embeds } from "./embeds/field";
+import { clearFormatting, formatReporter, highlightCommand, insertLink, listCommand, markCommand, sizeStepCommand } from "./format";
 import { stickerLayer } from "./stickers/layer";
 import { stickerState } from "./stickers/state";
 import { alignCommand, alignState, blockMenuHandlers } from "./align";
@@ -33,6 +34,18 @@ export const EDITOR_COMMANDS: Partial<Record<ShortcutId, Command>> = {
   "align.center": alignCommand("center"),
   "align.right": alignCommand("right"),
   "align.justify": alignCommand("justify"),
+  "format.bold": markCommand("bold"),
+  "format.italic": markCommand("italic"),
+  "format.underline": markCommand("underline"),
+  "format.strike": markCommand("strike"),
+  "format.highlight": highlightCommand,
+  "format.larger": sizeStepCommand(1),
+  "format.smaller": sizeStepCommand(-1),
+  "format.link": insertLink,
+  "format.clear": clearFormatting,
+  "list.bullet": listCommand("bullet"),
+  "list.ordered": listCommand("ordered"),
+  "list.task": listCommand("task"),
 };
 
 /** Editor frame, driven by design tokens only. Markdown rendering lives in livePreview/ and editor.css. */
@@ -93,6 +106,7 @@ export function editorExtensions(): Extension {
     Prec.highest(findField),
     foldChevrons,
     outlineReporter,
+    formatReporter,
     // The app's editor shortcuts (Settings › Shortcuts), matched like every other one, live.
     Prec.high(
       EditorView.domEventHandlers({
