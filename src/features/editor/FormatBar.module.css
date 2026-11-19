@@ -44,6 +44,10 @@
   transition: background-color var(--dur-fast) var(--ease-out);
 }
 
+.narrow {
+  width: var(--formatbar-size-w);
+}
+
 .select:hover {
   background: var(--hover);
 }

@@ -1,4 +1,5 @@
 import { appWindow } from "../services/appWindow";
+import { editorFontVar } from "../editor/noteStyle";
 import type { Appearance, EditorSettings, Palette } from "../services/settings";
 import { getState, useApp } from "./store";
 
@@ -37,7 +38,7 @@ function applyEditor(e: EditorSettings): void {
   const style = document.documentElement.style;
   style.setProperty("--editor-fs", `${e.fontSize}px`);
   style.setProperty("--editor-max", `${e.columnWidth}px`);
-  style.setProperty("--editor-font-active", e.font === "serif" ? "var(--font-editor-serif)" : "var(--font-editor)");
+  style.setProperty("--editor-font-active", editorFontVar(e.font));
   document.documentElement.toggleAttribute("data-no-heading-markers", !e.headingMarkers);
 }
 

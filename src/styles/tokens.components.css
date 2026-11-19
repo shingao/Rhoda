@@ -596,8 +596,9 @@
      [§2.13], aligned on the text column, ghost buttons [§2.18], no border. */
   --formatbar-h: 40px;
   --formatbar-gap: 2px;
-  --formatbar-group-gap: var(--sp-3);
-  --formatbar-select-w: 112px;             /* block style / font menus: the longest label fits */
+  --formatbar-group-gap: var(--sp-2);
+  --formatbar-select-w: 104px;             /* block style / font menus: the longest label fits */
+  --formatbar-size-w: 76px;                /* note text size menu: "16,5 px" */
   --formatbar-swatch: 12px;                /* colour dot of a highlight menu entry */
 
   /* Inline formatting (decision P12-3). Sizes of the selection: a large run

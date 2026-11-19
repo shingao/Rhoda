@@ -7,6 +7,7 @@ import { Stepper } from "../../components/Stepper";
 import { Toggle } from "../../components/Toggle";
 import { ColumnChoice, PaperChoices } from "../editor/PaperPicker";
 import { COLUMN_WIDTH, FONT_SIZE, type EditorSettings, type Settings } from "../../services/settings";
+import { NOTE_FONTS } from "../../core/note/note";
 import { Field } from "./fields";
 import s from "./Settings.module.css";
 
@@ -17,7 +18,7 @@ export function EditorPage() {
   const t = useT();
   const e = useApp((st) => st.settings.editor);
   const st = useApp((state) => state.settings.stickers);
-  const fonts = ["sans", "serif"] as const;
+  const fonts = NOTE_FONTS;
 
   return (
     <>

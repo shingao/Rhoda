@@ -9,6 +9,7 @@ import { clearFormatting, formatReporter, highlightCommand, insertLink, listComm
 import { stickerLayer } from "./stickers/layer";
 import { stickerState } from "./stickers/state";
 import { alignCommand, alignState, blockMenuHandlers } from "./align";
+import { noteLookState } from "./noteStyle";
 import { completions } from "./completion";
 import { markdownLanguage } from "./language";
 import { linkPreview } from "./linkPreview";
@@ -98,6 +99,7 @@ export function editorExtensions(): Extension {
     stickerState,
     rawMarkdown ? [] : stickerLayer,
     alignState,
+    noteLookState,
     blockMenuHandlers,
     completions(),
     folding,

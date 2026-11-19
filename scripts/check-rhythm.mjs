@@ -1,6 +1,7 @@
 // Vertical rhythm check [DESIGN §6] — `npm run test:rhythm`.
 // Opens "Rythme vertical.md" in a real browser (in-memory vault) and checks,
-// for both editor fonts and every allowed size (14–20 px), that:
+// for the four fonts of the text (sans, serif, mono, handwriting) and every
+// allowed size (14–20 px), that:
 // - every text line starts on a multiple of --rhythm and is a multiple tall;
 // - every block (code, quote) starts on the rhythm and ends on it.
 // Then, at each Windows display scale (100, 125, 150, 175 %), that the rhythm
@@ -12,13 +13,15 @@ import { chromium } from "playwright";
 import { createServer } from "vite";
 
 const SIZES = [14, 14.5, 15, 15.5, 16, 16.5, 17, 17.5, 18, 18.5, 19, 19.5, 20];
-const FONTS = ["sans", "serif"];
+const FONTS = ["sans", "serif", "mono", "hand"];
 const EPS = 0.6;
 
 /** In the page: every line and block of the open note on the rhythm, for one font and size. */
-const lineCheck = async ({ font, size, EPS }) => {
+const lineCheck = async ({ font, size, EPS, look }) => {
   const { updateSettings } = await import("/src/app/store.ts");
   updateSettings((s) => ({ ...s, editor: { ...s.editor, font, fontSize: size } }));
+  // The note's own font and size (`font:`, `size:`), over the settings'.
+  if (look) (await import("/src/editor/noteStyle.ts")).setNoteLook(window.__ursaView, look);
   const frame = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
   await document.fonts.ready;
   await frame();
@@ -282,6 +285,22 @@ try {
       } else console.log(`✓ ${tag} (${lines} lignes, ${blocks} blocs, ${images} images${backlinks ? ", rétroliens" : ""})`);
     }
   }
+
+  // The note's own font and size (decision P12-4): applied by the editor over
+  // another default, the rhythm holds the same.
+  for (const [font, size] of [["hand", 19], ["mono", 14.5], ["serif", 20], ["hand", 14]]) {
+    const { out: problems, lines } = await page.evaluate(lineCheck, { font: "sans", size: 16.5, EPS, look: { font, size } });
+    const applied = await page.evaluate(() => getComputedStyle(window.__ursaView.contentDOM).fontSize);
+    const tag = `note en ${font} ${size}px (frontmatter)`;
+    if (applied !== `${size}px`) {
+      failures++;
+      console.error(`✗ ${tag} : taille appliquée ${applied}`);
+    } else if (problems.length) {
+      failures += problems.length;
+      console.error(`✗ ${tag}\n  ${problems.slice(0, 12).join("\n  ")}`);
+    } else console.log(`✓ ${tag} (${lines} lignes)`);
+  }
+  await page.evaluate(async () => (await import("/src/editor/noteStyle.ts")).setNoteLook(window.__ursaView, { font: null, size: null }));
 
   // Block alignment (decision P11-2): every paragraph, heading, quote and list
   // item centred, right-aligned or justified in turn; the rhythm must not move.

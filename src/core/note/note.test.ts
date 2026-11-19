@@ -206,6 +206,12 @@ describe("page background", () => {
     expect(read("align:\n  - { block: paragraph, text: bonjour, index: 1, align: justify }").aligns).toEqual([{ anchor: { type: "paragraph", text: "bonjour", index: 1 }, align: "justify" }]);
   });
 
+  it("reads the note's font and size (14–20 px on half steps), else null", () => {
+    expect([read("font: hand").font, read("font: serif\nsize: 18").size]).toEqual(["hand", 18]);
+    expect([read("font: comic").font, read("size: 30").size, read("size: 12").size, read("size: grand").size]).toEqual([null, null, null, null]);
+    expect([read("size: 16.4").size, read("size: '17'").size]).toEqual([16.5, 17]);
+  });
+
   it("reads paper and margin, and DESIGN's page key", () => {
     expect([read("paper: grid").paper, read("paper: grid").margin]).toEqual(["grid", null]);
     expect([read("paper: lined\nmargin: true").paper, read("paper: lined\nmargin: true").margin]).toEqual(["lined", true]);

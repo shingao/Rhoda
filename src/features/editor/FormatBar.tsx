@@ -34,6 +34,8 @@ import type { ListKind } from "../../core/markdown/blockFormat";
 import { HIGHLIGHT_COLORS, type HighlightColor } from "../../core/markdown/inlineTags";
 import type { BlockChoice, FormatAction, FormatState, InlineMark } from "../../editor/format";
 import { formatSelection } from "../../editor/session";
+import { NO_LOOK, type NoteLook } from "../../editor/noteStyle";
+import { NOTE_FONTS, TEXT_SIZE, type NoteFont } from "../../core/note/note";
 import type { Messages } from "../../i18n";
 import s from "./FormatBar.module.css";
 
@@ -97,10 +99,33 @@ function highlightEntries(t: Messages, f: FormatState): MenuEntry[] {
   ];
 }
 
+/** Font of the note: the default setting, or one of its own (`font:`). */
+function noteFontEntries(t: Messages, look: NoteLook, fallback: NoteFont): MenuEntry[] {
+  return [
+    { id: "font-default", label: t.format.byDefault(t.format.fonts[fallback]), checked: look.font === null, onSelect: run({ kind: "look", look: { font: null } }) },
+    ...NOTE_FONTS.map((font) => ({ id: `font-${font}`, label: t.format.fonts[font], checked: look.font === font, onSelect: run({ kind: "look", look: { font } }) })),
+  ];
+}
+
+/** Text size of the note, 14–20 px (`size:`); a half size set in Settings or by hand is listed too. */
+function noteSizeEntries(t: Messages, look: NoteLook, fallback: number): MenuEntry[] {
+  const sizes = new Set<number>();
+  for (let n = TEXT_SIZE.min; n <= TEXT_SIZE.max; n++) sizes.add(n);
+  if (look.size !== null) sizes.add(look.size);
+  return [
+    { id: "size-default", label: t.format.byDefault(t.settings.px(fallback)), checked: look.size === null, onSelect: run({ kind: "look", look: { size: null } }) },
+    ...[...sizes]
+      .sort((a, b) => a - b)
+      .map((size) => ({ id: `size-${size}`, label: t.settings.px(size), checked: look.size === size, onSelect: run({ kind: "look", look: { size } }) })),
+  ];
+}
+
+type Opener = (entries: MenuEntry[], label: string, at: DOMRect) => void;
+
 interface Group {
   id: string;
   /** Buttons shown in the bar. */
-  render: (open: (entries: MenuEntry[], label: string, at: DOMRect) => void) => ReactNode;
+  render: (open: Opener) => ReactNode;
   /** The same actions as menu entries, for the "…" menu. */
   entries: () => MenuEntry[];
 }
@@ -122,27 +147,44 @@ export function FormatBar() {
     align: "left",
     canAlign: false,
     inCode: false,
+    look: NO_LOOK,
   };
   const inline = state.inCode;
+  const defaults = useApp((st) => st.settings.editor);
+
+  /** A text button showing a value, opening a menu (block style, note font and size). */
+  const dropdown = (label: string, value: string, entries: () => MenuEntry[], open: Opener, wide = true) => (
+    <Tooltip label={label}>
+      <button
+        type="button"
+        className={[s.select, !wide && s.narrow].filter(Boolean).join(" ")}
+        aria-haspopup="menu"
+        aria-label={`${label} : ${value}`}
+        onClick={(e) => open(entries(), label, e.currentTarget.getBoundingClientRect())}
+      >
+        <span className={s.selectLabel}>{value}</span>
+        <ChevronDown className={s.chevron} aria-hidden />
+      </button>
+    </Tooltip>
+  );
+  const fontEntries = () => noteFontEntries(t, state.look, defaults.font);
+  const textSizeEntries = () => noteSizeEntries(t, state.look, defaults.fontSize);
 
   const groups: Group[] = [
     {
       id: "block",
-      render: (open) => (
-        <Tooltip label={t.format.blockStyle}>
-          <button
-            type="button"
-            className={s.select}
-            aria-haspopup="menu"
-            aria-label={`${t.format.blockStyle} : ${t.format.blocks[state.block]}`}
-            onClick={(e) => open(blockEntries(t, state), t.format.blockStyle, e.currentTarget.getBoundingClientRect())}
-          >
-            <span className={s.selectLabel}>{t.format.blocks[state.block]}</span>
-            <ChevronDown className={s.chevron} aria-hidden />
-          </button>
-        </Tooltip>
-      ),
+      render: (open) => dropdown(t.format.blockStyle, t.format.blocks[state.block], () => blockEntries(t, state), open),
       entries: () => blockEntries(t, state),
+    },
+    {
+      id: "note",
+      render: (open) => (
+        <>
+          {dropdown(t.format.noteFont, t.format.fonts[state.look.font ?? defaults.font], fontEntries, open)}
+          {dropdown(t.format.noteSize, t.settings.px(state.look.size ?? defaults.fontSize), textSizeEntries, open, false)}
+        </>
+      ),
+      entries: () => [...fontEntries(), { kind: "separator" as const, id: "note-sep" }, ...textSizeEntries()],
     },
     {
       id: "size",

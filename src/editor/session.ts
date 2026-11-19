@@ -19,14 +19,15 @@ import { EDITOR_COMMANDS } from "./setup";
 import { alignField, alignmentAt, canAlignAt, changesAligns, loadAligns, placeAligns, storedAligns } from "./align";
 import { serializeAligns, type Alignment, type BlockAlign } from "../core/align";
 import { runFormat, type FormatAction } from "./format";
+import { changesLook, loadLook, lookOf, NO_LOOK, sameLook, type NoteLook } from "./noteStyle";
 
-/** What a note carries besides its text, kept in the editor state: stickers and block alignments. */
-export interface NoteExtras {
+/** What a note carries besides its text, kept in the editor state: stickers, block alignments, font and size. */
+export interface NoteExtras extends NoteLook {
   stickers: readonly Sticker[];
   aligns: readonly BlockAlign[];
 }
 
-export const NO_EXTRAS: NoteExtras = { stickers: [], aligns: [] };
+export const NO_EXTRAS: NoteExtras = { stickers: [], aligns: [], ...NO_LOOK };
 import type { ShortcutId } from "../app/shortcuts";
 
 /**
@@ -107,7 +108,7 @@ export function mountEditor(parent: HTMLElement, ext: Extension, onEdit: (id: st
     ext,
     EditorView.updateListener.of((u) => {
       // Sticker changes are saved with the note's frontmatter, through the same autosave.
-      const edited = (u.docChanged && !u.transactions.some((t) => t.annotation(fromDisk))) || u.transactions.some((t) => changesStickers(t) || changesAligns(t));
+      const edited = (u.docChanged && !u.transactions.some((t) => t.annotation(fromDisk))) || u.transactions.some((t) => changesStickers(t) || changesAligns(t) || changesLook(t));
       if (edited && currentId) {
         onEdit(currentId, u.state.doc.toString());
       }
@@ -186,13 +187,19 @@ export function refreshEditor(): void {
 }
 
 /** Puts the stickers and alignments read from the file in the open note (not undoable, not saved back). */
-function loadFromDisk({ stickers, aligns }: NoteExtras): void {
+function loadFromDisk({ stickers, aligns, font, size }: NoteExtras): void {
   if (!view) return;
   const sameStickers = JSON.stringify(serializeStickers(storedStickers(view.state))) === JSON.stringify(serializeStickers(stickers));
   const sameAligns = JSON.stringify(serializeAligns(storedAligns(view.state))) === JSON.stringify(serializeAligns(aligns));
-  if (sameStickers && sameAligns) return;
+  const look = { font, size };
+  const sameStyle = sameLook(lookOf(view.state), look);
+  if (sameStickers && sameAligns && sameStyle) return;
   view.dispatch({
-    effects: [...(sameStickers ? [] : [loadStickers.of(placeStickers(stickers, view.state.doc))]), ...(sameAligns ? [] : [loadAligns.of(placeAligns(aligns, view.state.doc))])],
+    effects: [
+      ...(sameStickers ? [] : [loadStickers.of(placeStickers(stickers, view.state.doc))]),
+      ...(sameAligns ? [] : [loadAligns.of(placeAligns(aligns, view.state.doc))]),
+      ...(sameStyle ? [] : [loadLook.of(look)]),
+    ],
     annotations: [fromDisk.of(true), Transaction.addToHistory.of(false)],
   });
 }
@@ -223,6 +230,12 @@ export function replaceFromDisk(id: string, body: string, extras: NoteExtras): v
 export function editorAligns(id: string): BlockAlign[] | null {
   const state = id === currentId && view ? view.state : states.get(id);
   return state?.field(alignField, false) ? storedAligns(state) : null;
+}
+
+/** Font and size of a note as they should be saved, or null if the editor does not hold it. */
+export function editorLook(id: string): NoteLook | null {
+  const state = id === currentId && view ? view.state : states.get(id);
+  return state?.field(alignField, false) ? lookOf(state) : null;
 }
 
 /** Alignment of the block at the cursor of the open note, and whether it can be aligned (menus, palette). */

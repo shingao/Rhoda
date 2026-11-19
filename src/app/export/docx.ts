@@ -1,7 +1,7 @@
 import type * as Docx from "docx";
 import { headingSlug, plainText, withoutTags, parseDocument, type Block, type Inline, type TextAlign } from "../../core/export/model";
 import { alignedLinesOf } from "../../core/align";
-import type { Note } from "../../core/note/note";
+import type { Note, NoteFont } from "../../core/note/note";
 import { blocksOf, resolveAnchor } from "../../core/stickers";
 import { editorStickers } from "../../editor/session";
 import { assetsApi } from "../../services/assets";
@@ -21,13 +21,18 @@ export interface DocxOptions {
   tags: boolean;
   stickers: boolean;
   palette: Palette;
+  /** Font and size of the note's text (its own, else the settings'). */
+  text: { font: NoteFont; size: number };
   /** Link of a wiki link to another note of the same export, or null. */
   wiki: (target: string) => string | null;
 }
 
-/** Fonts every Windows reader has (the app's fonts are not installed elsewhere). */
-const FONT = "Segoe UI";
+/** Fonts every Windows reader has (the app's fonts are not installed elsewhere), closest to the note's. */
+const FONTS: Record<NoteFont, string> = { sans: "Segoe UI", serif: "Cambria", mono: "Consolas", hand: "Ink Free" };
 const MONO = "Consolas";
+/** Word's body size (half-points) for the default editor size: other sizes scale from it. */
+const BODY_HALF_POINTS = 22;
+const DEFAULT_PX = 16.5;
 const SYMBOL = "Segoe UI Symbol";
 /** Text width of an A4 page with Word's default margins, in px (96 dpi). */
 const TEXT_WIDTH_PX = 600;
@@ -103,6 +108,8 @@ async function picture(blob: Blob): Promise<Picture | null> {
 export async function noteDocx(note: Note, options: DocxOptions): Promise<Blob> {
   const d: typeof Docx = await import("docx");
   const c = themeColors(options.palette);
+  const FONT = FONTS[options.text.font];
+  const bodySize = Math.round((BODY_HALF_POINTS * options.text.size) / DEFAULT_PX);
   const parsed = parseDocument(note.body, alignedLinesOf(note.aligns, note.body));
   const blocks = options.tags ? parsed : withoutTags(parsed);
 
@@ -335,7 +342,7 @@ export async function noteDocx(note: Note, options: DocxOptions): Promise<Blob> 
   const doc = new d.Document({
     creator: "Bullshit",
     title: note.title,
-    styles: { default: { document: { run: { font: FONT, size: 22, color: c.text } } } },
+    styles: { default: { document: { run: { font: FONT, size: bodySize, color: c.text } } } },
     numbering: {
       config: [
         {

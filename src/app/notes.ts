@@ -23,7 +23,7 @@ import { assetsApi } from "../services/assets";
 
 /** Attachments folder of the vault (the Rust side uses the same name). */
 const ASSETS_DIR = "assets";
-import { editorAligns, editorStickers, editorText, focusEditor, forgetNote, NO_EXTRAS, removeStickerAsset, replaceFromDisk, rewriteInEditor, showNote } from "../editor/session";
+import { editorAligns, editorLook, editorStickers, editorText, focusEditor, forgetNote, NO_EXTRAS, removeStickerAsset, replaceFromDisk, rewriteInEditor, showNote } from "../editor/session";
 import { serializeAligns } from "../core/align";
 import { cloneStickers, serializeStickers, stickerId } from "../core/stickers";
 import { patchFrontmatter } from "../core/note/frontmatter";
@@ -116,8 +116,15 @@ function withEditorAligns(note: Note): Note {
   return withFrontmatter(note, { align: next });
 }
 
-/** What the editor holds of a note besides its text: stickers and alignments. */
-const withEditorData = (note: Note) => withEditorAligns(withEditorStickers(note));
+/** The note with the font and size of its editor state (`font:`, `size:`; none = the default setting). */
+function withEditorLook(note: Note): Note {
+  const look = editorLook(note.id);
+  if (!look || (look.font === note.font && look.size === note.size)) return note;
+  return withFrontmatter(note, { font: look.font ?? undefined, size: look.size ?? undefined });
+}
+
+/** What the editor holds of a note besides its text: stickers, alignments, font and size. */
+const withEditorData = (note: Note) => withEditorLook(withEditorAligns(withEditorStickers(note)));
 
 /** Writes a note (adding its id to the frontmatter if needed). Runs inside the queue; may throw. */
 async function persist(note: Note): Promise<Note> {

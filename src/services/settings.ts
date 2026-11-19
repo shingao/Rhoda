@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { COLUMN_POSITIONS, PAPERS, type ColumnPosition, type Paper } from "../core/note/note";
+import { COLUMN_POSITIONS, NOTE_FONTS, PAPERS, TEXT_SIZE, type ColumnPosition, type NoteFont, type Paper } from "../core/note/note";
 import type { SortKey } from "../core/note/sort";
 import { DEFAULT_LANGUAGE, isLanguage, type Language } from "../i18n";
 
@@ -56,7 +56,8 @@ export interface Appearance {
 
 export interface EditorSettings {
   typewriter: boolean;
-  font: "sans" | "serif";
+  /** Default font of notes without their own (`font:`). */
+  font: NoteFont;
   /** px, 14–20 by 0.5 [DESIGN §6]. */
   fontSize: number;
   /** Text column, px, 560–860 by 20 [DESIGN Layout]. */
@@ -106,7 +107,7 @@ export interface ExportSettings {
 
 export const PDF_PAGES = { min: 5, max: 500, step: 5, default: 50 } as const;
 
-export const FONT_SIZE = { min: 14, max: 20, step: 0.5, default: 16.5 } as const;
+export const FONT_SIZE = { ...TEXT_SIZE, default: 16.5 } as const;
 export const COLUMN_WIDTH = { min: 560, max: 860, step: 20, default: 660 } as const;
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -179,7 +180,7 @@ export function sanitizeSettings(s: Settings): Settings {
     },
     editor: {
       ...e,
-      font: oneOf(e.font, ["sans", "serif"], "sans"),
+      font: oneOf(e.font, NOTE_FONTS, "sans"),
       fontSize: Math.round(clamp(e.fontSize, FONT_SIZE.min, FONT_SIZE.max) / FONT_SIZE.step) * FONT_SIZE.step,
       columnWidth: Math.round(clamp(e.columnWidth, COLUMN_WIDTH.min, COLUMN_WIDTH.max) / COLUMN_WIDTH.step) * COLUMN_WIDTH.step,
       paper: oneOf(e.paper, PAPERS, "plain"),

@@ -12,6 +12,7 @@ import type { ExportSettings } from "../../services/settings";
 import componentsCss from "../../styles/tokens.components.css?raw";
 import tokensCss from "../../styles/tokens.css?raw";
 import { resolvePalette } from "../theme";
+import { editorFontVar } from "../../editor/noteStyle";
 import { currentMessages } from "../i18n";
 import { cssPx } from "../cssTokens";
 import { stickerUrl } from "../stickers";
@@ -205,7 +206,7 @@ export async function exportPage(note: Note, options: PageOptions): Promise<Expo
     options.images ? noteImages(note, blocks) : Promise.resolve(new Map<string, string>()),
     noteCards(blocks),
     options.stickers ? decorations(note) : Promise.resolve([]),
-    embeddedFonts(settings.editor.font === "serif" ? [] : [SERIF_FAMILY]),
+    embeddedFonts((note.font ?? settings.editor.font) === "serif" ? [] : [SERIF_FAMILY]),
   ]);
   const body = renderHtml(blocks, {
     image: (src) => {
@@ -221,8 +222,8 @@ export async function exportPage(note: Note, options: PageOptions): Promise<Expo
   const paper: Paper = note.paper ?? settings.editor.paper;
   const margin = note.margin ?? settings.editor.margin;
   const sheet = ["u-sheet", options.paper && paper !== "plain" && `u-paper-${paper}`, options.paper && margin && "u-margin"].filter(Boolean).join(" ");
-  const e = settings.editor;
-  const vars = [`--editor-fs:${e.fontSize}px`, `--editor-font-active:${e.font === "serif" ? "var(--font-editor-serif)" : "var(--font-editor)"}`];
+  // The note's own font and size (`font:`, `size:`), else the settings'.
+  const vars = [`--editor-fs:${note.size ?? settings.editor.fontSize}px`, `--editor-font-active:${editorFontVar(note.font ?? settings.editor.font)}`];
   let pageRule = "";
   if (options.page) {
     const [w, h] = PAGE_MM[options.page];

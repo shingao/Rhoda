@@ -115,6 +115,7 @@ vi.mock("../editor/session", () => ({
   editorText: (id: string) => (id === editor.openId ? editor.text : null),
   editorStickers: (id: string) => (id === editor.openId ? editor.stickers : null),
   editorAligns: (id: string) => (id === editor.openId ? editor.aligns : null),
+  editorLook: () => null,
   NO_EXTRAS: { stickers: [], aligns: [] },
   removeStickerAsset: (id: string, asset: string) => {
     if (id !== editor.openId || !editor.stickers) return false;

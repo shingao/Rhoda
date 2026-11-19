@@ -5,7 +5,8 @@
 // 2. highlight colours (menu), relative sizes (a large line = 2 × --rhythm),
 //    block styles (headings, quote, code), lists (Ctrl+Shift+7 / 8 / 9 by
 //    physical key, AZERTY included), link, separator, clear formatting;
-// 3. narrow window: the right-hand groups go into "…"; focus mode and the
+// 3. font and size of the whole note (frontmatter `font:`, `size:`), undoable;
+// 4. narrow window: the right-hand groups go into "…"; focus mode and the
 //    setting hide the bar.
 // Needs Chromium for Playwright.
 import { chromium } from "playwright";
@@ -25,7 +26,7 @@ const check = (ok, label, detail = "") => {
 };
 
 try {
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, locale: "fr-FR" });
+  const page = await browser.newPage({ viewport: { width: 1680, height: 900 }, locale: "fr-FR" });
   page.on("pageerror", (e) => check(false, "erreur de la page", e.message));
   await page.goto(url);
   await page.evaluate(() => {
@@ -141,6 +142,35 @@ try {
   await undo(4);
   check((await doc()) === "Un paragraphe\nsur deux lignes", "Ctrl+Z revient au texte de départ", await doc());
 
+  // Font and size of the note: in its frontmatter, undone with Ctrl+Z.
+  await set("Une note\n\nSon texte", 3);
+  const dropdown = async (label, item) => {
+    await page.click(`[role=toolbar] button[aria-label^="${label} :"]`);
+    await page.getByRole("menuitemradio", { name: item, exact: true }).click();
+    await settle();
+  };
+  const look = () =>
+    page.evaluate(() => {
+      const st = getComputedStyle(window.__ursaView.contentDOM);
+      return { family: st.fontFamily, size: st.fontSize };
+    });
+  const before = await look();
+  await dropdown("Police de la note", "Manuscrite");
+  await dropdown("Taille du texte de la note", "20 px");
+  const after = await look();
+  check(/^"?Caveat/.test(after.family) && after.size === "20px", "police manuscrite et 20 px pour toute la note", `${after.family.split(",")[0]} ${after.size}`);
+  const saved = await page.evaluate(async () => {
+    const { flushAll } = await import("/src/app/notes.ts");
+    await flushAll();
+    const { useApp } = await import("/src/app/store.ts");
+    const st = useApp.getState();
+    return st.notes[st.selectedId].frontmatter ?? "";
+  });
+  check(/^font: hand$/m.test(saved) && /^size: 20$/m.test(saved), "font: et size: écrits dans le frontmatter", saved.replace(/\n/g, " | "));
+  await undo(2);
+  const back = await look();
+  check(back.family === before.family && back.size === before.size, "Ctrl+Z rend la police et la taille par défaut", `${back.family.split(",")[0]} ${back.size}`);
+
   // Lists by physical key (Digit7 = "è" on AZERTY, no Shift needed there).
   await set("Un\nDeux", 0, 6);
   await page.keyboard.press("Control+Shift+Digit7");
@@ -189,7 +219,7 @@ try {
   const entries = await page.locator("[role=menu] [role^=menuitem]").allTextContents();
   check(entries.some((e) => e.startsWith("Effacer la mise en forme")), "le menu « … » propose les actions masquées", `${entries.length} entrées`);
   await page.keyboard.press("Escape");
-  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.setViewportSize({ width: 1680, height: 900 });
   await page.waitForTimeout(300);
   check((await more.count()) === 0, "fenêtre large : toute la barre");
 

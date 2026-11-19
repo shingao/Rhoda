@@ -6,6 +6,7 @@ import { blockStyleOf, listKindOf, setBlockStyleEdits, setListEdits, type BlockS
 import { closeTag, openTag, pairInlineTags, type HighlightColor, type TagPair, type TagSpan, type TextSize } from "../core/markdown/inlineTags";
 import { alignField, alignmentAt, canAlignAt, alignSelection } from "./align";
 import { editorHooks } from "./hooks";
+import { lookOf, sameLook, setNoteLook, type NoteLook } from "./noteStyle";
 import type { Alignment } from "../core/align";
 
 /**
@@ -29,6 +30,8 @@ export interface FormatState {
   canAlign: boolean;
   /** In a code block: inline formatting does not apply. */
   inCode: boolean;
+  /** Font and size of the whole note (null: default setting). */
+  look: NoteLook;
 }
 
 const NODE: Record<"bold" | "italic" | "strike", { node: string; mark: string; text: string }> = {
@@ -334,6 +337,7 @@ export function formatStateOf(state: EditorState): FormatState {
     align: alignmentAt(state),
     canAlign: canAlignAt(state),
     inCode: code || inCode(state, from),
+    look: lookOf(state),
   };
 }
 
@@ -351,6 +355,7 @@ export type FormatAction =
   | { kind: "block"; style: BlockChoice }
   | { kind: "list"; list: ListKind }
   | { kind: "align"; align: Alignment }
+  | { kind: "look"; look: Partial<NoteLook> }
   | { kind: "link" }
   | { kind: "rule" }
   | { kind: "clear" };
@@ -369,6 +374,8 @@ export function runFormat(view: EditorView, action: FormatAction): boolean {
       return toggleList(view, action.list);
     case "align":
       return alignSelection(view, action.align);
+    case "look":
+      return setNoteLook(view, action.look);
     case "link":
       return insertLink(view);
     case "rule":
@@ -386,6 +393,7 @@ const sameFormat = (a: FormatState, b: FormatState) =>
   a.align === b.align &&
   a.canAlign === b.canAlign &&
   a.inCode === b.inCode &&
+  sameLook(a.look, b.look) &&
   (Object.keys(a.marks) as InlineMark[]).every((k) => a.marks[k] === b.marks[k]);
 
 /** Reports the formatting at the cursor to the app when it changes (toolbar buttons). */
@@ -396,7 +404,7 @@ export const formatReporter = ViewPlugin.fromClass(
       this.report(view.state);
     }
     update(u: ViewUpdate) {
-      if (u.selectionSet || u.docChanged || syntaxTree(u.startState) !== syntaxTree(u.state) || u.startState.field(alignField, false) !== u.state.field(alignField, false)) {
+      if (u.selectionSet || u.docChanged || syntaxTree(u.startState) !== syntaxTree(u.state) || u.startState.field(alignField, false) !== u.state.field(alignField, false) || lookOf(u.startState) !== lookOf(u.state)) {
         this.report(u.state);
       }
     }

@@ -2,7 +2,7 @@ import { joinFrontmatter, patchFrontmatter } from "../../core/note/frontmatter";
 import { sanitizeStem } from "../../core/note/filename";
 import type { Note } from "../../core/note/note";
 import { linkedFiles, removeImages, removeTags, rewriteLinks, URSA_KEYS } from "../../core/export/markdown";
-import { editorText } from "../../editor/session";
+import { editorLook, editorText } from "../../editor/session";
 import { errorMessage } from "../../services/errors";
 import { exportApi } from "../../services/export";
 import type { ExportFormat, ExportSettings } from "../../services/settings";
@@ -97,7 +97,8 @@ export async function runExport(ids: string[], format: ExportFormat, options: Ex
     onProgress?.(n, list.length);
     const name = `${stems.get(note.id)}.${ext}`;
     try {
-      const fresh = { ...note, body: editorText(note.id) ?? note.body };
+      // What the editor holds may not be saved yet: its text, font and size.
+      const fresh = { ...note, body: editorText(note.id) ?? note.body, ...editorLook(note.id) };
       switch (format) {
         case "md":
           result.paths.push(await exportApi.write(dir, name, new TextEncoder().encode(await noteMarkdown(fresh, options, dir))));
@@ -115,7 +116,8 @@ export async function runExport(ids: string[], format: ExportFormat, options: Ex
         case "docx": {
           const { noteDocx } = await import("./docx");
           const palette = options.currentTheme ? resolvePalette(settings.appearance, matchMedia("(prefers-color-scheme: dark)").matches) : settings.appearance.light;
-          const blob = await noteDocx(fresh, { ...options, palette, wiki });
+          const text = { font: fresh.font ?? settings.editor.font, size: fresh.size ?? settings.editor.fontSize };
+          const blob = await noteDocx(fresh, { ...options, palette, wiki, text });
           result.paths.push(await exportApi.write(dir, name, new Uint8Array(await blob.arrayBuffer())));
           break;
         }

@@ -43,6 +43,9 @@ export interface Note {
   margin: boolean | null;
   /** Text column on the page (`column: left | center`); null = default setting. */
   column: ColumnPosition | null;
+  /** Font and size of the whole note (`font:`, `size:`); null = default setting (decision P12-4). */
+  font: NoteFont | null;
+  size: number | null;
   /** Stickers and post-its from the frontmatter (`stickers:`), in place order. */
   stickers: Sticker[];
   /** Blocks not aligned left (`align:`), anchored like stickers. */
@@ -68,6 +71,19 @@ function readStoredId(data: FrontmatterData): string | null {
 /** Where the text column sits on the page: centred (default) or against the left. */
 export const COLUMN_POSITIONS = ["center", "left"] as const;
 export type ColumnPosition = (typeof COLUMN_POSITIONS)[number];
+
+/** Fonts of a note's text: the embedded ones (sans Hanken Grotesk, Newsreader, JetBrains Mono, Caveat). */
+export const NOTE_FONTS = ["sans", "serif", "mono", "hand"] as const;
+export type NoteFont = (typeof NOTE_FONTS)[number];
+/** Text size of the editor, px [DESIGN §6]: the line stays one rhythm unit at every size. */
+export const TEXT_SIZE = { min: 14, max: 20, step: 0.5 } as const;
+
+/** A text size from the frontmatter, on the allowed steps; null when absent or out of range. */
+export function readTextSize(value: unknown): number | null {
+  const n = typeof value === "number" ? value : typeof value === "string" && value.trim() !== "" ? Number(value) : NaN;
+  if (!Number.isFinite(n) || n < TEXT_SIZE.min || n > TEXT_SIZE.max) return null;
+  return Math.round(n / TEXT_SIZE.step) * TEXT_SIZE.step;
+}
 
 /** Page background of a note [DESIGN §7]. */
 export const PAPERS = ["plain", "lined", "grid", "dots"] as const;
@@ -97,6 +113,8 @@ function deriveFromFrontmatter(frontmatter: string | null, file: { created: numb
     archived: data.archived === true,
     trashed: data.trashed !== undefined && data.trashed !== false && data.trashed !== null,
     column: (COLUMN_POSITIONS as readonly unknown[]).includes(data.column) ? (data.column as ColumnPosition) : null,
+    font: (NOTE_FONTS as readonly unknown[]).includes(data.font) ? (data.font as NoteFont) : null,
+    size: readTextSize(data.size),
     stickers: parseStickers(data.stickers),
     aligns: parseAligns(data.align),
   };
