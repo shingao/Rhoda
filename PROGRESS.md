@@ -1,6 +1,6 @@
 # Bullshit (nom de code Ursa) — PROGRESS
 
-État : **Retours sur la 1.0 traités** sur la branche `fix/retours-v1` (machine à écrire, nom, alignement, colonne) — à valider sur Windows ; release 1.0.0 brouillon recréée par la CI ; fusion dans `main` préparée, pas faite.
+État : **Barre de mise en forme et dessins** sur la branche `feature/barre-format` (partie de `fix/retours-v1`) — à valider sur Windows, fusion dans `main` sur ton go. Retours sur la 1.0 traités (`fix/retours-v1`), release 1.0.0 brouillon recréée par la CI.
 
 | Phase | Sujet | État |
 |---|---|---|
@@ -15,6 +15,7 @@
 | 8 | Stickers et post-it | ✅ validée |
 | 9 | OCR local | ✅ validée |
 | 10 | Export, raccourcis, palette, packaging | 🟡 10a à 10d validées ; retours sur la 1.0 traités, à valider |
+| — | Barre de mise en forme, dessins (Excalidraw) | 🟡 faite sur `feature/barre-format`, à valider |
 
 ---
 
@@ -1224,6 +1225,73 @@ Aucune maquette ne montre l'alignement, la colonne à gauche ni le menu du bloc 
 8. Ferme et rouvre la note, relance l'app : alignements conservés. Ouvre le `.md` dans le Bloc-notes : texte propre, alignements dans `align:` en tête.
 9. Exporte la note en PDF, DOCX et PNG : mêmes alignements (le Markdown exporté n'en a pas).
 10. Fond de page… › Colonne « À gauche » : la colonne se colle à gauche, la marge rouge suit ; Réglages › Éditeur › « Colonne de texte sur la page » pour les autres notes. Échelle Windows 150 % : traits nets.
+
+### Barre de mise en forme et dessins (branche `feature/barre-format`) : fait, à valider
+
+Branche partie de `fix/retours-v1` : `main` n'existe pas encore sur le dépôt (la fusion des retours v1 attend ton go). L'alignement par bloc (retours v1) était déjà fait : il est intégré à la barre.
+
+- **Marqueur H1–H6 contre la marge rouge** (bug « HM ») : le marqueur était placé depuis le texte, à quelques pixels de la ligne rouge. Il est maintenant placé depuis la marge, à 8 px fixes à droite de la ligne, aligné à gauche, sans retour à la ligne, quelles que soient la colonne, la police et la taille (P12-1). `test:rhythm` mesure l'écart de chaque titre (150 %, colonne à gauche, 4 polices à 20 px). Captures `marqueur-h-avant-150.png` / `marqueur-h-apres-*.png`.
+- **Barre de mise en forme** (nouveau) : une ligne fine sous la barre de l'éditeur, qui commence au bord du texte, icônes Lucide en boutons fantômes, sans bordure, sur le fond de l'éditeur ; infobulles avec le raccourci en vigueur (P12-2). De gauche à droite :
+  1. style de bloc (Texte, Titre 1–3, Citation, Code : un bloc clôturé, retiré en repassant en Texte) ;
+  2. police et taille **de la note** (sans serif, Newsreader, JetBrains Mono, Caveat ; 14–20 px) : frontmatter `font:` / `size:`, « Par défaut » les retire ; le réglage global (qui propose aussi les 4 polices) reste la valeur par défaut (P12-4) ;
+  3. taille de la sélection : petit / normal / grand (`<span data-size="sm|lg">`) ; une ligne « grande » fait exactement 2 × `--rhythm`, sa ligne de base posée sur la réglure (P12-3) ;
+  4. gras, italique, souligné (`<u>`), barré ;
+  5. surlignage : jaune (`==…==`), vert, bleu, rose (`<mark data-color>`), « Retirer le surlignage » (P12-3) ;
+  6. listes à puces, numérotée, de tâches (bascule) ;
+  7. alignement gauche / centré / droite / justifié (celui des retours v1) ;
+  8. insérer : lien, image ou PDF, dessin, séparateur ;
+  9. effacer la mise en forme de la sélection.
+  - Les boutons reflètent la sélection (gras enfoncé, titre courant, police et taille de la note, liste, alignement ; mise en forme indisponible dans le code).
+  - Affichage : menu … de l'éditeur, palette (« Masquer / Afficher la barre de mise en forme »), Réglages › Éditeur ; masquée et inerte en mode focus. Fenêtre étroite : les groupes de droite passent dans un menu « … » (mêmes actions, mêmes coches).
+  - Tout passe par une transaction CodeMirror : Ctrl+Z annule chaque action dans l'historique du texte, police et taille de la note comprises (état de l'éditeur, comme les alignements).
+  - Raccourcis (AZERTY, personnalisables, sans conflit) : Ctrl+B / I / U, Ctrl+Maj+X (barré), Ctrl+Maj+Y (surligner), Ctrl+Maj+. / , (plus grand / plus petit), Ctrl+L (lien), Ctrl+Maj+Espace (effacer), Ctrl+Maj+7 / 8 / 9 (listes) (P12-6). Palette : « Mise en forme : … », « Liste : … », « Bloc : … », « Insérer un lien / un séparateur / un dessin ».
+  - Exports : HTML, PDF, PNG / JPG et DOCX respectent police et taille de la note, tailles relatives, souligné et couleurs de surlignage (couleurs mélangées dans la palette de l'export ; DOCX : police Windows la plus proche, corps proportionnel) ; l'export Markdown garde la syntaxe telle quelle (clés `font` / `size` retirées comme les autres clés de l'app).
+  - Recherche : l'index, les extraits, les titres et Ctrl+F ignorent `<u>`, `<span data-size>` et `<mark>` et trouvent le texte dedans (« un mot » trouve `un <u>mot</u>`, « span » ne trouve rien) (P12-7).
+- **Dessins** (nouveau, Excalidraw 0.18.1, MIT) (P12-5) :
+  - « Insérer un dessin » (barre, palette) ouvre Excalidraw en plein écran, chargé à la demande (bloc séparé de 1,1 Mo, rien au démarrage ; le bundle principal ne grossit que de 10 Ko) ; thème clair / sombre et accent de la palette ; formes, crayon, flèches, texte, bibliothèque ; polices Excalidraw servies par l'app (aucun CDN), licences dans À propos ;
+  - enregistré par Rust dans `assets/dessins/<id>.excalidraw` + `<id>.svg` (chaque fichier écrit en entier) ; la note reçoit `![Dessin](assets/dessins/<id>.svg)` ;
+  - affiché comme une image (`<img>`, jamais injecté) : redimensionnable, hauteur sur le rythme, fond transparent, inversé dans les palettes sombres ; double-clic ou Ctrl+clic pour le rouvrir ; Ctrl+Entrée enregistre, l'aperçu est régénéré ; « Fermer » après une modification demande confirmation ;
+  - le texte écrit dans un dessin est trouvé par la recherche (« Trouvé dans un dessin ») ;
+  - la scène suit l'aperçu : nettoyage des pièces jointes orphelines et sa sauvegarde, export Markdown ; une note dupliquée reçoit sa propre copie de ses dessins.
+- Tests : `npm run test:format` (39 vérifications) et `npm run test:drawing` (16), ajoutés à la CI ; `test:rhythm` couvre les 4 polices à toutes les tailles, la police / taille propre à une note, les tailles mêlées de « Rythme vertical » ; tests unitaires pour les balises, les styles de bloc, l'export, la recherche, Ctrl+F, les dessins (Rust compris).
+
+### Captures (barre de mise en forme)
+
+`docs/captures/barre-format/` :
+- `barre-clair.png`, `barre-sombre.png` : la barre sur une note (curseur dans un mot en gras : bouton Gras enfoncé, alignement à gauche) ;
+- `fenetre-etroite.png` : fenêtre de 1 000 px, groupes de droite dans le menu « … » ouvert ;
+- `note-avec-dessin.png` (dessin inline) et `dessin-editeur.png` (l'éditeur plein écran) ;
+- `ligne-tailles-mixtes.png` : fond ligné avec marge, paragraphe en tailles mêlées et couleurs de surlignage, ligne en petit, titre agrandi ;
+- `marqueur-h-avant-150.png`, `marqueur-h-apres-100.png`, `marqueur-h-apres-150.png` : le marqueur H et la marge rouge.
+
+### Décisions (barre de mise en forme)
+
+| # | Sujet | Décision |
+|---|---|---|
+| P12-1 | Marqueur H et marge rouge | Avec la marge, le marqueur part de la marge (`--hmarker-left-margin` = position de la marge + `--hmarker-margin-gap` 8 px), aligné à gauche, sans retour à la ligne. Sans marge : inchangé (§2.14). |
+| P12-2 | Barre | 40 px de haut sous la barre de 52 px ; commence au bord gauche du texte (premier icône aligné sur le texte) et va jusqu'au bord droit du volet : la colonne seule (756 px) ne tient pas les 9 groupes. Suit la colonne à gauche et le sommaire ancré. État actif neutre (`--active`) : l'accent reste réservé (§1). Flèches ← → / Début / Fin entre les boutons (barre d'outils WAI-ARIA). En mode focus : opacité 0 et inerte, comme la barre de l'éditeur (pas de saut du texte). |
+| P12-3 | Balises en ligne | `<u>`, `<span data-size="sm|lg">`, `<mark data-color="green|blue|pink">` (jaune = `==…==`, `<mark>` sans couleur lu comme jaune) ; autre HTML laissé tel quel. Masquées comme la syntaxe, visibles estompées sur la ligne du curseur. Tailles 0,85 em et 1,5 em, interligne 1 dans le texte ; ligne contenant du grand : 2 × `--rhythm`, dessinée une demi-unité plus bas (ligne de base sur la 2e réglure, comme H1). Couleurs : teintes des post-it mélangées au fond (80 % en clair, 25 % en graphite / bleu), contrastes AA vérifiés, redéfinies sur tout élément à thème (export, sonde DOCX). |
+| P12-4 | Police et taille de la note | `font: sans|serif|mono|hand`, `size:` 14–20 (pas de 0,5) dans le frontmatter ; dans l'état de l'éditeur (annulable) et appliquées par l'éditeur sur lui-même ; écrites à la sauvegarde. DOCX : Segoe UI, Cambria, Consolas, Ink Free ; corps 11 pt à 16,5 px, proportionnel. |
+| P12-5 | Dessins | Excalidraw 0.18.1 (React 19). Polices copiées depuis le paquet par un plugin Vite (`scripts/vite-excalidraw-fonts.ts`), sauf Xiaolai (CJK, 13 Mo) : le chinois / japonais / coréen d'un dessin prend la police du système (le repli CDN d'Excalidraw est bloqué par la CSP, aucune requête ne part). Aperçu SVG pour une page claire, sans fond, sans scène embarquée ; inversé à l'affichage en sombre (filtre d'Excalidraw). Id `uuidv7`. Dessin neuf laissé vide : rien n'est inséré. Échap reste à Excalidraw (désélection) ; raccourcis globaux de l'app suspendus pendant le dessin ; Ctrl+Entrée = enregistrer (`drawing.save`, portée « drawing »). « Parcourir les bibliothèques » (site web) masqué. Avis de sécurité transitifs (lodash-es, katex, nanoid) corrigés par `overrides` : `npm audit --omit=dev` à 0. |
+| P12-6 | Raccourcis | Ctrl+I remplace « sélectionner le nœud parent » et Ctrl+U « annuler la sélection » de CodeMirror, Ctrl+L « sélectionner la ligne ». Pas de raccourci de style de bloc : Ctrl+Alt+chiffre = AltGr sur AZERTY, Ctrl+Maj+1–4 pris par l'alignement. Ctrl+Maj+Y pour surligner (Ctrl+Y = rétablir). |
+| P12-7 | Recherche et balises | Index : balises retirées avant le pliage casse / accents ; Ctrl+F : texte sans balises avec table des positions, une occurrence finit après son dernier caractère (accents combinants compris), jamais sur une balise. |
+| P12-8 | Branche | `feature/barre-format` part de `fix/retours-v1` (pas de `main`). |
+
+### Comparaison avec les maquettes (barre de mise en forme)
+
+Aucune maquette ne montre la barre de mise en forme ni l'éditeur de dessin. La barre reprend les boutons fantômes (§2.18), les menus (§2.21, coches et raccourcis), les infobulles (§2.22) et la barre de l'éditeur (§2.13, sans bordure, `--bg-2`) ; listes déroulantes texte en `--btn-fs-small`. Écart assumé : la barre déborde la colonne vers la droite (P12-2). Barre masquée, l'éditeur est identique à la maquette 02.
+
+### Checklist de test manuel (barre de mise en forme, Windows, AZERTY)
+1. Une note sur fond ligné avec marge, colonne à gauche, Caveat 20 px : le marqueur « H1 » est lisible, à distance de la ligne rouge (plus de « HM »). Même chose colonne centrée et en Newsreader.
+2. Sélectionne un mot : Ctrl+B, Ctrl+I, Ctrl+U, Ctrl+Maj+X ; les boutons s'enfoncent ; Ctrl+Z annule une à une. Survole les boutons : raccourcis dans les infobulles.
+3. Surligneur › Vert, puis Jaune, puis « Retirer » ; Ctrl+Maj+. deux fois (grand), Ctrl+Maj+, (normal) : la ligne grande prend deux réglures et reste alignée.
+4. Style de bloc › Titre 2, Citation, Code, Texte ; Ctrl+Maj+7 / 8 / 9 sur deux lignes ; « Effacer la mise en forme » (Ctrl+Maj+Espace).
+5. Police de la note › Manuscrite, Taille › 20 px : toute la note change, pas les autres ; Ctrl+Z revient ; rouvre le `.md` dans le Bloc-notes : `font: hand`, `size: 20`, balises lisibles.
+6. Réduis la fenêtre : les groupes de droite passent dans « … » ; mode focus (Ctrl+Maj+F) : barre masquée ; menu … › décoche « Barre de mise en forme » (et Réglages › Éditeur).
+7. Insérer › Dessin : Excalidraw s'ouvre en plein écran dans les couleurs de la palette ; dessine rectangles, flèche, texte « Cuisine » ; Ctrl+Entrée : le dessin apparaît dans la note ; redimensionne-le.
+8. Double-clic (puis Ctrl+clic) sur le dessin : modifie, « Fermer » : la question « Fermer sans enregistrer ? » ; Enregistrer : l'aperçu se met à jour. Recherche « cuisine » : la note sort, « Trouvé dans un dessin ».
+9. Palette sombre : le dessin s'inverse lisiblement. Duplique la note, modifie le dessin de la copie : l'original ne change pas. Exporte en PDF, DOCX, PNG et Markdown : dessin, police, tailles, souligné et couleurs présents ; le dossier Markdown contient le `.svg` et le `.excalidraw`.
+10. Coupe le réseau (mode avion) puis ouvre l'éditeur de dessin : tout fonctionne, polices comprises.
 
 ### Arborescence
 

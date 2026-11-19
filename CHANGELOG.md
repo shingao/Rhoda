@@ -2,6 +2,18 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
+## [Non publié]
+
+### Ajouts
+- Barre de mise en forme sous la barre de l'éditeur (masquable, cachée en mode focus) : style de bloc, police et taille de la note, taille du texte sélectionné (petit / normal / grand), gras, italique, souligné, barré, surlignage en quatre couleurs, listes, alignement, insertion de liens, d'images, de dessins et de séparateurs, effacement de la mise en forme. Les boutons montrent l'état du texte sous le curseur ; sur une fenêtre étroite, une partie passe dans un menu « … ».
+- Police (sans serif, serif, mono, manuscrite) et taille propres à une note, enregistrées en tête de note ; le réglage global reste la valeur par défaut et propose aussi les quatre polices.
+- Nouveaux raccourcis : Ctrl+B / I / U, Ctrl+Maj+X (barré), Ctrl+Maj+Y (surligner), Ctrl+Maj+. et , (taille), Ctrl+L (lien), Ctrl+Maj+Espace (effacer), Ctrl+Maj+7 / 8 / 9 (listes).
+- Dessins avec Excalidraw : éditeur plein écran chargé à la demande, dans les couleurs de la palette ; enregistrés dans `assets/dessins/` (source `.excalidraw` + aperçu `.svg` lisible partout), affichés dans la note, rouverts d'un double-clic ; leur texte est trouvé par la recherche ; copiés avec une note dupliquée et inclus dans les exports.
+- Tout cela s'annule avec Ctrl+Z et se retrouve dans les exports (HTML, PDF, Word, images) ; le Markdown reste propre (`<u>`, `<span data-size>`, `<mark data-color>` pour ce que Markdown ne sait pas dire), et la recherche ignore ces balises.
+
+### Corrections
+- Le marqueur de titre (H1–H6) ne touche plus la marge rouge quand la colonne est à gauche : il reste à distance fixe, quelles que soient la police et la taille.
+
 ## [1.0.0] — 2026-10-08
 
 Première version publique. L'app s'appelait Ursa pendant le développement : réglages et dossier de notes d'Ursa sont repris automatiquement.
