@@ -1,6 +1,7 @@
 import { tagKey } from "../markdown/extract";
 import type { Note } from "../note/note";
 import { stripInline } from "../note/text";
+import { stripInlineTags } from "../markdown/inlineTags";
 import { isTagWithin } from "../tags";
 import { contains, findAll, fold, matchRanges } from "./fold";
 import type { Needle, Operator, SearchQuery } from "./query";
@@ -77,7 +78,8 @@ function entry(note: Note): Entry {
     title: fold(note.title),
     tags: fold(tags.join("\n")),
     tagKeys: tags.map((t) => fold(tagKey(t))),
-    body: fold(note.body),
+    // The app's formatting tags (<u>, <span data-size>, <mark>) are not text.
+    body: fold(stripInlineTags(note.body)),
     extra,
     images: IMAGE.test(note.body),
     pdf: PDF.test(note.body),

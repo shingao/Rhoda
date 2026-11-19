@@ -2,6 +2,7 @@ import { isolateHistory } from "@codemirror/commands";
 import { EditorSelection, StateEffect, StateField, type EditorState, type Text, type TransactionSpec } from "@codemirror/state";
 import { Decoration, EditorView, type DecorationSet } from "@codemirror/view";
 import { findAll, foldWithMap } from "../../core/search/fold";
+import { stripInlineTagsWithMap } from "../../core/markdown/inlineTags";
 import type { Needle } from "../../core/search/query";
 import { parseEmbedLine } from "../../core/markdown/embeds";
 import { editorHooks, refreshPreview } from "../hooks";
@@ -55,16 +56,33 @@ function findImageMatches(doc: Text, needles: readonly Needle[]): ImageMatch[] {
   return out;
 }
 
-const folded = new WeakMap<Text, { text: string; map: number[] }>();
+const folded = new WeakMap<Text, { text: string; map: number[]; source: string }>();
+
+/** The document folded for search, its formatting tags left out, with each character's offset in the document. */
+function foldedDoc(doc: Text): { text: string; map: number[]; source: string } {
+  let f = folded.get(doc);
+  if (!f) {
+    const source = doc.toString();
+    const stripped = stripInlineTagsWithMap(source);
+    const { text, map } = foldWithMap(stripped.text);
+    folded.set(doc, (f = { text, map: map.map((i) => stripped.map[i]!), source }));
+  }
+  return f;
+}
 
 /** Every occurrence of the needles in the document, in order, not overlapping. */
 export function findMatches(doc: Text, needles: readonly Needle[]): Match[] {
   if (needles.length === 0) return [];
-  let f = folded.get(doc);
-  if (!f) folded.set(doc, (f = foldWithMap(doc.toString())));
-  const { text, map } = f;
+  const { text, map, source } = foldedDoc(doc);
+  // A match ends right after its last character (never after a closing tag that follows it).
+  // (combining accents after it included).
+  const end = (last: number) => {
+    let e = last + ((source.codePointAt(last) ?? 0) > 0xffff ? 2 : 1);
+    while (e < source.length && /\p{M}/u.test(source[e]!)) e++;
+    return e;
+  };
   const raw: Match[] = [];
-  for (const n of needles) for (const at of findAll(text, n.text, n.wordStart)) raw.push([map[at]!, map[at + n.text.length] ?? doc.length]);
+  for (const n of needles) for (const at of findAll(text, n.text, n.wordStart)) raw.push([map[at]!, n.text.length ? end(map[at + n.text.length - 1]!) : map[at]!]);
   raw.sort((a, b) => a[0] - b[0] || b[1] - a[1]);
   const out: Match[] = [];
   for (const m of raw) if (!out.length || m[0] >= out[out.length - 1]![1]) out.push(m);

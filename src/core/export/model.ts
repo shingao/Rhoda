@@ -1,3 +1,4 @@
+import { parseInlineTag, type HighlightColor, type InlineTag, type TextSize } from "../markdown/inlineTags";
 import type { SyntaxNode } from "@lezer/common";
 import { parseEmbedLine } from "../markdown/embeds";
 import { ursaParser } from "../markdown/syntax";
@@ -10,7 +11,11 @@ import { ursaParser } from "../markdown/syntax";
 
 export type Inline =
   | { t: "text"; text: string }
-  | { t: "strong" | "em" | "strike" | "highlight" | "underline"; children: Inline[] }
+  | { t: "strong" | "em" | "strike" | "underline"; children: Inline[] }
+  /** `==…==` (yellow) or `<mark data-color>` (decision P12-3). */
+  | { t: "highlight"; children: Inline[]; color?: HighlightColor }
+  /** `<span data-size="sm|lg">`: smaller or larger than the text. */
+  | { t: "size"; size: TextSize; children: Inline[] }
   | { t: "code"; text: string }
   | { t: "link"; href: string; children: Inline[] }
   | { t: "image"; alt: string; src: string }
@@ -82,9 +87,10 @@ class Reader {
   /** Inline runs of the range [from, to) of a node, its marks left out. */
   inlines(node: SyntaxNode, from = node.from, to = node.to): Inline[] {
     const out: Inline[] = [];
-    // `<u>…</u>` (Ctrl+U, decision D12): the runs in between are underlined.
-    const stack: Inline[][] = [out];
-    const push = (inline: Inline) => stack[stack.length - 1]!.push(inline);
+    // The app's inline tags (`<u>`, `<span data-size>`, `<mark data-color>`,
+    // decisions D12, P12-3): the runs in between take their style.
+    const stack: Array<{ kind: InlineTag["kind"] | null; children: Inline[] }> = [{ kind: null, children: out }];
+    const push = (inline: Inline) => stack[stack.length - 1]!.children.push(inline);
     let pos = from;
     const text = (end: number) => {
       if (end > pos) pushText(push, this.slice(pos, end));
@@ -98,12 +104,15 @@ class Reader {
         continue;
       }
       if (child.name === "HTMLTag") {
-        const tag = this.slice(child.from, child.to).toLowerCase();
-        if (tag === "<u>") {
+        const tag = parseInlineTag(this.slice(child.from, child.to));
+        const open = tag && stack.findLastIndex((f) => f.kind === tag.kind);
+        if (tag && !tag.closing) {
           const children: Inline[] = [];
-          push({ t: "underline", children });
-          stack.push(children);
-        } else if (tag === "</u>" && stack.length > 1) stack.pop();
+          if (tag.kind === "underline") push({ t: "underline", children });
+          else if (tag.kind === "size") push({ t: "size", size: tag.size ?? "lg", children });
+          else push({ t: "highlight", children, ...(tag.color && tag.color !== "yellow" && { color: tag.color }) });
+          stack.push({ kind: tag.kind, children });
+        } else if (tag && open !== null && open > 0) stack.length = open;
         else push({ t: "text", text: this.slice(child.from, child.to) });
         continue;
       }

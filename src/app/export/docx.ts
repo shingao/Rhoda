@@ -2,6 +2,7 @@ import type * as Docx from "docx";
 import { headingSlug, plainText, withoutTags, parseDocument, type Block, type Inline, type TextAlign } from "../../core/export/model";
 import { alignedLinesOf } from "../../core/align";
 import type { Note, NoteFont } from "../../core/note/note";
+import type { HighlightColor, TextSize } from "../../core/markdown/inlineTags";
 import { blocksOf, resolveAnchor } from "../../core/stickers";
 import { editorStickers } from "../../editor/session";
 import { assetsApi } from "../../services/assets";
@@ -39,7 +40,19 @@ const TEXT_WIDTH_PX = 600;
 /** Twips per list level. */
 const INDENT = 360;
 
-type Colors = Record<"text" | "text2" | "text3" | "accent" | "highlight" | "code" | "quote" | "separator" | "postitYellow" | "postitPink" | "postitGreen" | "postitBlue", string>;
+type Colors = Record<
+  "text" | "text2" | "text3" | "accent" | "highlight" | "hlGreen" | "hlBlue" | "hlPink" | "code" | "quote" | "separator" | "postitYellow" | "postitPink" | "postitGreen" | "postitBlue",
+  string
+>;
+
+/** Shading of each highlight colour. */
+const HIGHLIGHT_KEYS: Record<HighlightColor, keyof Colors> = { yellow: "highlight", green: "hlGreen", blue: "hlBlue", pink: "hlPink" };
+
+/** Sizes of the selection relative to the text, from the tokens (`--text-size-sm`, `--text-size-lg`, in em). */
+const sizeScales = (): Record<TextSize, number> => {
+  const style = getComputedStyle(document.documentElement);
+  return { sm: parseFloat(style.getPropertyValue("--text-size-sm")), lg: parseFloat(style.getPropertyValue("--text-size-lg")) };
+};
 
 /** Colours of a palette, read from the design tokens (as RRGGBB). */
 function themeColors(palette: Palette): Colors {
@@ -47,10 +60,15 @@ function themeColors(palette: Palette): Colors {
   probe.dataset.theme = palette;
   probe.hidden = true;
   document.body.appendChild(probe);
+  // Through a canvas pixel: tokens mixed with color-mix() compute to an OKLab colour, not sRGB.
+  const pixel = document.createElement("canvas").getContext("2d", { willReadFrequently: true })!;
   const hex = (name: string) => {
     probe.style.color = `var(${name})`;
-    const [r, g, b] = getComputedStyle(probe).color.match(/\d+(\.\d+)?/g)!.map(Number);
-    return [r, g, b].map((v) => Math.round(v!).toString(16).padStart(2, "0")).join("").toUpperCase();
+    pixel.clearRect(0, 0, 1, 1);
+    pixel.fillStyle = getComputedStyle(probe).color;
+    pixel.fillRect(0, 0, 1, 1);
+    const [r, g, b] = pixel.getImageData(0, 0, 1, 1).data;
+    return [r, g, b].map((v) => v!.toString(16).padStart(2, "0")).join("").toUpperCase();
   };
   const colors: Colors = {
     text: hex("--text"),
@@ -58,6 +76,9 @@ function themeColors(palette: Palette): Colors {
     text3: hex("--text-3"),
     accent: hex("--accent-text"),
     highlight: hex("--highlight"),
+    hlGreen: hex("--hl-green"),
+    hlBlue: hex("--hl-blue"),
+    hlPink: hex("--hl-pink"),
     code: hex("--bg-code"),
     quote: hex("--bg-1"),
     separator: hex("--bg-sunken"),
@@ -110,6 +131,7 @@ export async function noteDocx(note: Note, options: DocxOptions): Promise<Blob> 
   const c = themeColors(options.palette);
   const FONT = FONTS[options.text.font];
   const bodySize = Math.round((BODY_HALF_POINTS * options.text.size) / DEFAULT_PX);
+  const SCALES = sizeScales();
   const parsed = parseDocument(note.body, alignedLinesOf(note.aligns, note.body));
   const blocks = options.tags ? parsed : withoutTags(parsed);
 
@@ -172,7 +194,10 @@ export async function noteDocx(note: Note, options: DocxOptions): Promise<Blob> 
     italics?: boolean;
     strike?: boolean;
     underline?: boolean;
-    highlight?: boolean;
+    /** Shading of a highlight (RRGGBB). */
+    highlight?: string;
+    /** Size relative to the text (selection sizes). */
+    scale?: number;
     color?: string;
   }
   const text = (value: string, s: Style = {}, extra: Partial<Docx.IRunOptions> = {}): Docx.TextRun =>
@@ -183,7 +208,8 @@ export async function noteDocx(note: Note, options: DocxOptions): Promise<Blob> 
       ...(s.italics && { italics: true }),
       ...(s.strike && { strike: true }),
       ...(s.underline && { underline: {} }),
-      ...(s.highlight && { shading: { type: d.ShadingType.CLEAR, color: "auto", fill: c.highlight } }),
+      ...(s.highlight && { shading: { type: d.ShadingType.CLEAR, color: "auto", fill: s.highlight } }),
+      ...(s.scale && { size: Math.round(bodySize * s.scale) }),
       ...(s.color && { color: s.color }),
       ...extra,
     });
@@ -202,7 +228,9 @@ export async function noteDocx(note: Note, options: DocxOptions): Promise<Blob> 
         case "underline":
           return runs(r.children, { ...s, underline: true });
         case "highlight":
-          return runs(r.children, { ...s, highlight: true });
+          return runs(r.children, { ...s, highlight: r.color ? c[HIGHLIGHT_KEYS[r.color]] : c.highlight });
+        case "size":
+          return runs(r.children, { ...s, scale: SCALES[r.size] });
         case "code":
           return [text(r.text, s, { font: MONO, color: c.accent, shading: { type: d.ShadingType.CLEAR, color: "auto", fill: c.code } })];
         case "break":

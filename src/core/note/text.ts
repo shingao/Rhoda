@@ -1,3 +1,4 @@
+import { stripInlineTags } from "../markdown/inlineTags";
 /** Plain-text helpers on a note body (frontmatter already removed). */
 
 const HEADING = /^\s{0,3}#{1,6}\s+/;
@@ -11,7 +12,7 @@ function titleLineIndex(lines: string[]): number {
 
 /** Strips inline Markdown so a line reads as plain text. */
 export function stripInline(line: string): string {
-  return line
+  return stripInlineTags(line)
     .replace(/!\[([^\]]*)\]\([^)]*\)(\{[^}]*\})?/g, "$1")
     .replace(/\[\[([^\]|]+)(\|([^\]]+))?\]\]/g, (_m, target: string, _p, alias?: string) => alias ?? target)
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")

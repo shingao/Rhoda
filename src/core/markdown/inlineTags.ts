@@ -84,6 +84,28 @@ export function stripInlineTags(text: string): string {
   return text.replace(ANY_TAG, (t) => (parseInlineTag(t) ? "" : t));
 }
 
+/**
+ * The text without the app's tags, and for each of its characters (plus the
+ * end) the offset in the original: Ctrl+F finds "un mot" in "un <u>mot</u>".
+ */
+export function stripInlineTagsWithMap(text: string): { text: string; map: number[] } {
+  let out = "";
+  const map: number[] = [];
+  let last = 0;
+  const keep = (to: number) => {
+    out += text.slice(last, to);
+    for (let i = last; i < to; i++) map.push(i);
+  };
+  for (const m of text.matchAll(ANY_TAG)) {
+    if (!parseInlineTag(m[0])) continue;
+    keep(m.index);
+    last = m.index + m[0].length;
+  }
+  keep(text.length);
+  map.push(text.length);
+  return { text: out, map };
+}
+
 /** Writing a tag. */
 export function openTag(kind: InlineTag["kind"], value?: TextSize | HighlightColor): string {
   if (kind === "underline") return "<u>";

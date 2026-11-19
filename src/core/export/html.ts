@@ -199,7 +199,9 @@ class Renderer {
       case "strike":
         return `<s>${this.inlines(r.children)}</s>`;
       case "highlight":
-        return `<mark>${this.inlines(r.children)}</mark>`;
+        return r.color ? `<mark class="u-mark-${r.color}">${this.inlines(r.children)}</mark>` : `<mark>${this.inlines(r.children)}</mark>`;
+      case "size":
+        return `<span class="u-size-${r.size}">${this.inlines(r.children)}</span>`;
       case "underline":
         return `<u>${this.inlines(r.children)}</u>`;
       case "code":

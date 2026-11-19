@@ -598,7 +598,7 @@
   --formatbar-gap: 2px;
   --formatbar-group-gap: var(--sp-2);
   --formatbar-select-w: 104px;             /* block style / font menus: the longest label fits */
-  --formatbar-size-w: 76px;                /* note text size menu: "16,5 px" */
+  --formatbar-size-w: 88px;                /* note text size menu: "16,5 px" */
   --formatbar-swatch: 12px;                /* colour dot of a highlight menu entry */
 
   /* Inline formatting (decision P12-3). Sizes of the selection: a large run
@@ -606,10 +606,19 @@
   --text-size-sm: .85em;
   --text-size-lg: 1.5em;
   --line-lg-h: calc(var(--rhythm) * 2);
+  /* In a double line the baseline falls half a unit above a rule: drawn half a
+     unit lower, it sits on the second rule, like an H1 [§3]. */
+  --line-lg-shift: calc(var(--rhythm) / 2);
   --underline-w: round(1.5px, var(--device-px));
   --underline-offset: 3px;
-  /* Highlight colours: the post-it hues [§2.16] laid on the page, as light as
-     --highlight (yellow, the default `==…==`). Dark palettes mix less. */
+}
+
+/* Highlight colours (decision P12-3): the post-it hues [§2.16] laid on the
+   page, as light as --highlight (yellow, the default `==…==`); dark palettes
+   mix less. Declared on every themed element, not only :root, so that a part
+   in another palette (export page, DOCX colour probe) mixes its own colours. */
+:root,
+[data-theme] {
   --hl-yellow: var(--highlight);
   --hl-green: color-mix(in oklab, var(--postit-green) 80%, var(--bg-2));
   --hl-blue: color-mix(in oklab, var(--postit-blue) 80%, var(--bg-2));

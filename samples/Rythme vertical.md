@@ -94,4 +94,11 @@ Un PDF joint :
 
 [devis-renovation.pdf](assets/devis-renovation.pdf)
 
+Tailles mêlées : du texte <span data-size="sm">plus petit</span>, puis <span data-size="lg">plus grand</span>, <u>souligné</u>, surligné en <mark data-color="green">vert</mark>, <mark data-color="blue">bleu</mark> et <mark data-color="pink">rose</mark>. Ce paragraphe revient lui aussi à la ligne : chacune de ses lignes fait deux unités de rythme.
+
+<span data-size="sm">Une ligne entièrement en petit, qui reste sur une seule unité de rythme.</span>
+
+## <span data-size="lg">Un titre</span> agrandi
+> Une citation avec un mot <span data-size="lg">grand</span> dedans.
+
 Fin de la note.

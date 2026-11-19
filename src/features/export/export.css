@@ -182,6 +182,43 @@ body {
   color: inherit;
 }
 
+/* Highlight colours, underline, sizes of a run (decision P12-3), as in the editor */
+.u-page .u-mark-green {
+  background: var(--hl-green);
+}
+
+.u-page .u-mark-blue {
+  background: var(--hl-blue);
+}
+
+.u-page .u-mark-pink {
+  background: var(--hl-pink);
+}
+
+.u-page u {
+  text-decoration-thickness: var(--underline-w);
+  text-underline-offset: var(--underline-offset);
+}
+
+.u-page :is(.u-size-sm, .u-size-lg) {
+  line-height: 1;
+}
+
+.u-page .u-size-sm {
+  font-size: var(--text-size-sm);
+}
+
+.u-page .u-size-lg {
+  font-size: var(--text-size-lg);
+}
+
+/* A paragraph or list item holding large text: its lines are two rhythm units. */
+.u-page :is(p, li):has(.u-size-lg) {
+  position: relative;
+  top: var(--line-lg-shift);
+  line-height: var(--line-lg-h);
+}
+
 .u-page code {
   padding: var(--inline-code-pad);
   border-radius: var(--r-xs);

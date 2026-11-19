@@ -95,6 +95,13 @@ describe("search", () => {
     expect(run(all, "@untagged -@pinned kyoto")).toEqual(["Ancienne"]);
   });
 
+  it("finds the text inside the toolbar's tags, never the tags themselves", () => {
+    const formatted = note('# Mise en forme\nUn <u>mot</u> <mark data-color="green">surligné</mark> <span data-size="lg">en grand</span>');
+    expect(run([formatted], '"un mot surligne en grand"')).toEqual(["Mise en forme"]);
+    expect([run([formatted], "span"), run([formatted], "data"), run([formatted], "green")]).toEqual([[], [], []]);
+    expect(snippet(formatted, parseQuery("surligne"))!.text).toBe("Un mot surligné en grand");
+  });
+
   it("gives a plain-text excerpt around the match, highlighted", () => {
     const s = snippet(budget, parseQuery("kyoto"))!;
     expect(s.text).toBe("Ryokan à Kyoto : 410 €.");

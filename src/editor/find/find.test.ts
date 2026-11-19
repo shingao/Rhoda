@@ -23,6 +23,15 @@ describe("find in note", () => {
     expect(findMatches(state.doc, needle("oeuvre")).map(([a, b]) => state.sliceDoc(a, b))).toEqual(["œuvre"]);
   });
 
+  it("finds text across the formatting tags, never the tags", () => {
+    const state = create('Un <u>mot</u> <mark data-color="green">vert</mark> et cafe\u0301 <span data-size="lg">grand</span>');
+    const found = (s: string) => findMatches(state.doc, needle(s)).map(([a, b]) => state.sliceDoc(a, b));
+    expect(found("un mot")).toEqual(["Un <u>mot"]);
+    expect(found("mot vert")).toEqual(['mot</u> <mark data-color="green">vert']);
+    expect(found("cafe")).toEqual(["cafe\u0301"]);
+    expect([found("mark"), found("span"), found("data")]).toEqual([[], [], []]);
+  });
+
   it("follows edits", () => {
     let state = create().update({ effects: setNeedles.of(needle("ete")) }).state;
     expect(state.field(findField).matches).toHaveLength(4);

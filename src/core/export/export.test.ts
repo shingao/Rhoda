@@ -40,6 +40,18 @@ describe("export document", () => {
     expect(kinds).toEqual(["strong", "em", "strike", "highlight", "code", "underline", "link", "wiki", "tag"]);
   });
 
+  it("reads the toolbar's tags: sizes and highlight colours, nested, others left as text", () => {
+    const [p] = parseDocument('Un <span data-size="lg">grand <mark data-color="green">vert</mark></span> <mark>jaune</mark> <span data-size="sm">petit</span> <b>brut</b>');
+    expect(runs(p).filter((c) => c.t !== "text")).toEqual([
+      { t: "size", size: "lg", children: [{ t: "text", text: "grand " }, { t: "highlight", color: "green", children: [{ t: "text", text: "vert" }] }] },
+      { t: "highlight", children: [{ t: "text", text: "jaune" }] },
+      { t: "size", size: "sm", children: [{ t: "text", text: "petit" }] },
+    ]);
+    expect(plainText(runs(p))).toBe("Un grand vert jaune petit <b>brut</b>");
+    const html = renderHtml([p!], options());
+    expect(html).toContain('<span class="u-size-lg">grand <mark class="u-mark-green">vert</mark></span> <mark>jaune</mark> <span class="u-size-sm">petit</span> &lt;b&gt;brut&lt;/b&gt;');
+  });
+
   it("keeps tags out of titles and quote marks out of text", () => {
     const [h, q] = parseDocument("# Titre #pas-un-tag\n\n> une\n> citation");
     expect(h).toMatchObject({ t: "heading", children: [{ t: "text", text: "Titre #pas-un-tag" }] });

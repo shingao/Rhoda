@@ -1692,6 +1692,8 @@
 
 /* A line holding large text is two rhythm units tall [§6] (decision P12-3). */
 .cm-editor .cm-line.cm-line-lg {
+  position: relative;
+  top: var(--line-lg-shift);
   line-height: var(--line-lg-h);
 }
 
