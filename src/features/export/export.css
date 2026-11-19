@@ -461,6 +461,12 @@ body {
   border-radius: var(--image-radius);
 }
 
+/* A drawing (decision P12-5): no background, turned in a dark palette as in the editor. */
+.u-drawing img {
+  background: none;
+  filter: var(--drawing-filter);
+}
+
 .u-inline-image {
   max-width: 100%;
   vertical-align: top;

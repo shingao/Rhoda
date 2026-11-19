@@ -79,6 +79,7 @@ npm run test:a11y       # Playwright : axe-core (WCAG 2.1 AA) sur les écrans pr
 npm run test:typewriter  # Playwright : mode machine à écrire sur la note de 5 000 lignes (activation centrée, clic / souris / molette sans saut, recentrage doux à la frappe et aux flèches, rythme)
 npm run test:align       # Playwright : alignement des blocs (raccourcis AZERTY, annulation, menu du bloc au clic droit, stickers qui évitent le texte, frontmatter, réouverture)
 npm run test:format      # Playwright : barre de mise en forme (gras / italique / souligné / barré, surlignage en couleurs, tailles, styles de bloc, listes AZERTY, effacer, annulation, fenêtre étroite, mode focus)
+npm run test:drawing     # Playwright : dessins Excalidraw (chargé à la demande, polices locales, enregistrement, <img> au rythme, recherche, réouverture double-clic / Ctrl+clic, confirmation, thème sombre, duplication, aucune requête réseau)
 npm run perf             # build de production + coffre factice : démarrage à 2 000 notes, OCR au démarrage, frappe dans la recherche, mémoire sur 200 notes ouvertes
 npm run sample:images    # régénère samples/assets (images et PDF d'exemple)
 npm run build            # build frontend

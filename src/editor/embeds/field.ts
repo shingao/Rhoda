@@ -68,6 +68,10 @@ const actions: ImageActions = {
     const found = imageLineOf(view, dom);
     if (found) editorHooks().openOcrText(found.embed.src, at);
   },
+  openDrawing(view, dom) {
+    const found = imageLineOf(view, dom);
+    if (found) editorHooks().openDrawing(found.embed.src);
+  },
 };
 
 /** Cropping makes a new PNG / JPG / WebP; GIF (animation) and SVG (vector) are left alone. */
@@ -92,7 +96,7 @@ function widgetFor(embed: EmbedLine, rhythm: number, selected = false, zones: re
   const url = editorHooks().assetUrl(embed.src);
   if (!url) return null;
   if (!sizeOf(url)) editorHooks().wantSize(embed.src, url);
-  return new ImageWidget(url, embed.alt, embed.width, embed.src, rhythm, selected, croppable(embed.src), actions, zones);
+  return new ImageWidget(url, embed.alt, embed.width, embed.src, rhythm, selected, croppable(embed.src), actions, zones, editorHooks().isDrawing(embed.src));
 }
 
 function decorate(state: EditorState, lines: Map<number, EmbedLine>, focused: boolean, selected: number | null): DecorationSet {

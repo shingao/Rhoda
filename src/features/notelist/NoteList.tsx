@@ -40,7 +40,8 @@ export function NoteList() {
   const search = useDeferredValue(useApp((st) => st.search));
   const query = activeQuery(search);
   // OCR results arriving can add search results.
-  const textVersion = useApp((st) => st.ocr.version);
+  // Texts read in images (OCR) and drawings since: search results change.
+  const textVersion = useApp((st) => st.ocr.version + st.drawingTexts);
   const list = useMemo(
     () => listedNotes(notes, sort, filter, now, query),
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -501,6 +501,17 @@
   background: var(--image-placeholder);
 }
 
+/* A drawing (decision P12-5): its picture is drawn for a light page; dark
+   palettes turn it as Excalidraw does in its own dark mode. Double-click to edit. */
+.cm-editor .cm-drawing img {
+  background: none;
+  filter: var(--drawing-filter);
+}
+
+.cm-editor .cm-drawing .cm-image-frame {
+  cursor: pointer;
+}
+
 /* Selected [§2.12]: ring, handles, size badge, floating bar */
 .cm-editor .cm-image.is-selected .cm-image-frame {
   border-radius: var(--image-radius);

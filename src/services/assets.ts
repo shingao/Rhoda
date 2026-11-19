@@ -39,8 +39,12 @@ export const assetsApi = {
   pickStickers: (title: string) => invoke<string[]>("pick_stickers", { title }),
   /** Imported stickers of the vault, newest first. */
   listStickers: () => invoke<string[]>("list_stickers"),
-  /** URL for <img> / pdf.js of a vault-relative file, served by the `vault:` protocol. */
-  url: (path: string): string => (mockUrl ? (mockUrl(path) ?? "") : convertFileSrc(path, "vault")),
+  /**
+   * URL for <img> / pdf.js of a vault-relative file, served by the `vault:`
+   * protocol. `version`: a file rewritten in place (a drawing's picture) gets a
+   * new URL, so the webview does not show its cached copy.
+   */
+  url: (path: string, version = 0): string => (mockUrl ? (mockUrl(path) ?? "") : convertFileSrc(path, "vault") + (version ? `?v=${version}` : "")),
   /** Size of a PDF, and its first-page preview and page count once drawn. */
   pdfInfo: (path: string) => invoke<{ bytes: number; thumb: string | null; pages: number | null }>("pdf_info", { path }),
   /** Keeps the first-page preview drawn by pdf.js (PNG). */

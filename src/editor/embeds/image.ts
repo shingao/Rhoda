@@ -15,6 +15,8 @@ export interface ImageActions {
   crop(view: EditorView, dom: HTMLElement): void;
   /** "Text": what OCR read in the image. */
   ocrText(view: EditorView, dom: HTMLElement, at: { x: number; y: number }): void;
+  /** Double-click or Ctrl+click on a drawing: the drawing editor. */
+  openDrawing(view: EditorView, dom: HTMLElement): void;
 }
 
 /** A zone found by OCR (fractions of the image), the current one ringed. */
@@ -110,6 +112,8 @@ export class ImageWidget extends WidgetType {
     readonly actions: ImageActions,
     /** Search occurrences read by OCR in this image. */
     readonly zones: readonly ImageZone[] = [],
+    /** A drawing (decision P12-5): opened on double-click or Ctrl+click, no OCR text button. */
+    readonly drawing = false,
     /** Whether the size was known when built: once it is, the block is drawn again at its final height. */
     readonly sized = knownSizes.has(url),
   ) {
@@ -125,6 +129,7 @@ export class ImageWidget extends WidgetType {
       other.rhythm === this.rhythm &&
       other.selected === this.selected &&
       other.sized === this.sized &&
+      other.drawing === this.drawing &&
       zonesKey(other.zones) === zonesKey(this.zones)
     );
   }
@@ -149,7 +154,7 @@ export class ImageWidget extends WidgetType {
   toDOM(view: EditorView): HTMLElement {
     const t = currentMessages().images;
     const wrap = document.createElement("div") as ImageDom;
-    wrap.className = "cm-embed cm-image";
+    wrap.className = this.drawing ? "cm-embed cm-image cm-drawing" : "cm-embed cm-image";
     wrap.classList.toggle("is-selected", this.selected);
     const frame = document.createElement("div");
     frame.className = "cm-image-frame";
@@ -206,7 +211,9 @@ export class ImageWidget extends WidgetType {
       crop.addEventListener("click", () => this.current(wrap).actions.crop(view, wrap));
       bar.append(crop);
     }
+    if (this.drawing) frame.title = currentMessages().drawings.editHint;
     const text = document.createElement("button");
+    text.hidden = this.drawing;
     text.type = "button";
     text.className = "cm-image-text";
     text.title = t.ocrText;
@@ -266,9 +273,18 @@ export class ImageWidget extends WidgetType {
     });
 
     // Click selects; dragging a handle resizes, committed once on release.
+    frame.addEventListener("dblclick", (e) => {
+      if (!this.current(wrap).drawing || (e.target as HTMLElement).dataset.handle) return;
+      e.preventDefault();
+      this.current(wrap).actions.openDrawing(view, wrap);
+    });
     frame.addEventListener("mousedown", (e) => {
       if (e.button !== 0) return;
       e.preventDefault();
+      if ((e.ctrlKey || e.metaKey) && this.current(wrap).drawing) {
+        this.current(wrap).actions.openDrawing(view, wrap);
+        return;
+      }
       const handle = (e.target as HTMLElement).dataset.handle;
       const w = this.current(wrap);
       if (!handle || !w.selected) {

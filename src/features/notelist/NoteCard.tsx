@@ -1,5 +1,5 @@
 import { forwardRef, memo, useMemo, type MouseEvent } from "react";
-import { Archive, Pin, ScanText, SquareCheck, StickyNote } from "lucide-react";
+import { Archive, Pin, ScanText, SquareCheck, PenTool, StickyNote } from "lucide-react";
 import { useT } from "../../app/i18n";
 import { formatRelative } from "../../core/dates";
 import { firstImage } from "../../core/markdown/embeds";
@@ -184,6 +184,8 @@ export const NoteCard = memo(
               <span className={s.foundIn}>
                 {found.excerpt.source === "postit" ? (
                   <StickyNote className={s.metaIcon} aria-hidden />
+                ) : found.excerpt.source === "drawing" ? (
+                  <PenTool className={s.metaIcon} aria-hidden />
                 ) : (
                   <ScanText className={s.metaIcon} aria-hidden />
                 )}

@@ -603,6 +603,8 @@
 
   /* Inline formatting (decision P12-3). Sizes of the selection: a large run
      makes its line exactly two rhythm units [§6]; a small one stays in one. */
+  /* Drawings (decision P12-5): pictures kept light, turned for dark palettes (below). */
+  --drawing-filter: none;
   --text-size-sm: .85em;
   --text-size-lg: 1.5em;
   --line-lg-h: calc(var(--rhythm) * 2);
@@ -627,6 +629,7 @@
 
 [data-theme="graphite"],
 [data-theme="blue"] {
+  --drawing-filter: invert(93%) hue-rotate(180deg);
   --hl-green: color-mix(in oklab, var(--postit-green) 25%, var(--bg-2));
   --hl-blue: color-mix(in oklab, var(--postit-blue) 25%, var(--bg-2));
   --hl-pink: color-mix(in oklab, var(--postit-pink) 25%, var(--bg-2));

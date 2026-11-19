@@ -1,0 +1,27 @@
+/* Excalidraw in the app's colours (decision P12-5): accent from the palette,
+   the app's UI font; nothing that would reach the web (library browsing). */
+.host {
+  position: absolute;
+  inset: 0;
+}
+
+.host :global(.excalidraw),
+.host :global(.excalidraw.theme--dark) {
+  --color-primary: var(--accent);
+  --color-primary-darker: var(--accent-hover);
+  --color-primary-darkest: var(--accent-solid);
+  --color-primary-hover: var(--accent-hover);
+  --color-primary-light: var(--accent-soft);
+  --color-primary-light-darker: var(--accent-soft);
+  --ui-font: var(--font-ui);
+}
+
+.host :global(.library-menu-browse-button) {
+  display: none;
+}
+
+/* The whole canvas takes the keys: like the editor's text, no ring around it
+   (its tools and buttons keep theirs). */
+.host :global(.excalidraw-container):focus-visible {
+  box-shadow: none;
+}

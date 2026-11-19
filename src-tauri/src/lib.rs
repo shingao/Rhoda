@@ -1,5 +1,6 @@
 mod assets;
 mod backup;
+mod drawings;
 mod preview;
 mod error;
 mod export;
@@ -113,6 +114,9 @@ pub fn run() {
             assets::pdf_info,
             assets::save_pdf_preview,
             assets::open_attachment,
+            drawings::read_drawing,
+            drawings::save_drawing,
+            drawings::copy_drawing,
             export::export_pick_folder,
             export::export_default_folder,
             export::export_folder_ok,

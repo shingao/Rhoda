@@ -1,6 +1,7 @@
 import { useEffect, useRef, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import s from "./Modal.module.css";
+import { useInertApp } from "./useInertApp";
 
 interface DialogProps {
   onClose: () => void;
@@ -16,27 +17,12 @@ interface DialogProps {
   scrimClassName?: string;
 }
 
-/** Open dialogs: the app behind them is inert (no focus, no clicks, hidden from assistive tech). */
-let openDialogs = 0;
-function setAppInert(): void {
-  const root = document.getElementById("root");
-  if (root) root.inert = openDialogs > 0;
-}
-
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 
 /** Modal shell [DESIGN §2.17]: scrim, trapped focus, Esc / scrim click close, focus restored. */
 export function Dialog({ onClose, labelledBy, className, children, initialFocus, centered, scrimClassName }: DialogProps) {
   const dialog = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    openDialogs++;
-    setAppInert();
-    return () => {
-      openDialogs--;
-      setAppInert();
-    };
-  }, []);
+  useInertApp();
 
   useEffect(() => {
     const previous = document.activeElement;

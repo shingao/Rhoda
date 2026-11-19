@@ -48,6 +48,8 @@ export const SHORTCUTS = {
   "format.smaller": { keys: "Ctrl+Shift+Comma", scope: "editor" },
   "format.link": { keys: "Ctrl+L", scope: "editor" },
   "format.clear": { keys: "Ctrl+Shift+Space", scope: "editor" },
+  // Drawing editor (Excalidraw keeps its own keys; Escape is its own too).
+  "drawing.save": { keys: "Ctrl+Enter", scope: "drawing" },
   // Lists: digits by physical key, after the alignment ones.
   "list.bullet": { keys: "Ctrl+Shift+Digit7", scope: "editor" },
   "list.ordered": { keys: "Ctrl+Shift+Digit8", scope: "editor" },
@@ -69,7 +71,7 @@ export const SHORTCUTS = {
 } as const satisfies Record<string, { keys: string; scope: ShortcutScope }>;
 
 /** "editor" shortcuts run inside CodeMirror; "list" and "find" where those have focus. */
-export type ShortcutScope = "global" | "list" | "editor" | "find";
+export type ShortcutScope = "global" | "list" | "editor" | "find" | "drawing";
 export type ShortcutId = keyof typeof SHORTCUTS;
 export const SHORTCUT_IDS = Object.keys(SHORTCUTS) as ShortcutId[];
 
@@ -195,6 +197,8 @@ export function useGlobalShortcuts(handlers: ShortcutHandlers): void {
     const onKeyDown = (e: KeyboardEvent) => {
       // Recording a shortcut in the settings: keys are not commands.
       if (getState().recordingShortcut) return;
+      // The drawing editor has its own keys (V, R, Ctrl+D…): the app's wait.
+      if (getState().drawing) return;
       const id = matchShortcut(e, "global");
       const run = id && handlers[id];
       if (!run) return;

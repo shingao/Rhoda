@@ -47,8 +47,8 @@ jobs:
       # Chromium, like WebView2: rhythm and page backgrounds at 100-175 %
       # Windows scaling, the accessibility audit (axe, keyboard, reduced
       # motion, high contrast), the typewriter mode, block alignment and the
-      # formatting toolbar.
-      - name: Rhythm and display scaling, accessibility, typewriter, alignment, formatting
+      # formatting toolbar and the drawings.
+      - name: Rhythm and display scaling, accessibility, typewriter, alignment, formatting, drawings
         run: |
           npx playwright install chromium
           npm run test:rhythm
@@ -56,6 +56,7 @@ jobs:
           npm run test:typewriter
           npm run test:align
           npm run test:format
+          npm run test:drawing
 
       - name: Clippy
         working-directory: src-tauri

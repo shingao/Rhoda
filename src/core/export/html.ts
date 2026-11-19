@@ -1,3 +1,4 @@
+import { isDrawingSrc } from "../drawings";
 import { headingSlug, plainText, type Block, type Inline, type TextAlign } from "./model";
 
 /**
@@ -162,7 +163,8 @@ class Renderer {
         const image = this.o.image(b.src);
         if (!image) return `${at}<p class="u-missing"${line}>${escapeHtml(b.alt || b.src)}</p>`;
         const width = b.width ? ` style="width:${b.width}px"` : "";
-        return `${at}<figure class="u-image"${line}><img src="${escapeHtml(image.src)}" alt="${escapeHtml(b.alt)}"${width}></figure>`;
+        const kind = isDrawingSrc(b.src) ? "u-image u-drawing" : "u-image";
+        return `${at}<figure class="${kind}"${line}><img src="${escapeHtml(image.src)}" alt="${escapeHtml(b.alt)}"${width}></figure>`;
       }
       case "pdf":
         return (

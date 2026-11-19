@@ -165,6 +165,7 @@ export function installDevMock(): void {
   };
 
   const ocrCache = new Map<string, unknown>();
+
   const assetBackups = new Map<string, Map<string, ReturnType<typeof assetsOf> extends Map<string, infer A> ? A : never>>();
   mockWindows("main");
   mockIPC((cmd, payload) => {
@@ -231,6 +232,30 @@ export function installDevMock(): void {
       }
       case "asset_info":
         return ((payload as { paths: string[] }).paths ?? []).map(() => null);
+      case "read_drawing": {
+        // Scenes are attachments too (bytes kept), so backups and restores carry them.
+        const bytes = assetsOf(vaultPath).get(`assets/dessins/${args.id}.excalidraw`)?.bytes;
+        return bytes ? new TextDecoder().decode(bytes) : null;
+      }
+      case "save_drawing": {
+        const { id, source, svg } = payload as { id: string; source: string; svg: string };
+        const store = assetsOf(vaultPath);
+        const old = store.get(`assets/dessins/${id}.svg`);
+        if (old) URL.revokeObjectURL(old.url);
+        store.set(`assets/dessins/${id}.svg`, { url: URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" })), bytes: new TextEncoder().encode(svg) });
+        store.set(`assets/dessins/${id}.excalidraw`, { url: "", bytes: new TextEncoder().encode(source) });
+        return null;
+      }
+      case "copy_drawing": {
+        const { from, to } = payload as { from: string; to: string };
+        const store = assetsOf(vaultPath);
+        const svg = store.get(`assets/dessins/${from}.svg`);
+        const source = store.get(`assets/dessins/${from}.excalidraw`);
+        if (!source || !svg) return false;
+        store.set(`assets/dessins/${to}.svg`, svg);
+        store.set(`assets/dessins/${to}.excalidraw`, source);
+        return true;
+      }
       case "import_clipboard_image":
         return null;
       case "import_files":

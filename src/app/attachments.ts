@@ -5,6 +5,7 @@ import type { RemoteImageState } from "../editor/embeds/remoteImage";
 import { editorPosAt, insertBlockLines, refreshEditor, replaceImageSrc } from "../editor/session";
 import { assetsApi, type Imported } from "../services/assets";
 import { errorMessage } from "../services/errors";
+import { pictureVersion } from "./drawings";
 import { currentMessages } from "./i18n";
 import { getState, showToast } from "./store";
 import { dropStickerFiles } from "./stickers";
@@ -138,7 +139,7 @@ export function wantSize(src: string, url: string): void {
 export function assetUrl(src: string): string | null {
   const note = openNote();
   const path = note ? resolveVaultPath(note.path, src) : null;
-  return path ? assetsApi.url(path) : null;
+  return path ? assetsApi.url(path, pictureVersion(path)) : null;
 }
 
 /** Remote images being downloaded or that failed (by URL). */

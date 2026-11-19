@@ -69,6 +69,10 @@ export interface EditorHooks {
   openStickerMenu(id: string, at: { x: number; y: number }): void;
   /** Right-click (or context menu key) in the text: the block's menu (alignment). */
   openBlockMenu(at: { x: number; y: number }): void;
+  /** Whether an image of the open note is a drawing (its picture in `assets/dessins/`). */
+  isDrawing(src: string): boolean;
+  /** Double-click or Ctrl+click on a drawing: opens it in the drawing editor. */
+  openDrawing(src: string): void;
   /** Formatting at the cursor changed (toolbar state). */
   formatChanged(format: FormatState): void;
 }
@@ -111,6 +115,8 @@ let hooks: EditorHooks = {
   openStickerMenu: () => undefined,
   openBlockMenu: () => undefined,
   formatChanged: () => undefined,
+  isDrawing: () => false,
+  openDrawing: () => undefined,
 };
 
 export function setEditorHooks(next: Partial<EditorHooks>): void {

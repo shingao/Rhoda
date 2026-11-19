@@ -1,5 +1,6 @@
 import type { OutlineData } from "../editor/sections/outline";
 import type { FormatState } from "../editor/format";
+import type { DrawingRequest } from "./drawings";
 import type { CropRequest } from "./crops";
 import { create } from "zustand";
 import type { Note } from "../core/note/note";
@@ -37,6 +38,9 @@ interface AppState {
   search: SearchInput;
   /** Find in the note (Ctrl+F / Ctrl+H) and the occurrences in the open note. */
   find: FindState;
+  /** Drawing open in the full-screen editor (Excalidraw), and a counter bumped when drawing texts are read (search). */
+  drawing: DrawingRequest | null;
+  drawingTexts: number;
   /** Formatting at the cursor of the open note, for the toolbar (reported by the editor). */
   format: FormatState | null;
   /** Focus mode (Ctrl+Shift+F): only the editor, the rest of the chrome fades out. Not persisted. */
@@ -128,6 +132,8 @@ export const useApp = create<AppState>()(() => ({
   palette: null,
   focusMode: false,
   format: null,
+  drawing: null,
+  drawingTexts: 0,
 }));
 
 export const getState = useApp.getState;

@@ -1,10 +1,11 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
+import { excalidrawFonts } from "./scripts/vite-excalidraw-fonts.ts";
 
 const host = process.env.TAURI_DEV_HOST;
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), excalidrawFonts()],
   clearScreen: false,
   server: {
     port: 1420,

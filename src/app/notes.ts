@@ -20,6 +20,8 @@ import { applyChanges, wikiLinkRenameChanges, type TextChange } from "../core/re
 import { restoreTagScopes } from "../core/tags";
 import { localReferences } from "../core/markdown/embeds";
 import { assetsApi } from "../services/assets";
+import { drawingsApi } from "../services/drawings";
+import { drawingIdOf, drawingsIn, drawingSourcePath, replaceDrawingIds } from "../core/drawings";
 
 /** Attachments folder of the vault (the Rust side uses the same name). */
 const ASSETS_DIR = "assets";
@@ -684,7 +686,8 @@ export async function createNote(title?: string): Promise<void> {
 /**
  * "Duplicate": a new note with the same text and frontmatter (other keys
  * kept), a new id and creation date, unpinned, its stickers copied with new
- * ids. Selected afterwards.
+ * ids and its drawings copied (editing one never changes the other's).
+ * Selected afterwards.
  */
 export async function duplicateNote(id: string): Promise<void> {
   await flushNote(id);
@@ -702,7 +705,13 @@ export async function duplicateNote(id: string): Promise<void> {
       stickers: serializeStickers(stickers),
       align: serializeAligns(editorAligns(id) ?? source.aligns),
     });
-    const content = serializeNote({ frontmatter, body: currentText(id), eol: source.eol });
+    const body = currentText(id);
+    const drawings = new Map<string, string>();
+    for (const drawing of new Set(drawingsIn(source.path, body))) {
+      const copy = uuidv7();
+      if (await drawingsApi.copy(drawing, copy).catch((e: unknown) => (console.warn("[ursa] drawing not copied", drawing, e), false))) drawings.set(drawing, copy);
+    }
+    const content = serializeNote({ frontmatter, body: replaceDrawingIds(body, drawings), eol: source.eol });
     const created = noteFromFile(await vaultApi.create(sanitizeStem(source.title, untitled), content));
     putNote(created);
     lastTitles.set(created.id, created.title);
@@ -818,6 +827,11 @@ async function orphanAssets(ids: string[]): Promise<string[]> {
   for (const note of Object.values(getState().notes)) {
     if (leaving.has(note.id)) continue;
     for (const path of refs(note)) theirs.delete(path);
+  }
+  // A drawing's scene goes with its picture.
+  for (const path of [...theirs]) {
+    const drawing = drawingIdOf(path);
+    if (drawing) theirs.add(drawingSourcePath(drawing));
   }
   const candidates = [...theirs];
   const infos = await assetsApi.info(candidates).catch(() => candidates.map(() => null));

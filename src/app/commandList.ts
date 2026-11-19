@@ -31,6 +31,7 @@ import {
   Moon,
   PanelLeft,
   PanelsTopLeft,
+  PenTool,
   Pilcrow,
   Pin,
   RemoveFormatting,
@@ -62,6 +63,7 @@ import { reindexOcr } from "./ocr";
 import { openFindFromSelection } from "./search";
 import { SHORTCUTS, type ShortcutId } from "./shortcuts";
 import { toggleStickerDrawer } from "./stickers";
+import { newDrawing } from "./drawings";
 import { currentList, getState, setState, updateSettings } from "./store";
 import { changeVaultFolder } from "./vault";
 
@@ -125,6 +127,7 @@ export const COMMANDS: readonly AppCommand[] = [
   { id: "format.smaller", label: (t) => t.format.commands.smaller, icon: AArrowDown, shortcut: "format.smaller", unavailable: needsText, run: editor("format.smaller") },
   { id: "format.clear", label: (t) => t.format.commands.clear, icon: RemoveFormatting, shortcut: "format.clear", unavailable: needsText, run: editor("format.clear") },
   { id: "format.link", label: (t) => t.format.commands.link, icon: Link, shortcut: "format.link", unavailable: needsText, run: editor("format.link") },
+  { id: "drawing.insert", label: (t) => t.drawings.insertCommand, icon: PenTool, unavailable: needsLiveNote, run: newDrawing },
   { id: "format.rule", label: (t) => t.format.commands.rule, icon: Minus, unavailable: needsLiveNote, run: format({ kind: "rule" }) },
   { id: "list.bullet", label: (t) => t.format.commands.bullet, icon: List, shortcut: "list.bullet", unavailable: needsLiveNote, run: editor("list.bullet") },
   { id: "list.ordered", label: (t) => t.format.commands.ordered, icon: ListOrdered, shortcut: "list.ordered", unavailable: needsLiveNote, run: editor("list.ordered") },

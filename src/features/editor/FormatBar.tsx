@@ -16,12 +16,14 @@ import {
   ListOrdered,
   ListTodo,
   Minus,
+  PenTool,
   RemoveFormatting,
   Strikethrough,
   Underline,
   type LucideIcon,
 } from "lucide-react";
 import { insertFromDialog } from "../../app/attachments";
+import { newDrawing } from "../../app/drawings";
 import { cssPx } from "../../app/cssTokens";
 import { useT } from "../../app/i18n";
 import { shortcutLabel, type ShortcutId } from "../../app/shortcuts";
@@ -276,12 +278,14 @@ export function FormatBar() {
         <>
           <IconButton icon={Link} label={t.format.link} shortcut={shortcutLabel("format.link", t)} disabled={inline} onClick={run({ kind: "link" })} />
           <IconButton icon={ImagePlus} label={t.format.image} onClick={() => void insertFromDialog()} />
+          <IconButton icon={PenTool} label={t.drawings.insertCommand} onClick={newDrawing} />
           <IconButton icon={Minus} label={t.format.rule} onClick={run({ kind: "rule" })} />
         </>
       ),
       entries: () => [
         { id: "link", label: t.format.link, icon: Link, shortcut: shortcutLabel("format.link", t), onSelect: run({ kind: "link" }) },
         { id: "image", label: t.format.image, icon: ImagePlus, onSelect: () => void insertFromDialog() },
+        { id: "drawing", label: t.drawings.insertCommand, icon: PenTool, onSelect: newDrawing },
         { id: "rule", label: t.format.rule, icon: Minus, onSelect: run({ kind: "rule" }) },
       ],
     },

@@ -1,5 +1,6 @@
 import { isInHeading, ursaParser } from "../markdown/syntax";
 import { parseEmbedLine, resolveVaultPath } from "../markdown/embeds";
+import { drawingIdOf, drawingSourcePath } from "../drawings";
 
 /**
  * Markdown export: the note as written, without what only Ursa reads, with
@@ -40,6 +41,9 @@ export function linkedFiles(notePath: string, body: string): string[] {
     if (inside(code, m.index)) continue;
     const path = resolveVaultPath(notePath, unwrap(m[2]!));
     if (path) out.add(path);
+    // A drawing travels with its scene: still editable where the export is opened.
+    const drawing = path ? drawingIdOf(path) : null;
+    if (drawing) out.add(drawingSourcePath(drawing));
   }
   return [...out];
 }

@@ -6,14 +6,16 @@ import apache from "../../assets/licenses/pdfjs-Apache-2.0.txt?raw";
 import isc from "../../assets/licenses/lucide-ISC.txt?raw";
 import mit from "../../assets/licenses/fluent-emoji-MIT.txt?raw";
 import ofl from "../../assets/licenses/OFL-1.1.txt?raw";
+import mitExcalidraw from "../../assets/licenses/excalidraw-MIT.txt?raw";
 import { version } from "../../../package.json";
 import s from "./Settings.module.css";
 
 type Licence = "mit" | "ofl" | "isc" | "apache" | "mitApache";
-const TEXTS: Partial<Record<Licence, string>> = { mit, ofl, isc, apache };
+/** Licence texts shown in full; Excalidraw's MIT text carries its own copyright notices. */
+const TEXTS = { mit, ofl, isc, apache, mitExcalidraw } as const;
 
 /** What the app ships that others made; `use` keys are in i18n (settings.credits). */
-const CREDITS: ReadonlyArray<{ name: string; author: string; licence: Licence; use: "stickers" | "hand" | "ui" | "serif" | "mono" | "icons" | "pdf" | "editor" | "app" | "shell" | "store" | "yaml" | "docx" }> = [
+const CREDITS: ReadonlyArray<{ name: string; author: string; licence: Licence; use: "stickers" | "hand" | "ui" | "serif" | "mono" | "icons" | "pdf" | "editor" | "app" | "shell" | "store" | "yaml" | "docx" | "drawing" | "drawingFonts" | "drawingCode" }> = [
   { name: "Fluent Emoji 3D", author: "Microsoft", licence: "mit", use: "stickers" },
   { name: "Caveat", author: "The Caveat Project Authors", licence: "ofl", use: "hand" },
   { name: "Hanken Grotesk", author: "The Hanken Grotesk Project Authors", licence: "ofl", use: "ui" },
@@ -27,6 +29,11 @@ const CREDITS: ReadonlyArray<{ name: string; author: string; licence: Licence; u
   { name: "Zustand", author: "Poimandres", licence: "mit", use: "store" },
   { name: "yaml", author: "Eemeli Aro", licence: "isc", use: "yaml" },
   { name: "docx", author: "Dolan Miu", licence: "mit", use: "docx" },
+  { name: "Excalidraw", author: "Excalidraw", licence: "mit", use: "drawing" },
+  { name: "Excalifont, Virgil", author: "Excalidraw, Ellinor Rapp", licence: "ofl", use: "drawingFonts" },
+  { name: "Nunito, Lilita One, Assistant", author: "The Nunito, Lilita One and Assistant Project Authors", licence: "ofl", use: "drawingFonts" },
+  { name: "Cascadia Code, Liberation Sans", author: "Microsoft, Red Hat", licence: "ofl", use: "drawingFonts" },
+  { name: "Comic Shanns", author: "Shannon Miwa", licence: "mit", use: "drawingCode" },
 ];
 
 /** Settings › About: version, privacy, third-party licences (full texts of those shipped as files). */
@@ -59,7 +66,7 @@ export function AboutPage() {
         ))}
       </ul>
       <h3 className={s.aboutHeading}>{t.settings.licenceTexts}</h3>
-      {(["mit", "ofl", "isc", "apache"] as const).map((l) => (
+      {(["mit", "ofl", "isc", "apache", "mitExcalidraw"] as const).map((l) => (
         <details key={l} className={s.licence}>
           <summary>{t.settings.licenceTitles[l]}</summary>
           <pre>{TEXTS[l]}</pre>
