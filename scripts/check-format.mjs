@@ -5,9 +5,11 @@
 // 2. highlight colours (menu), relative sizes (a large line = 2 × --rhythm),
 //    block styles (headings, quote, code), lists (Ctrl+Shift+7 / 8 / 9 by
 //    physical key, AZERTY included), link, separator, clear formatting;
-// 3. font and size of the whole note (frontmatter `font:`, `size:`), undoable;
-// 4. narrow window: the right-hand groups go into "…"; focus mode and the
-//    setting hide the bar.
+// 3. "Aa": font and size of the whole note (frontmatter `font:`, `size:`) and
+//    of the selection, undoable; the "Lists" menu;
+// 4. 1 440 px with sidebar and list: the whole bar; alignment, then insert,
+//    fold into one menu each; "…" only below about 1 200 px; focus mode and
+//    the setting hide the bar.
 // Needs Chromium for Playwright.
 import { chromium } from "playwright";
 import { createServer } from "vite";
@@ -26,12 +28,12 @@ const check = (ok, label, detail = "") => {
 };
 
 try {
-  const page = await browser.newPage({ viewport: { width: 1680, height: 900 }, locale: "fr-FR" });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, locale: "fr-FR" });
   page.on("pageerror", (e) => check(false, "erreur de la page", e.message));
   await page.goto(url);
   await page.evaluate(() => {
     localStorage.clear();
-    localStorage.setItem("ursa-dev-settings", JSON.stringify({ welcomed: true, layout: { sidebarCollapsed: true } }));
+    localStorage.setItem("ursa-dev-settings", JSON.stringify({ welcomed: true }));
   });
   await page.reload();
   await page.waitForFunction(() => window.__ursaView !== undefined);
@@ -112,6 +114,18 @@ try {
     return { rhythm, h: line?.getBoundingClientRect().height ?? 0 };
   });
   check(Math.abs(heights.h - 2 * heights.rhythm) < 0.5, "ligne « grande » = 2 × --rhythm", `${heights.h} px`);
+  // The same from the "Aa" popover: small, normal.
+  await select(4, 6);
+  await page.click('[role=toolbar] button[aria-label="Police et taille"]');
+  await page.getByRole("dialog", { name: "Police et taille" }).getByRole("radio", { name: "Normal" }).click();
+  await settle();
+  check((await doc()).startsWith("Un mot ici"), "« Aa » › Normal retire la taille", await doc());
+  await page.getByRole("dialog", { name: "Police et taille" }).getByRole("radio", { name: "Grand" }).click();
+  await settle();
+  check((await doc()).startsWith('Un <span data-size="lg">mot</span> ici'), "« Aa » › Grand agrandit la sélection", await doc());
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(150);
+  check((await page.getByRole("dialog", { name: "Police et taille" }).count()) === 0, "Échap ferme le popover « Aa »");
   await select(28);
   await page.keyboard.press("Control+Shift+Comma");
   await page.keyboard.press("Control+Shift+Comma");
@@ -144,9 +158,10 @@ try {
 
   // Font and size of the note: in its frontmatter, undone with Ctrl+Z.
   await set("Une note\n\nSon texte", 3);
-  const dropdown = async (label, item) => {
-    await page.click(`[role=toolbar] button[aria-label^="${label} :"]`);
-    await page.getByRole("menuitemradio", { name: item, exact: true }).click();
+  const choose = async (label, value) => {
+    const popover = page.getByRole("dialog", { name: "Police et taille" });
+    if ((await popover.count()) === 0) await page.click('[role=toolbar] button[aria-label="Police et taille"]');
+    await popover.locator(`select[aria-label="${label}"]`).selectOption(value);
     await settle();
   };
   const look = () =>
@@ -155,8 +170,9 @@ try {
       return { family: st.fontFamily, size: st.fontSize };
     });
   const before = await look();
-  await dropdown("Police de la note", "Manuscrite");
-  await dropdown("Taille du texte de la note", "20 px");
+  await choose("Police de la note", "hand");
+  await choose("Taille du texte de la note", "20");
+  await page.keyboard.press("Escape");
   const after = await look();
   check(/^"?Caveat/.test(after.family) && after.size === "20px", "police manuscrite et 20 px pour toute la note", `${after.family.split(",")[0]} ${after.size}`);
   const saved = await page.evaluate(async () => {
@@ -182,10 +198,16 @@ try {
   await page.keyboard.press("Control+Shift+Digit9");
   await settle();
   check((await doc()) === "- [ ] Un\n- [ ] Deux", "Ctrl+Maj+9 : liste de tâches", await doc());
-  check((await pressed("Liste de tâches")) === "true", "bouton Liste de tâches enfoncé");
-  await page.keyboard.press("Control+Shift+Digit9");
+  const listsActive = await page.evaluate(() => document.querySelector('[role=toolbar] button[aria-label="Listes"]')?.classList.length);
+  await page.click('[role=toolbar] button[aria-label="Listes"]');
+  const checkedList = await page.locator('[role=menu] [aria-checked="true"]').allTextContents();
+  check(checkedList.length === 1 && checkedList[0].startsWith("Liste de tâches") && listsActive > 1, "menu « Listes » : tâche cochée, bouton actif", checkedList.join(", "));
+  await page.getByRole("menuitemcheckbox", { name: /Liste numérotée/ }).click();
   await settle();
-  check((await doc()) === "Un\nDeux", "Ctrl+Maj+9 à nouveau : plus de liste", await doc());
+  check((await doc()) === "1. Un\n2. Deux", "menu « Listes » › Liste numérotée", await doc());
+  await page.keyboard.press("Control+Shift+Digit8");
+  await settle();
+  check((await doc()) === "Un\nDeux", "le même raccourci à nouveau : plus de liste", await doc());
 
   // Link, separator, clear formatting.
   await set("Voir https://example.org", 5, 24);
@@ -209,19 +231,34 @@ try {
   const disabled = await page.evaluate(() => document.querySelector('[role=toolbar] button[aria-label="Gras"]')?.disabled);
   check(disabled === true, "dans du code : Gras indisponible");
 
-  // 3. Narrow window, focus mode, setting.
-  await page.setViewportSize({ width: 900, height: 900 });
-  await page.waitForTimeout(300);
+  // 3. Room (sidebar and list open): everything at 1 440 px, alignment then
+  // insert folded into one menu each, "…" only below about 1 200 px.
   const more = page.locator('[role=toolbar] button[aria-label="Plus de mise en forme"]');
-  check((await more.count()) === 1, "fenêtre étroite : les groupes de droite passent dans « … »");
+  const barState = () =>
+    page.evaluate(() => {
+      const el = document.querySelector("[role=toolbar]");
+      const has = (label) => el.querySelector(`button[aria-label="${label}"]`) !== null;
+      return { overflow: el.scrollWidth > el.clientWidth + 1, more: has("Plus de mise en forme"), alignButtons: has("Centrer"), alignMenu: has("Alignement"), insertButtons: has("Séparateur"), insertMenu: has("Insérer") };
+    });
+  for (const [width, want, label] of [
+    [1440, { more: false, alignButtons: true, insertButtons: true }, "1 440 px : toute la barre, sans débordement"],
+    [1280, { more: false, alignMenu: true, insertButtons: true }, "1 280 px : alignement dans un menu"],
+    [1200, { more: false, alignMenu: true, insertMenu: true }, "1 200 px : alignement et insertion dans un menu, pas de « … »"],
+    [1000, { more: true }, "1 000 px : les groupes de droite passent dans « … »"],
+  ]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.waitForTimeout(250);
+    const got = await barState();
+    check(!got.overflow && Object.entries(want).every(([k, v]) => got[k] === v), label, JSON.stringify(got));
+  }
   await set("Un mot", 3);
   await more.click();
   const entries = await page.locator("[role=menu] [role^=menuitem]").allTextContents();
   check(entries.some((e) => e.startsWith("Effacer la mise en forme")), "le menu « … » propose les actions masquées", `${entries.length} entrées`);
   await page.keyboard.press("Escape");
-  await page.setViewportSize({ width: 1680, height: 900 });
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.waitForTimeout(300);
-  check((await more.count()) === 0, "fenêtre large : toute la barre");
+  check((await more.count()) === 0, "retour à 1 440 px : plus de « … »");
 
   await page.evaluate(async () => (await import("/src/app/layout.ts")).toggleFocusMode());
   await page.waitForTimeout(400);

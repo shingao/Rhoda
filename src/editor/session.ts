@@ -369,11 +369,12 @@ export function insertAtCursor(noteId: string, text: string): boolean {
   return true;
 }
 
-/** A toolbar action on the selection of the open note (one undo step); the editor keeps the focus. */
-export function formatSelection(action: FormatAction): boolean {
+/** A toolbar action on the selection of the open note (one undo step); the editor gets the focus back unless `focus` is false. */
+export function formatSelection(action: FormatAction, focus = true): boolean {
   if (!view || !currentId) return false;
   const done = runFormat(view, action);
-  view.focus();
+  // A control that stays open (the "Aa" popover) keeps the focus.
+  if (focus) view.focus();
   return done;
 }
 

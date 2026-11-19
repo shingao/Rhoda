@@ -17,8 +17,10 @@ import {
   ListTodo,
   Minus,
   PenTool,
+  Plus,
   RemoveFormatting,
   Strikethrough,
+  Type,
   Underline,
   type LucideIcon,
 } from "lucide-react";
@@ -36,15 +38,16 @@ import type { ListKind } from "../../core/markdown/blockFormat";
 import { HIGHLIGHT_COLORS, type HighlightColor } from "../../core/markdown/inlineTags";
 import type { BlockChoice, FormatAction, FormatState, InlineMark } from "../../editor/format";
 import { formatSelection } from "../../editor/session";
-import { NO_LOOK, type NoteLook } from "../../editor/noteStyle";
-import { NOTE_FONTS, TEXT_SIZE, type NoteFont } from "../../core/note/note";
+import { NO_LOOK } from "../../editor/noteStyle";
 import type { Messages } from "../../i18n";
 import s from "./FormatBar.module.css";
+import { TextPopover } from "./TextPopover";
 
 /**
- * Formatting toolbar (decision P12-2): one thin line under the editor bar,
- * aligned on the text column. Groups from left to right; on a narrow window
- * the right-hand ones move into a "…" menu. Every button acts on the
+ * Formatting toolbar (decisions P12-2, P12-9): one thin line under the editor
+ * bar, aligned on the text column. Groups from left to right; short of room,
+ * alignment and insert fold into one menu button each, then (below about
+ * 1 200 px with the side columns open) the right-hand groups go to "…". Every button acts on the
  * selection in one transaction (Ctrl+Z undoes it) and shows its state there.
  */
 
@@ -70,6 +73,18 @@ const SIZES = ["sm", "normal", "lg"] as const;
 const SWATCH: Record<HighlightColor, string> = { yellow: "--hl-yellow", green: "--hl-green", blue: "--hl-blue", pink: "--hl-pink" };
 
 const run = (action: FormatAction) => () => void formatSelection(action);
+
+/** Width of each group in buttons (0: the block style menu), and folded into one menu button where it can (layout). */
+const PLAN: ReadonlyArray<{ id: string; buttons: number; compact?: number }> = [
+  { id: "block", buttons: 0 },
+  { id: "text", buttons: 1 },
+  { id: "marks", buttons: 4 },
+  { id: "highlight", buttons: 1 },
+  { id: "lists", buttons: 1 },
+  { id: "align", buttons: 4, compact: 1 },
+  { id: "insert", buttons: 4, compact: 1 },
+  { id: "clear", buttons: 1 },
+];
 
 /** Entries of the menus (dropdowns, and the "…" menu for the groups that do not fit). */
 function blockEntries(t: Messages, f: FormatState): MenuEntry[] {
@@ -101,33 +116,12 @@ function highlightEntries(t: Messages, f: FormatState): MenuEntry[] {
   ];
 }
 
-/** Font of the note: the default setting, or one of its own (`font:`). */
-function noteFontEntries(t: Messages, look: NoteLook, fallback: NoteFont): MenuEntry[] {
-  return [
-    { id: "font-default", label: t.format.byDefault(t.format.fonts[fallback]), checked: look.font === null, onSelect: run({ kind: "look", look: { font: null } }) },
-    ...NOTE_FONTS.map((font) => ({ id: `font-${font}`, label: t.format.fonts[font], checked: look.font === font, onSelect: run({ kind: "look", look: { font } }) })),
-  ];
-}
-
-/** Text size of the note, 14–20 px (`size:`); a half size set in Settings or by hand is listed too. */
-function noteSizeEntries(t: Messages, look: NoteLook, fallback: number): MenuEntry[] {
-  const sizes = new Set<number>();
-  for (let n = TEXT_SIZE.min; n <= TEXT_SIZE.max; n++) sizes.add(n);
-  if (look.size !== null) sizes.add(look.size);
-  return [
-    { id: "size-default", label: t.format.byDefault(t.settings.px(fallback)), checked: look.size === null, onSelect: run({ kind: "look", look: { size: null } }) },
-    ...[...sizes]
-      .sort((a, b) => a - b)
-      .map((size) => ({ id: `size-${size}`, label: t.settings.px(size), checked: look.size === size, onSelect: run({ kind: "look", look: { size } }) })),
-  ];
-}
-
 type Opener = (entries: MenuEntry[], label: string, at: DOMRect) => void;
 
 interface Group {
   id: string;
-  /** Buttons shown in the bar. */
-  render: (open: Opener) => ReactNode;
+  /** Buttons shown in the bar; `compact`: the group as one menu button. */
+  render: (open: Opener, compact: boolean) => ReactNode;
   /** The same actions as menu entries, for the "…" menu. */
   entries: () => MenuEntry[];
 }
@@ -136,8 +130,6 @@ export function FormatBar() {
   const t = useT();
   const f = useApp((st) => st.format);
   const ref = useRef<HTMLDivElement>(null);
-  const widths = useRef(new Map<string, number>());
-  const [fits, setFits] = useState<number | null>(null);
   const [menu, setMenu] = useState<{ entries: MenuEntry[]; label: string; at: { x: number; y: number } } | null>(null);
 
   const state: FormatState = f ?? {
@@ -152,14 +144,14 @@ export function FormatBar() {
     look: NO_LOOK,
   };
   const inline = state.inCode;
-  const defaults = useApp((st) => st.settings.editor);
+  const [textAt, setTextAt] = useState<{ x: number; y: number } | null>(null);
 
-  /** A text button showing a value, opening a menu (block style, note font and size). */
-  const dropdown = (label: string, value: string, entries: () => MenuEntry[], open: Opener, wide = true) => (
+  /** A text button showing a value, opening a menu (block style). */
+  const dropdown = (label: string, value: string, entries: () => MenuEntry[], open: Opener) => (
     <Tooltip label={label}>
       <button
         type="button"
-        className={[s.select, !wide && s.narrow].filter(Boolean).join(" ")}
+        className={s.select}
         aria-haspopup="menu"
         aria-label={`${label} : ${value}`}
         onClick={(e) => open(entries(), label, e.currentTarget.getBoundingClientRect())}
@@ -169,8 +161,33 @@ export function FormatBar() {
       </button>
     </Tooltip>
   );
-  const fontEntries = () => noteFontEntries(t, state.look, defaults.font);
-  const textSizeEntries = () => noteSizeEntries(t, state.look, defaults.fontSize);
+  /** One icon opening a menu (lists, and alignment / insert when the bar is short of room). */
+  const menuButton = (icon: LucideIcon, label: string, entries: () => MenuEntry[], open: Opener, active = false, disabled = false) => (
+    <IconButton icon={icon} label={label} aria-haspopup="menu" active={active} disabled={disabled} onClick={(e) => open(entries(), label, e.currentTarget.getBoundingClientRect())} />
+  );
+
+  const listEntries = () =>
+    LISTS.map(({ list, icon, shortcut }) => ({ id: list, label: t.format.lists[list], icon, checked: state.list === list, toggle: true, shortcut: shortcutLabel(shortcut, t), onSelect: run({ kind: "list", list }) }));
+  const alignEntries = () =>
+    state.canAlign
+      ? ALIGNS.map(({ align, icon }) => ({ id: align, label: t.align[align], icon, checked: state.align === align, shortcut: shortcutLabel(`align.${align}`, t), onSelect: run({ kind: "align", align }) }))
+      : [];
+  const insertEntries = (): MenuEntry[] => [
+    { id: "link", label: t.format.link, icon: Link, shortcut: shortcutLabel("format.link", t), onSelect: run({ kind: "link" }) },
+    { id: "image", label: t.format.image, icon: ImagePlus, onSelect: () => void insertFromDialog() },
+    { id: "drawing", label: t.drawings.insertCommand, icon: PenTool, onSelect: newDrawing },
+    { id: "rule", label: t.format.rule, icon: Minus, onSelect: run({ kind: "rule" }) },
+  ];
+  const textEntries = (): MenuEntry[] => [
+    { id: "text", label: `${t.format.text}…`, icon: Type, onSelect: () => setTextAt(textAnchor()) },
+    ...sizeEntries(t, state),
+  ];
+  const textAnchor = () => {
+    const r = document.querySelector<HTMLElement>("[data-text-button]")?.getBoundingClientRect() ?? document.querySelector("[role=toolbar]")?.getBoundingClientRect();
+    return { x: r?.left ?? 0, y: (r?.bottom ?? 0) + 4 };
+  };
+  const listIcon = LISTS.find((l) => l.list === state.list)?.icon ?? List;
+  const alignIcon = ALIGNS.find((a) => a.align === state.align)?.icon ?? AlignLeft;
 
   const groups: Group[] = [
     {
@@ -179,28 +196,21 @@ export function FormatBar() {
       entries: () => blockEntries(t, state),
     },
     {
-      id: "note",
-      render: (open) => (
-        <>
-          {dropdown(t.format.noteFont, t.format.fonts[state.look.font ?? defaults.font], fontEntries, open)}
-          {dropdown(t.format.noteSize, t.settings.px(state.look.size ?? defaults.fontSize), textSizeEntries, open, false)}
-        </>
-      ),
-      entries: () => [...fontEntries(), { kind: "separator" as const, id: "note-sep" }, ...textSizeEntries()],
-    },
-    {
-      id: "size",
-      render: (open) => (
+      id: "text",
+      render: () => (
         <IconButton
           icon={ALargeSmall}
-          label={t.format.textSize}
-          aria-haspopup="menu"
-          active={state.size !== "normal"}
-          disabled={inline}
-          onClick={(e) => open(sizeEntries(t, state), t.format.textSize, e.currentTarget.getBoundingClientRect())}
+          label={t.format.text}
+          aria-haspopup="dialog"
+          data-text-button
+          active={state.size !== "normal" || state.look.font !== null || state.look.size !== null}
+          onClick={(e) => {
+            const r = e.currentTarget.getBoundingClientRect();
+            setTextAt((at) => (at ? null : { x: r.left, y: r.bottom + 4 }));
+          }}
         />
       ),
-      entries: () => sizeEntries(t, state),
+      entries: textEntries,
     },
     {
       id: "marks",
@@ -222,72 +232,47 @@ export function FormatBar() {
     },
     {
       id: "highlight",
-      render: (open) => (
-        <IconButton
-          icon={Highlighter}
-          label={t.format.highlight}
-          aria-haspopup="menu"
-          active={state.highlight !== null}
-          disabled={inline}
-          onClick={(e) => open(highlightEntries(t, state), t.format.highlight, e.currentTarget.getBoundingClientRect())}
-        />
-      ),
+      render: (open) => menuButton(Highlighter, t.format.highlight, () => highlightEntries(t, state), open, state.highlight !== null, inline),
       entries: () => highlightEntries(t, state),
     },
     {
       id: "lists",
-      render: () =>
-        LISTS.map(({ list, icon, shortcut }) => (
-          <IconButton
-            key={list}
-            icon={icon}
-            label={t.format.lists[list]}
-            shortcut={shortcutLabel(shortcut, t)}
-            active={state.list === list}
-            aria-pressed={state.list === list}
-            disabled={state.block === "code"}
-            onClick={run({ kind: "list", list })}
-          />
-        )),
-      entries: () =>
-        LISTS.map(({ list, icon, shortcut }) => ({ id: list, label: t.format.lists[list], icon, toggle: true, checked: state.list === list, shortcut: shortcutLabel(shortcut, t), onSelect: run({ kind: "list", list }) })),
+      render: (open) => menuButton(listIcon, t.format.listMenu, listEntries, open, state.list !== null, state.block === "code"),
+      entries: listEntries,
     },
     {
       id: "align",
-      render: () =>
-        ALIGNS.map(({ align, icon }) => (
-          <IconButton
-            key={align}
-            icon={icon}
-            label={t.align[align]}
-            shortcut={shortcutLabel(`align.${align}`, t)}
-            active={state.canAlign && state.align === align}
-            aria-pressed={state.canAlign && state.align === align}
-            disabled={!state.canAlign}
-            onClick={run({ kind: "align", align })}
-          />
-        )),
-      entries: () =>
-        state.canAlign
-          ? ALIGNS.map(({ align, icon }) => ({ id: align, label: t.align[align], icon, checked: state.align === align, shortcut: shortcutLabel(`align.${align}`, t), onSelect: run({ kind: "align", align }) }))
-          : [],
+      render: (open, compact) =>
+        compact
+          ? menuButton(alignIcon, t.format.alignment, alignEntries, open, false, !state.canAlign)
+          : ALIGNS.map(({ align, icon }) => (
+              <IconButton
+                key={align}
+                icon={icon}
+                label={t.align[align]}
+                shortcut={shortcutLabel(`align.${align}`, t)}
+                active={state.canAlign && state.align === align}
+                aria-pressed={state.canAlign && state.align === align}
+                disabled={!state.canAlign}
+                onClick={run({ kind: "align", align })}
+              />
+            )),
+      entries: alignEntries,
     },
     {
       id: "insert",
-      render: () => (
-        <>
-          <IconButton icon={Link} label={t.format.link} shortcut={shortcutLabel("format.link", t)} disabled={inline} onClick={run({ kind: "link" })} />
-          <IconButton icon={ImagePlus} label={t.format.image} onClick={() => void insertFromDialog()} />
-          <IconButton icon={PenTool} label={t.drawings.insertCommand} onClick={newDrawing} />
-          <IconButton icon={Minus} label={t.format.rule} onClick={run({ kind: "rule" })} />
-        </>
-      ),
-      entries: () => [
-        { id: "link", label: t.format.link, icon: Link, shortcut: shortcutLabel("format.link", t), onSelect: run({ kind: "link" }) },
-        { id: "image", label: t.format.image, icon: ImagePlus, onSelect: () => void insertFromDialog() },
-        { id: "drawing", label: t.drawings.insertCommand, icon: PenTool, onSelect: newDrawing },
-        { id: "rule", label: t.format.rule, icon: Minus, onSelect: run({ kind: "rule" }) },
-      ],
+      render: (open, compact) =>
+        compact ? (
+          menuButton(Plus, t.format.insert, insertEntries, open)
+        ) : (
+          <>
+            <IconButton icon={Link} label={t.format.link} shortcut={shortcutLabel("format.link", t)} disabled={inline} onClick={run({ kind: "link" })} />
+            <IconButton icon={ImagePlus} label={t.format.image} onClick={() => void insertFromDialog()} />
+            <IconButton icon={PenTool} label={t.drawings.insertCommand} onClick={newDrawing} />
+            <IconButton icon={Minus} label={t.format.rule} onClick={run({ kind: "rule" })} />
+          </>
+        ),
+      entries: insertEntries,
     },
     {
       id: "clear",
@@ -296,35 +281,35 @@ export function FormatBar() {
     },
   ];
 
-  // How many groups fit: each group's width is measured once (all shown), then
-  // the bar keeps as many as the room allows, the rest going to "…".
+  // Layout from the room (sizes read from the tokens): every group in full;
+  // else alignment, then insert, folded into one menu button each; else the
+  // right-hand groups go to "…" (decision P12-9).
+  const [layout, setLayout] = useState<{ compact: ReadonlySet<string>; fits: number | null }>({ compact: new Set(), fits: null });
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
     const measure = () => {
       const style = getComputedStyle(el);
       const room = el.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
-      const gap = parseFloat(style.columnGap) || 0;
-      const more = cssPx("--icon-btn");
-      const all = [...widths.current.values()];
-      const total = all.reduce((a, w) => a + w + gap, -gap);
-      if (total <= room) return setFits(null);
-      let used = more;
-      let n = 0;
-      for (const w of all) {
-        if (used + gap + w > room) break;
-        used += gap + w;
-        n++;
+      const [btn, inner, between, select] = [cssPx("--icon-btn"), cssPx("--formatbar-gap"), cssPx("--formatbar-group-gap"), cssPx("--formatbar-select-w")];
+      const widthOf = (buttons: number) => (buttons === 0 ? select : buttons * btn + (buttons - 1) * inner);
+      const total = (compact: ReadonlySet<string>, count = PLAN.length, more = false) =>
+        PLAN.slice(0, count).reduce((sum, g, i) => sum + (i ? between : 0) + widthOf(compact.has(g.id) && g.compact ? g.compact : g.buttons), 0) + (more ? between + btn : 0);
+      for (const compact of [new Set<string>(), new Set(["align"]), new Set(["align", "insert"])]) {
+        if (total(compact) <= room) return setLayout({ compact, fits: null });
       }
-      setFits(n);
+      const compact = new Set(["align", "insert"]);
+      let n = PLAN.length - 1;
+      while (n > 1 && total(compact, n, true) > room) n--;
+      setLayout({ compact, fits: n });
     };
     const observer = new ResizeObserver(measure);
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
-  const shown = fits === null ? groups : groups.slice(0, fits);
-  const hidden = fits === null ? [] : groups.slice(fits);
+  const shown = layout.fits === null ? groups : groups.slice(0, layout.fits);
+  const hidden = layout.fits === null ? [] : groups.slice(layout.fits);
 
   const open = (entries: MenuEntry[], label: string, r: DOMRect) => setMenu({ entries, label, at: { x: r.left, y: r.bottom + 4 } });
 
@@ -352,14 +337,8 @@ export function FormatBar() {
       }}
     >
       {shown.map((g) => (
-        <div
-          key={g.id}
-          className={s.group}
-          ref={(node) => {
-            if (node && fits === null) widths.current.set(g.id, node.offsetWidth);
-          }}
-        >
-          {g.render(open)}
+        <div key={g.id} className={s.group}>
+          {g.render(open, layout.compact.has(g.id))}
         </div>
       ))}
       {hidden.length > 0 && (
@@ -380,6 +359,7 @@ export function FormatBar() {
         </div>
       )}
       {menu && <Menu at={menu.at} entries={menu.entries} label={menu.label} onClose={() => setMenu(null)} />}
+      {textAt && <TextPopover state={state} at={textAt} onClose={() => setTextAt(null)} />}
     </div>
   );
 }
