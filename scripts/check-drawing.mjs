@@ -7,7 +7,8 @@
 //    by search;
 // 3. double-click and Ctrl+click reopen it; closing after a change asks first;
 //    the picture is redrawn after saving again;
-// 4. dark palette: the picture is turned; duplicating the note copies the drawing.
+// 4. previous versions (5 kept): listed from the drawing's bar, reopened, restored;
+// 5. dark palette: the picture is turned; duplicating the note copies the drawing.
 // Needs Chromium for Playwright.
 import { chromium } from "playwright";
 import { createServer } from "vite";
@@ -140,6 +141,39 @@ try {
   await page.waitForTimeout(500);
   const after = await page.evaluate(() => document.querySelector(".cm-drawing img")?.getAttribute("src"));
   check(after && after !== before, "l'aperçu est régénéré à l'enregistrement");
+
+  // Previous versions: the scene before this save was kept; reopening it and
+  // saving brings it back (the replaced one is kept in turn).
+  const scene = () =>
+    page.evaluate(async () => {
+      const { useApp } = await import("/src/app/store.ts");
+      const { drawingsIn } = await import("/src/core/drawings.ts");
+      const { drawingsApi } = await import("/src/services/drawings.ts");
+      const note = useApp.getState().notes[useApp.getState().selectedId];
+      const id = drawingsIn(note.path, window.__ursaView.state.doc.toString())[0];
+      const json = JSON.parse(await drawingsApi.read(id));
+      return { id, shapes: json.elements.filter((e) => !e.isDeleted).map((e) => e.type).sort().join(","), versions: (await drawingsApi.versions(id)).length };
+    });
+  const edited = await scene();
+  check(edited.versions === 1 && edited.shapes.includes("ellipse"), "enregistrer un dessin modifié garde la version précédente", JSON.stringify(edited));
+  await page.click(".cm-drawing .cm-image-frame");
+  await page.click('.cm-drawing button[aria-label="Versions précédentes…"]');
+  const rows = page.locator('[role=dialog] li:has-text("Remplacée le")');
+  await rows.first().waitFor();
+  check((await rows.count()) === 1, "« Versions précédentes… » dans la barre du dessin : une version listée");
+  await rows.first().locator("button").click();
+  await page.waitForSelector(".excalidraw canvas.interactive", { timeout: 15000 });
+  await page.waitForTimeout(800);
+  check((await page.locator("#drawing-title").textContent()).startsWith("Dessin — version du"), "la version s'ouvre dans l'éditeur");
+  await page.click('button:has-text("Fermer")');
+  await page.waitForTimeout(300);
+  check((await page.locator('[role=dialog]:has-text("Fermer sans enregistrer ?")').count()) === 1, "fermer une version non enregistrée demande confirmation");
+  await page.click('[role=dialog] button:has-text("Annuler")');
+  await page.click('button:has-text("Enregistrer")');
+  await page.waitForFunction(() => !document.querySelector(".excalidraw"), null, { timeout: 15000 });
+  await page.waitForTimeout(300);
+  const restored = await scene();
+  check(!restored.shapes.includes("ellipse") && restored.versions === 2, "enregistrer la version la restaure ; l'actuelle devient une version", JSON.stringify(restored));
 
   // 4. Dark palette, duplication, nothing from the network.
   await page.evaluate(async () => {

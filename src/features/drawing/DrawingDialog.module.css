@@ -42,6 +42,14 @@
   color: var(--text-2);
 }
 
+.note {
+  overflow: hidden;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .spacer {
   flex: 1;
 }

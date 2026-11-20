@@ -165,6 +165,8 @@ export function installDevMock(): void {
   };
 
   const ocrCache = new Map<string, unknown>();
+  /** Previous versions of drawings, by "vault|id", newest first. */
+  const drawingVersions = new Map<string, Array<{ name: string; scene: string }>>();
 
   const assetBackups = new Map<string, Map<string, ReturnType<typeof assetsOf> extends Map<string, infer A> ? A : never>>();
   mockWindows("main");
@@ -240,11 +242,25 @@ export function installDevMock(): void {
       case "save_drawing": {
         const { id, source, svg } = payload as { id: string; source: string; svg: string };
         const store = assetsOf(vaultPath);
+        // Previous scene kept, 5 at most (as the Rust side).
+        const previous = store.get(`assets/dessins/${id}.excalidraw`)?.bytes;
+        if (previous && new TextDecoder().decode(previous) !== source) {
+          const list = drawingVersions.get(`${vaultPath}|${id}`) ?? [];
+          list.unshift({ name: `${String(Date.now() + list.length).padStart(13, "0")}.excalidraw`, scene: new TextDecoder().decode(previous) });
+          drawingVersions.set(`${vaultPath}|${id}`, list.slice(0, 5));
+        }
         const old = store.get(`assets/dessins/${id}.svg`);
         if (old) URL.revokeObjectURL(old.url);
         store.set(`assets/dessins/${id}.svg`, { url: URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" })), bytes: new TextEncoder().encode(svg) });
         store.set(`assets/dessins/${id}.excalidraw`, { url: "", bytes: new TextEncoder().encode(source) });
         return null;
+      }
+      case "drawing_versions":
+        return (drawingVersions.get(`${vaultPath}|${args.id}`) ?? []).map((v) => ({ name: v.name, savedAt: Number(v.name.slice(0, 13)), bytes: v.scene.length }));
+      case "read_drawing_version": {
+        const found = drawingVersions.get(`${vaultPath}|${args.id}`)?.find((v) => v.name === args.name);
+        if (!found) throw { kind: "notFound", message: "no such version" };
+        return found.scene;
       }
       case "copy_drawing": {
         const { from, to } = payload as { from: string; to: string };

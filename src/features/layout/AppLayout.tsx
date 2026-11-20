@@ -9,6 +9,7 @@ import { CloseDialog } from "../close/CloseDialog";
 import { SettingsDialog } from "../settings/SettingsDialog";
 import { CropDialog } from "../editor/CropDialog";
 import { DrawingDialog } from "../drawing/DrawingDialog";
+import { DrawingVersions } from "../drawing/DrawingVersions";
 import { ExportDialog } from "../export/ExportDialog";
 import { CommandPalette } from "../palette/CommandPalette";
 import { CardMenu } from "../editor/CardMenu";
@@ -61,6 +62,7 @@ export function AppLayout() {
       <SettingsDialog />
       <CropDialog />
       <DrawingDialog />
+      <DrawingVersions />
       <ExportDialog />
       <CommandPalette />
       <CardMenu />

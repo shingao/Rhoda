@@ -17,11 +17,13 @@ use crate::error::{CmdError, CmdResult, ErrorKind};
 use crate::vault::{atomic_write, current_root, read_note_file, resolve, scan_dir, unique_note_path, NoteFile, VaultState, INTERNAL_DIR};
 
 const BACKUPS_DIR: &str = "backups";
+/// Previous versions of drawings (`drawings.rs`): inside the backups folder, never listed or purged as a backup.
+pub(crate) const DRAWING_VERSIONS_DIR: &str = "dessins";
 const MANIFEST: &str = "manifest.json";
 /// Tag settings at backup time, for operations that change them.
 const TAGS: &str = "tags.json";
 
-fn backups_root(root: &Path) -> PathBuf {
+pub(crate) fn backups_root(root: &Path) -> PathBuf {
     root.join(INTERNAL_DIR).join(BACKUPS_DIR)
 }
 
@@ -104,7 +106,7 @@ pub(crate) fn purge_before(root: &Path, before: &str) -> io::Result<usize> {
     let mut removed = 0;
     for entry in entries.flatten() {
         let name = entry.file_name().to_string_lossy().into_owned();
-        if entry.file_type()?.is_dir() && name.as_str() < before && validate_name(&name).is_ok() {
+        if entry.file_type()?.is_dir() && name != DRAWING_VERSIONS_DIR && name.as_str() < before && validate_name(&name).is_ok() {
             fs::remove_dir_all(entry.path())?;
             removed += 1;
         }
@@ -151,7 +153,7 @@ pub(crate) fn list(root: &Path) -> io::Result<Vec<BackupInfo>> {
     let mut out = Vec::new();
     for entry in entries.flatten() {
         let name = entry.file_name().to_string_lossy().into_owned();
-        if !entry.file_type()?.is_dir() || validate_name(&name).is_err() {
+        if !entry.file_type()?.is_dir() || name == DRAWING_VERSIONS_DIR || validate_name(&name).is_err() {
             continue;
         }
         let mut files = Vec::new();

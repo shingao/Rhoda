@@ -40,6 +40,8 @@ interface AppState {
   find: FindState;
   /** Drawing open in the full-screen editor (Excalidraw), and a counter bumped when drawing texts are read (search). */
   drawing: DrawingRequest | null;
+  /** "Previous versions…" dialog of a drawing. */
+  drawingVersions: { id: string; noteId: string } | null;
   drawingTexts: number;
   /** Formatting at the cursor of the open note, for the toolbar (reported by the editor). */
   format: FormatState | null;
@@ -133,6 +135,7 @@ export const useApp = create<AppState>()(() => ({
   focusMode: false,
   format: null,
   drawing: null,
+  drawingVersions: null,
   drawingTexts: 0,
 }));
 

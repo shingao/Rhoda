@@ -117,6 +117,8 @@ pub fn run() {
             drawings::read_drawing,
             drawings::save_drawing,
             drawings::copy_drawing,
+            drawings::drawing_versions,
+            drawings::read_drawing_version,
             export::export_pick_folder,
             export::export_default_folder,
             export::export_folder_ok,

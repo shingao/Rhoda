@@ -1,0 +1,33 @@
+/* Previous versions of a drawing (decision P12-10): one row per version, like Settings › Backups. */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--menu-item-h);
+}
+
+.icon {
+  width: var(--icon-btn-icon);
+  height: var(--icon-btn-icon);
+  flex: none;
+  color: var(--text-3);
+}
+
+.when {
+  flex: 1;
+  color: var(--text-2);
+}
+
+.empty {
+  margin: 0;
+  color: var(--text-3);
+}

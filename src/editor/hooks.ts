@@ -73,6 +73,8 @@ export interface EditorHooks {
   isDrawing(src: string): boolean;
   /** Double-click or Ctrl+click on a drawing: opens it in the drawing editor. */
   openDrawing(src: string): void;
+  /** "Previous versions…" of a drawing of the open note. */
+  openDrawingVersions(src: string): void;
   /** Formatting at the cursor changed (toolbar state). */
   formatChanged(format: FormatState): void;
 }
@@ -117,6 +119,7 @@ let hooks: EditorHooks = {
   formatChanged: () => undefined,
   isDrawing: () => false,
   openDrawing: () => undefined,
+  openDrawingVersions: () => undefined,
 };
 
 export function setEditorHooks(next: Partial<EditorHooks>): void {

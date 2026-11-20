@@ -72,6 +72,10 @@ const actions: ImageActions = {
     const found = imageLineOf(view, dom);
     if (found) editorHooks().openDrawing(found.embed.src);
   },
+  drawingVersions(view, dom) {
+    const found = imageLineOf(view, dom);
+    if (found) editorHooks().openDrawingVersions(found.embed.src);
+  },
 };
 
 /** Cropping makes a new PNG / JPG / WebP; GIF (animation) and SVG (vector) are left alone. */

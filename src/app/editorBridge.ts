@@ -2,7 +2,7 @@ import { titleKey } from "../core/markdown/extract";
 import { snippetAround } from "../core/note/text";
 import { setEditorHooks, type Backlink } from "../editor/hooks";
 import { focusEditor, refreshEditor } from "../editor/session";
-import { isDrawing, openDrawing } from "./drawings";
+import { isDrawing, openDrawing, openDrawingVersions } from "./drawings";
 import { assetUrl, attachFiles, downloadImage, pasteClipboardImage, remoteImage, wantSize } from "./attachments";
 import { confirmAction } from "./confirm";
 import { openCrop } from "./crops";
@@ -97,6 +97,7 @@ export function connectEditor(): void {
     formatChanged: (format) => setState({ format }),
     isDrawing,
     openDrawing: (src) => void openDrawing(src),
+    openDrawingVersions: (src) => openDrawingVersions(src),
     findChanged: ({ count, current, images, currentImage }) => setState((s) => ({ find: { ...s.find, count, current, images, currentImage } })),
     imageMatches: (src, needles) => {
       const path = imageVaultPath(src);

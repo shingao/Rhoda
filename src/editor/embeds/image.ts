@@ -1,5 +1,5 @@
 import { WidgetType, type EditorView } from "@codemirror/view";
-import { ScanText, createElement } from "lucide";
+import { History, PenTool, ScanText, createElement } from "lucide";
 import { currentMessages } from "../../app/i18n";
 
 export interface ImageSize {
@@ -17,6 +17,8 @@ export interface ImageActions {
   ocrText(view: EditorView, dom: HTMLElement, at: { x: number; y: number }): void;
   /** Double-click or Ctrl+click on a drawing: the drawing editor. */
   openDrawing(view: EditorView, dom: HTMLElement): void;
+  /** "Previous versions…" of a drawing. */
+  drawingVersions(view: EditorView, dom: HTMLElement): void;
 }
 
 /** A zone found by OCR (fractions of the image), the current one ringed. */
@@ -227,6 +229,26 @@ export class ImageWidget extends WidgetType {
       this.current(wrap).actions.ocrText(view, wrap, { x: r.left, y: r.bottom + 4 });
     });
     bar.append(text);
+    if (this.drawing) {
+      // Edit, and previous versions (decision P12-10), in the drawing's bar.
+      const d = currentMessages().drawings;
+      for (const [label, icon, act] of [
+        [d.editHint, PenTool, () => this.current(wrap).actions.openDrawing(view, wrap)],
+        [d.versions, History, () => this.current(wrap).actions.drawingVersions(view, wrap)],
+      ] as const) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "cm-image-text";
+        b.title = label;
+        b.setAttribute("aria-label", label);
+        const svg = createElement(icon);
+        svg.classList.add("cm-image-icon");
+        b.append(svg);
+        b.addEventListener("mousedown", (e) => e.preventDefault());
+        b.addEventListener("click", act);
+        bar.append(b);
+      }
+    }
     wrap.append(bar, frame);
     drawZones(wrap, this.zones);
 

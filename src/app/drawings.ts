@@ -19,6 +19,8 @@ export interface DrawingRequest {
   id: string;
   noteId: string;
   scene: string | null;
+  /** A previous version opened to be restored (saving it makes it current): when it was replaced. */
+  restoredAt?: number;
 }
 
 /** Pictures rewritten during this session: a new URL each time, past the webview's cache. */
@@ -46,6 +48,30 @@ export function isDrawing(src: string): boolean {
   const note = openNote();
   const path = note ? resolveVaultPath(note.path, src) : null;
   return path !== null && drawingIdOf(path) !== null;
+}
+
+function drawingOf(src: string): { id: string; noteId: string } | null {
+  const note = openNote();
+  const path = note ? resolveVaultPath(note.path, src) : null;
+  const id = path ? drawingIdOf(path) : null;
+  return note && id && !note.trashed ? { id, noteId: note.id } : null;
+}
+
+/** "Previous versions…" of a drawing (its menu in the note, or the drawing editor). */
+export function openDrawingVersions(target: string | { id: string; noteId: string }): void {
+  const drawing = typeof target === "string" ? drawingOf(target) : target;
+  if (drawing) setState({ drawingVersions: drawing });
+}
+
+/** Opens a previous version in the drawing editor: saving it makes it the current one (the current one is kept as a version). */
+export async function openDrawingVersion(id: string, noteId: string, name: string, savedAt: number): Promise<void> {
+  try {
+    const scene = await drawingsApi.readVersion(id, name);
+    setState({ drawingVersions: null, drawing: { id, noteId, scene, restoredAt: savedAt } });
+  } catch (e) {
+    console.warn("[ursa] drawing version not read", id, e);
+    showToast(currentMessages().drawings.readFailed(errorMessage(e)));
+  }
 }
 
 /** Editor hook (double-click or Ctrl+click on a drawing): opens its scene in the editor. */
@@ -85,6 +111,7 @@ export async function saveDrawing(request: DrawingRequest, source: string, svg: 
   const note = getState().notes[request.noteId];
   if (request.scene === null && note) insertBlockLines(note.id, [imageMarkdown(t.alt, relativeSrc(note.path, picture))]);
   else refreshEditor();
+  if (request.restoredAt !== undefined) showToast(t.restored);
   return true;
 }
 

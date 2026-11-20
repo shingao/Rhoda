@@ -1,8 +1,8 @@
 import { Component, lazy, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { PenTool } from "lucide-react";
+import { History, PenTool } from "lucide-react";
 import { confirmAction } from "../../app/confirm";
-import { saveDrawing } from "../../app/drawings";
+import { openDrawingVersions, saveDrawing } from "../../app/drawings";
 import { useT } from "../../app/i18n";
 import { setState, useApp } from "../../app/store";
 import { matchShortcut, shortcutLabel } from "../../app/shortcuts";
@@ -38,7 +38,8 @@ class LoadBoundary extends Component<{ fallback: ReactNode; children: ReactNode 
  */
 export function DrawingDialog() {
   const request = useApp((st) => st.drawing);
-  return request ? <Shell key={request.id} /> : null;
+  // A version opened in place of the drawing is a new editor.
+  return request ? <Shell key={`${request.id}:${request.restoredAt ?? ""}`} /> : null;
 }
 
 function Shell() {
@@ -58,14 +59,19 @@ function Shell() {
     };
   }, []);
 
+  // A version being restored counts as a change: closing asks first.
+  const changed = useCallback(() => request.restoredAt !== undefined || handle.current?.dirty() === true, [request]);
+  const mayLeave = useCallback(
+    async () => !changed() || (await confirmAction({ title: t.drawings.discardTitle, body: t.drawings.discardBody, confirmLabel: t.drawings.discardConfirm, danger: true })),
+    [changed, t],
+  );
   const close = useCallback(async () => {
     if (saving) return;
-    if (handle.current?.dirty()) {
-      const ok = await confirmAction({ title: t.drawings.discardTitle, body: t.drawings.discardBody, confirmLabel: t.drawings.discardConfirm, danger: true });
-      if (!ok) return;
-    }
-    setState({ drawing: null });
-  }, [saving, t]);
+    if (await mayLeave()) setState({ drawing: null });
+  }, [saving, mayLeave]);
+  const versions = useCallback(async () => {
+    if (!saving && request.scene !== null && (await mayLeave())) openDrawingVersions({ id: request.id, noteId: request.noteId });
+  }, [saving, request, mayLeave]);
 
   const save = useCallback(async () => {
     const editor = handle.current;
@@ -97,9 +103,15 @@ function Shell() {
       <header className={s.bar}>
         <PenTool className={s.icon} aria-hidden />
         <h2 id="drawing-title" className={s.title}>
-          {t.drawings.title}
+          {request.restoredAt !== undefined ? t.drawings.versionTitle(new Intl.DateTimeFormat(t.dates.locale, { dateStyle: "medium", timeStyle: "short" }).format(request.restoredAt)) : t.drawings.title}
         </h2>
+        {request.restoredAt !== undefined && <span className={s.note}>{t.drawings.versionHint}</span>}
         <div className={s.spacer} />
+        {request.scene !== null && (
+          <Button size="small" icon={History} onClick={() => void versions()} disabled={saving}>
+            {t.drawings.versions}
+          </Button>
+        )}
         <Button size="small" onClick={() => void close()} disabled={saving}>
           {t.drawings.cancel}
         </Button>

@@ -6,14 +6,18 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
+use serde::Serialize;
 use tauri::State;
 
 use crate::error::{CmdError, CmdResult, ErrorKind};
+use crate::snapshots::{backups_root, DRAWING_VERSIONS_DIR};
 use crate::vault::{atomic_write, current_root, VaultState, ASSETS_DIR};
 
 const DRAWINGS_DIR: &str = "dessins";
 /// A scene with pasted images can be large; beyond this it is refused.
 const MAX_BYTES: usize = 100 * 1024 * 1024;
+/// Previous versions kept per drawing (`.ursa/backups/dessins/<id>/`).
+const KEPT_VERSIONS: usize = 5;
 
 fn valid_id(id: &str) -> bool {
     !id.is_empty() && id.len() <= 64 && id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
@@ -48,11 +52,85 @@ fn save(root: &Path, id: &str, source: &str, svg: &str) -> CmdResult<()> {
     if !svg.trim_start().starts_with("<svg") {
         return Err(CmdError::new(ErrorKind::Other, "not an SVG picture"));
     }
+    // The scene being replaced is kept first (a modified drawing only).
+    if let Ok(previous) = fs::read_to_string(&source_path) {
+        if previous != source {
+            keep_version(root, id, &previous)?;
+        }
+    }
     fs::create_dir_all(source_path.parent().unwrap_or(root))?;
     // The source first: a picture is never newer than the scene it shows.
     atomic_write(&source_path, source)?;
     atomic_write(&svg_path, svg)?;
     Ok(())
+}
+
+fn versions_dir(root: &Path, id: &str) -> PathBuf {
+    backups_root(root).join(DRAWING_VERSIONS_DIR).join(id)
+}
+
+/// Version names: the save time in milliseconds, zero-padded (they sort by date).
+fn valid_version(name: &str) -> bool {
+    name.len() == 13 + ".excalidraw".len() && name.ends_with(".excalidraw") && name[..13].bytes().all(|b| b.is_ascii_digit())
+}
+
+fn now_ms() -> u128 {
+    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0)
+}
+
+fn keep_version(root: &Path, id: &str, scene: &str) -> CmdResult<()> {
+    let dir = versions_dir(root, id);
+    fs::create_dir_all(&dir)?;
+    let mut ms = now_ms();
+    // Two saves in the same millisecond: the next free name.
+    while dir.join(format!("{ms:013}.excalidraw")).exists() {
+        ms += 1;
+    }
+    atomic_write(&dir.join(format!("{ms:013}.excalidraw")), scene)?;
+    let mut names = version_names(&dir);
+    while names.len() > KEPT_VERSIONS {
+        let oldest = names.remove(names.len() - 1);
+        fs::remove_file(dir.join(oldest))?;
+    }
+    Ok(())
+}
+
+/// Version file names, newest first.
+fn version_names(dir: &Path) -> Vec<String> {
+    let mut names: Vec<String> = fs::read_dir(dir)
+        .map(|entries| entries.flatten().map(|e| e.file_name().to_string_lossy().into_owned()).filter(|n| valid_version(n)).collect())
+        .unwrap_or_default();
+    names.sort_by(|a, b| b.cmp(a));
+    names
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DrawingVersion {
+    pub name: String,
+    /// When it was replaced (ms since 1970).
+    pub saved_at: u64,
+    pub bytes: u64,
+}
+
+fn versions(root: &Path, id: &str) -> CmdResult<Vec<DrawingVersion>> {
+    paths(root, id)?;
+    let dir = versions_dir(root, id);
+    Ok(version_names(&dir)
+        .into_iter()
+        .map(|name| {
+            let bytes = fs::metadata(dir.join(&name)).map(|m| m.len()).unwrap_or(0);
+            DrawingVersion { saved_at: name[..13].parse().unwrap_or(0), name, bytes }
+        })
+        .collect())
+}
+
+fn read_version(root: &Path, id: &str, name: &str) -> CmdResult<String> {
+    paths(root, id)?;
+    if !valid_version(name) {
+        return Err(CmdError::new(ErrorKind::InvalidName, format!("invalid version {name:?}")));
+    }
+    Ok(fs::read_to_string(versions_dir(root, id).join(name))?)
 }
 
 /// Copies a drawing under another id (duplicated note); false when it does not exist. Never overwrites.
@@ -86,6 +164,17 @@ pub async fn copy_drawing(state: State<'_, VaultState>, from: String, to: String
     copy(&current_root(&state)?, &from, &to)
 }
 
+/// Previous versions of a drawing, newest first (at most 5).
+#[tauri::command]
+pub async fn drawing_versions(state: State<'_, VaultState>, id: String) -> CmdResult<Vec<DrawingVersion>> {
+    versions(&current_root(&state)?, &id)
+}
+
+#[tauri::command]
+pub async fn read_drawing_version(state: State<'_, VaultState>, id: String, name: String) -> CmdResult<String> {
+    read_version(&current_root(&state)?, &id, &name)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -104,6 +193,27 @@ mod tests {
         assert_eq!(read(v.path(), "b2").unwrap().as_deref(), Some(SCENE));
         assert!(copy(v.path(), "a1", "b2").is_err(), "never overwrites");
         assert!(!copy(v.path(), "absent", "c3").unwrap());
+    }
+
+    #[test]
+    fn keeps_the_five_previous_versions_of_a_modified_drawing() {
+        let v = tempfile::tempdir().unwrap();
+        let scene = |n: usize| format!(r#"{{"type":"excalidraw","version":2,"elements":[],"n":{n}}}"#);
+        save(v.path(), "a1", &scene(0), SVG).unwrap();
+        save(v.path(), "a1", &scene(0), SVG).unwrap();
+        assert!(versions(v.path(), "a1").unwrap().is_empty(), "unchanged: nothing kept");
+        for n in 1..=7 {
+            save(v.path(), "a1", &scene(n), SVG).unwrap();
+        }
+        let kept = versions(v.path(), "a1").unwrap();
+        assert_eq!(kept.len(), 5);
+        assert_eq!(read_version(v.path(), "a1", &kept[0].name).unwrap(), scene(6), "newest first: the one replaced last");
+        assert_eq!(read_version(v.path(), "a1", &kept[4].name).unwrap(), scene(2));
+        assert!(read_version(v.path(), "a1", "../../x").is_err());
+        // Not a backup of Settings › Backups, never purged as one.
+        assert!(crate::snapshots::list(v.path()).unwrap().is_empty());
+        crate::snapshots::purge_before(v.path(), "9999").unwrap();
+        assert_eq!(versions(v.path(), "a1").unwrap().len(), 5);
     }
 
     #[test]
