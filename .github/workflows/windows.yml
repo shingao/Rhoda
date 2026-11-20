@@ -58,6 +58,15 @@ jobs:
           npm run test:format
           npm run test:drawing
 
+      # Chinese, Japanese and Korean in drawings as Windows draws them: editor,
+      # picture in the note, export image and PDF, without and with the CJK font.
+      - uses: actions/upload-artifact@v4
+        if: always()
+        continue-on-error: true
+        with:
+          name: drawing-cjk
+          path: test-results/drawing-cjk/
+
       - name: Clippy
         working-directory: src-tauri
         run: cargo clippy --all-targets -- -D warnings
@@ -68,6 +77,12 @@ jobs:
         run: |
           cargo test -- --skip ocr::windows
           cargo test scan_reads_2000_notes -- --nocapture
+
+      # The on-demand CJK font of drawings: one real file fetched through the
+      # link-preview protections and checked against the package's SHA-256.
+      - name: CJK font download (network)
+        working-directory: src-tauri
+        run: cargo test cjk::tests::downloads_a_real_file_and_checks_it -- --ignored --exact
 
       # The same app numbered 0.9.0, kept aside for the upgrade test.
       - name: Build a 0.9.0 installer (upgrade test)

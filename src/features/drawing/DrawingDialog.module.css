@@ -50,6 +50,18 @@
   white-space: nowrap;
 }
 
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-text);
+  font: inherit;
+  font-size: var(--fs-xs);
+  text-decoration: underline var(--link-underline) var(--accent-soft);
+  text-underline-offset: var(--link-underline-offset);
+  cursor: pointer;
+}
+
 .spacer {
   flex: 1;
 }

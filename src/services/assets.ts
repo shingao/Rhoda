@@ -52,6 +52,19 @@ export const assetsApi = {
     invoke<void>("save_pdf_preview", png, { headers: { "x-ursa-path": encodeURIComponent(path), "x-ursa-pages": String(pages) } }),
   /** Opens a vault attachment with the system's default app. */
   openAttachment: (path: string) => invoke<void>("open_attachment", { path }),
+  /**
+   * Base URL of the downloaded CJK font of drawings (`<base>fonts/Xiaolai/…`,
+   * served by the `vault:` protocol); in the browser's in-memory vault, the
+   * package's files once "downloaded" (localStorage `ursa-dev-cjk` = "1").
+   */
+  fontsBase: (): string | null => {
+    if (!mockUrl) return `${convertFileSrc("", "vault")}_fonts/`;
+    try {
+      return localStorage.getItem("ursa-dev-cjk") === "1" ? new URL("/dev-cjk/", location.href).href : null;
+    } catch {
+      return null;
+    }
+  },
   /** 128 px square thumbnail of a vault image, made once and cached in `.ursa/thumbs/`. */
   thumbUrl: (path: string): string => assetsApi.url(`_thumb/${path}`),
   /** Files dropped from the Explorer (Tauri delivers paths; `position` in physical pixels). */

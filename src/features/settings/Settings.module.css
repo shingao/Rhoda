@@ -590,3 +590,24 @@
   display: inline-flex;
   gap: var(--sp-2);
 }
+
+/* Settings › Drawings (decision P12-11): download progress of the CJK font, accent bar on a sunken track */
+.progress {
+  width: 100%;
+  height: var(--sp-1);
+  border: 0;
+  border-radius: var(--r-pill);
+  overflow: hidden;
+  appearance: none;
+  background: var(--bg-sunken);
+  accent-color: var(--accent);
+}
+
+.progress::-webkit-progress-bar {
+  background: var(--bg-sunken);
+}
+
+.progress::-webkit-progress-value {
+  border-radius: var(--r-pill);
+  background: var(--accent-solid);
+}

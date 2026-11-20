@@ -1,6 +1,7 @@
 import type { OutlineData } from "../editor/sections/outline";
 import type { FormatState } from "../editor/format";
 import type { DrawingRequest } from "./drawings";
+import type { CjkFontState } from "./cjkFont";
 import type { CropRequest } from "./crops";
 import { create } from "zustand";
 import type { Note } from "../core/note/note";
@@ -40,6 +41,8 @@ interface AppState {
   find: FindState;
   /** Drawing open in the full-screen editor (Excalidraw), and a counter bumped when drawing texts are read (search). */
   drawing: DrawingRequest | null;
+  /** Excalidraw's CJK font on this machine (Settings › Drawings). */
+  cjkFont: CjkFontState;
   /** "Previous versions…" dialog of a drawing. */
   drawingVersions: { id: string; noteId: string } | null;
   drawingTexts: number;
@@ -76,7 +79,7 @@ interface AppState {
   blockMenu: { at: { x: number; y: number } } | null;
 }
 
-export type SettingsPage = "general" | "editor" | "shortcuts" | "ocr" | "backups" | "about";
+export type SettingsPage = "general" | "editor" | "drawings" | "shortcuts" | "ocr" | "backups" | "about";
 
 export interface SearchInput {
   chips: string[];
@@ -136,6 +139,7 @@ export const useApp = create<AppState>()(() => ({
   format: null,
   drawing: null,
   drawingVersions: null,
+  cjkFont: { kind: "unknown" },
   drawingTexts: 0,
 }));
 

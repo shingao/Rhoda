@@ -3,6 +3,7 @@ import { uuidv7 } from "../core/id";
 import { imageMarkdown, relativeSrc, resolveVaultPath } from "../core/markdown/embeds";
 import { invalidateTextSources, registerTextSource } from "../core/search/search";
 import { insertBlockLines, refreshEditor } from "../editor/session";
+import { assetsApi } from "../services/assets";
 import { drawingsApi } from "../services/drawings";
 import { errorMessage } from "../services/errors";
 import { currentMessages } from "./i18n";
@@ -142,7 +143,10 @@ async function readTexts(ids: Iterable<string>): Promise<void> {
  * Excalidraw reads it once, when its code is first loaded: set at startup.
  */
 export function setDrawingAssetPath(): void {
-  (window as { EXCALIDRAW_ASSET_PATH?: string }).EXCALIDRAW_ASSET_PATH = new URL("excalidraw/", document.baseURI).href;
+  // The app's fonts first, then the CJK font if downloaded (Settings › Drawings).
+  const fonts = assetsApi.fontsBase();
+  const app = new URL("excalidraw/", document.baseURI).href;
+  (window as { EXCALIDRAW_ASSET_PATH?: string | string[] }).EXCALIDRAW_ASSET_PATH = fonts ? [app, fonts] : app;
 }
 
 /** Search source "drawing", fed as notes link drawings; forgets everything with the vault. */

@@ -529,8 +529,19 @@ pub(crate) fn thumbnail(root: &Path, rel: &str) -> CmdResult<PathBuf> {
 /// `vault://localhost/<path>` (`http://vault.localhost/<path>` on Windows).
 pub fn serve(app: &AppHandle, request: &tauri::http::Request<Vec<u8>>) -> Response<Vec<u8>> {
     let not_found = || Response::builder().status(StatusCode::NOT_FOUND).body(Vec::new()).expect("valid response");
-    let Some(root) = root_of(&app.state::<VaultState>()) else { return not_found() };
     let rel = percent_decode(request.uri().path().trim_start_matches('/'));
+    // The downloaded CJK font of drawings (not in a vault: once for the machine).
+    if rel.starts_with(crate::cjk::SERVE_PREFIX) {
+        let Some(bytes) = crate::cjk::served(app, &rel).and_then(|p| fs::read(p).ok()) else { return not_found() };
+        return Response::builder()
+            .header(header::CONTENT_TYPE, "font/woff2")
+            .header("X-Content-Type-Options", "nosniff")
+            .header(header::ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+            .header(header::CACHE_CONTROL, "max-age=31536000, immutable")
+            .body(bytes)
+            .expect("valid response");
+    }
+    let Some(root) = root_of(&app.state::<VaultState>()) else { return not_found() };
     let path = if let Some(original) = rel.strip_prefix(THUMB_PREFIX) {
         if !servable(original) {
             return not_found();

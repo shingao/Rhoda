@@ -144,7 +144,7 @@ fn err(message: impl std::fmt::Display) -> CmdError {
 }
 
 /// GET with the rules above; returns the final URL, content type and (bounded) body.
-async fn fetch(start: Url, max: usize, accept: &str, html: bool, timeout: Duration) -> CmdResult<(Url, String, Vec<u8>)> {
+pub(crate) async fn fetch(start: Url, max: usize, accept: &str, html: bool, timeout: Duration) -> CmdResult<(Url, String, Vec<u8>)> {
     let mut url = start;
     for _ in 0..=MAX_REDIRECTS {
         let (host, port) = check_url(&url).map_err(|b| err(format!("blocked: {b:?}")))?;

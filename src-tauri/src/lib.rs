@@ -1,5 +1,6 @@
 mod assets;
 mod backup;
+mod cjk;
 mod drawings;
 mod preview;
 mod error;
@@ -119,6 +120,9 @@ pub fn run() {
             drawings::copy_drawing,
             drawings::drawing_versions,
             drawings::read_drawing_version,
+            cjk::cjk_font_present,
+            cjk::cjk_font_fetch,
+            cjk::cjk_font_remove,
             export::export_pick_folder,
             export::export_default_folder,
             export::export_folder_ok,

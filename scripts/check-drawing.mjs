@@ -8,8 +8,11 @@
 // 3. double-click and Ctrl+click reopen it; closing after a change asks first;
 //    the picture is redrawn after saving again;
 // 4. previous versions (5 kept): listed from the drawing's bar, reopened, restored;
-// 5. dark palette: the picture is turned; duplicating the note copies the drawing.
+// 5. dark palette: the picture is turned; duplicating the note copies the drawing;
+// 6. CJK text without, then with, the font downloaded from Settings › Drawings.
 // Needs Chromium for Playwright.
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { chromium } from "playwright";
 import { createServer } from "vite";
 
@@ -32,10 +35,17 @@ try {
   page.on("pageerror", (e) => check(false, "erreur de la page", e.message));
   const outside = [];
   const scripts = [];
+  // Requests that left the machine: finished, or failed for another reason than
+  // the CSP (Excalidraw lists its CDN after the app's fonts; the CSP, the app's
+  // as the dev server's, stops it before any connection).
+  const watchOutside = (p) => {
+    const away = (r) => /^https?:/.test(r.url()) && !r.url().startsWith(origin);
+    p.on("requestfinished", (r) => away(r) && outside.push(r.url()));
+    p.on("requestfailed", (r) => away(r) && !/BLOCKED_BY_CSP|^csp$/i.test(r.failure()?.errorText ?? "") && outside.push(`${r.url()} (${r.failure()?.errorText})`));
+  };
+  watchOutside(page);
   page.on("request", (r) => {
-    const u = r.url();
-    if (/^https?:/.test(u) && !u.startsWith(origin)) outside.push(u);
-    if (r.resourceType() === "script") scripts.push(u);
+    if (r.resourceType() === "script") scripts.push(r.url());
   });
   await page.goto(url);
   await page.evaluate(() => {
@@ -217,6 +227,99 @@ try {
   const id = (body) => /assets\/dessins\/([\w-]+)\.svg/.exec(body)?.[1];
   check(id(copied.copy) && id(copied.copy) !== id(copied.source), "la note dupliquée a sa propre copie du dessin");
   check(outside.length === 0, "aucune requête hors de l'app", outside.slice(0, 3).join(", "));
+
+  // 6. Chinese (simplified and traditional), Japanese, Korean: without then with
+  // the CJK font downloaded from Settings › Drawings (decision P12-11). Renders
+  // of the editor, the picture in the note, the HTML / image page and the PDF
+  // are written to test-results/drawing-cjk (a CI artifact: Windows' rendering).
+  const shots = process.env.DRAWING_ARTIFACTS ?? join("test-results", "drawing-cjk");
+  mkdirSync(shots, { recursive: true });
+  const TEXT = "简体中文：你好 · 繁體中文：您好 · 日本語 · 한국어";
+  const cjkDrawing = async (p, tag) => {
+    await p.evaluate(async () => {
+      const { createNote } = await import("/src/app/notes.ts");
+      await createNote();
+      const v = window.__ursaView;
+      v.dispatch({ changes: { from: 0, to: v.state.doc.length, insert: "# 中文 Chinois\n\nUn dessin en chinois simplifié et traditionnel.\n" } });
+      v.dispatch({ selection: { anchor: v.state.doc.length } });
+      (await import("/src/app/drawings.ts")).newDrawing();
+    });
+    await p.waitForSelector(".excalidraw canvas.interactive", { timeout: 30000 });
+    await p.waitForTimeout(800);
+    const c = await p.locator(".excalidraw canvas.interactive").boundingBox();
+    await p.keyboard.press("t");
+    await p.mouse.click(c.x + 400, c.y + 300);
+    await p.waitForSelector(".excalidraw-textEditorContainer textarea");
+    await p.waitForTimeout(150);
+    await p.keyboard.insertText(TEXT);
+    await p.waitForTimeout(150);
+    await p.keyboard.press("Escape");
+    await p.waitForTimeout(600);
+    await p.screenshot({ path: join(shots, `${tag}-1-editeur.png`) });
+    await p.keyboard.press("Control+Enter");
+    await p.waitForFunction(() => !document.querySelector(".excalidraw"), null, { timeout: 15000 });
+    await p.evaluate(() => {
+      window.__ursaView.dispatch({ selection: { anchor: 0 } });
+      window.__ursaView.contentDOM.blur();
+    });
+    await p.waitForFunction(() => document.querySelector(".cm-drawing.is-loaded img"), null, { timeout: 10000 });
+    await p.mouse.move(5, 5);
+    await p.waitForTimeout(400);
+    await p.screenshot({ path: join(shots, `${tag}-2-note.png`) });
+    const svg = await p.evaluate(async () => (await fetch(document.querySelector(".cm-drawing img").src)).text());
+    writeFileSync(join(shots, `${tag}-apercu.svg`), svg);
+    // The note's export page (HTML, and the images / PDF made from it).
+    const html = await p.evaluate(async () => {
+      const { useApp } = await import("/src/app/store.ts");
+      const { exportPage } = await import("/src/app/export/page.ts");
+      const st = useApp.getState();
+      return (await exportPage(st.notes[st.selectedId], { images: true, tags: true, currentTheme: false, paper: true, stickers: true, wiki: () => null })).html;
+    });
+    const out = await browser.newPage({ viewport: { width: 900, height: 700 } });
+    await out.setContent(html, { waitUntil: "load" });
+    await out.waitForTimeout(500);
+    await out.screenshot({ path: join(shots, `${tag}-3-export-image.png`), fullPage: true });
+    const pdf = await out.pdf({ format: "A4", printBackground: true });
+    writeFileSync(join(shots, `${tag}-4-export.pdf`), pdf);
+    await out.close();
+    return { svg, pdf: pdf.length };
+  };
+
+  const fresh = async (cjk) => {
+    const p = await browser.newPage({ viewport: { width: 1440, height: 800 }, locale: "fr-FR" });
+    p.on("pageerror", (e) => check(false, "erreur de la page (CJK)", e.message));
+    watchOutside(p);
+    await p.goto(url);
+    await p.evaluate((cjk) => {
+      localStorage.clear();
+      localStorage.setItem("ursa-dev-settings", JSON.stringify({ welcomed: true, layout: { sidebarCollapsed: true, listCollapsed: true } }));
+      if (cjk) localStorage.setItem("ursa-dev-cjk", "1");
+    }, cjk);
+    await p.reload();
+    await p.waitForFunction(() => window.__ursaView !== undefined);
+    await p.waitForTimeout(600);
+    return p;
+  };
+
+  const without = await fresh(false);
+  const a = await cjkDrawing(without, "sans-police");
+  check(a.svg.includes("简体中文") && a.svg.includes("繁體中文"), "sans la police CJK : le texte chinois est dans l'aperçu (police du système)");
+  check(!/url\(\s*["']?https?:/.test(a.svg), "l'aperçu ne pointe jamais vers Internet (police non embarquée retirée)");
+  // Settings › Drawings: download (in-memory vault: the package's files).
+  await without.evaluate(async () => (await import("/src/app/store.ts")).setState({ settingsPage: "drawings" }));
+  await without.getByRole("button", { name: /^Télécharger/ }).click();
+  await without.waitForFunction(() => document.body.textContent.includes("Installée"), null, { timeout: 20000 });
+  await without.screenshot({ path: join(shots, "reglages-dessins.png") });
+  check(true, "Réglages › Dessins : police téléchargée, « Installée »");
+  await without.close();
+
+  const withFont = await fresh(true);
+  const b = await cjkDrawing(withFont, "avec-police");
+  const embedded = /@font-face\s*\{[^}]*font-family:\s*"?Xiaolai"?[^}]*url\(\s*["']?data:font\/woff2/.test(b.svg);
+  check(embedded && b.svg.includes("繁體中文"), "avec la police CJK : glyphes embarqués dans l'aperçu SVG (même rendu partout)");
+  check(a.pdf > 0 && b.pdf > 0, "exports PDF et image écrits", `${shots}`);
+  await withFont.close();
+  check(outside.length === 0, "CJK : aucune requête hors de l'app", outside.slice(0, 3).join(", "));
 } catch (e) {
   check(false, "exécution", e.stack ?? String(e));
 } finally {

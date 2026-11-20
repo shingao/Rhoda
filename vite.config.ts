@@ -13,6 +13,9 @@ export default defineConfig({
     host: host || false,
     hmr: host ? { protocol: "ws", host, port: 1421 } : undefined,
     watch: { ignored: ["**/src-tauri/**"] },
+    // As the app's CSP (tauri.conf.json) for fonts and requests: nothing leaves
+    // the machine in the browser either (Excalidraw's CDN fallback included).
+    headers: { "Content-Security-Policy": "font-src 'self' data:; connect-src 'self' ws: data: blob:" },
   },
   css: {
     modules: { localsConvention: "camelCaseOnly" },

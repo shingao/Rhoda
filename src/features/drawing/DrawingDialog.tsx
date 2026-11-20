@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { History, PenTool } from "lucide-react";
 import { confirmAction } from "../../app/confirm";
 import { openDrawingVersions, saveDrawing, setDrawingAssetPath } from "../../app/drawings";
+import { checkCjkFont, noteDrawingEditorLoaded } from "../../app/cjkFont";
 import { useT } from "../../app/i18n";
 import { setState, useApp } from "../../app/store";
 import { matchShortcut, shortcutLabel } from "../../app/shortcuts";
@@ -17,8 +18,12 @@ import s from "./DrawingDialog.module.css";
 // Its fonts come from the app itself (see scripts/vite-excalidraw-fonts.ts).
 const DrawingEditor = lazy(() => {
   setDrawingAssetPath();
+  noteDrawingEditorLoaded();
   return import("./DrawingEditor");
 });
+
+/** Chinese, Japanese or Korean characters. */
+const CJK_TEXT = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u;
 
 /** Shown when the drawing tool's code cannot load (it is part of the app: should never happen). */
 class LoadBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
@@ -49,6 +54,12 @@ function Shell() {
   const handle = useRef<DrawingHandle | null>(null);
   const [saving, setSaving] = useState(false);
   const [dark] = useState(() => (DARK_PALETTES as readonly string[]).includes(document.documentElement.dataset.theme ?? ""));
+  // Chinese, Japanese or Korean in the drawing, without the CJK font: say where to get it.
+  const cjkFont = useApp((st) => st.cjkFont.kind);
+  const hasCjk = request.scene !== null && CJK_TEXT.test(request.scene);
+  useEffect(() => {
+    if (hasCjk && cjkFont === "unknown") void checkCjkFont();
+  }, [hasCjk, cjkFont]);
   useInertApp();
 
   // Focus comes back to where it was (the editor), without scrolling it.
@@ -106,6 +117,11 @@ function Shell() {
           {request.restoredAt !== undefined ? t.drawings.versionTitle(new Intl.DateTimeFormat(t.dates.locale, { dateStyle: "medium", timeStyle: "short" }).format(request.restoredAt)) : t.drawings.title}
         </h2>
         {request.restoredAt !== undefined && <span className={s.note}>{t.drawings.versionHint}</span>}
+        {hasCjk && cjkFont === "absent" && (
+          <button type="button" className={s.link} onClick={() => setState({ settingsPage: "drawings" })}>
+            {t.drawings.cjkMissing}
+          </button>
+        )}
         <div className={s.spacer} />
         {request.scene !== null && (
           <Button size="small" icon={History} onClick={() => void versions()} disabled={saving}>

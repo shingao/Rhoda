@@ -165,6 +165,8 @@ export function installDevMock(): void {
   };
 
   const ocrCache = new Map<string, unknown>();
+  /** CJK font files "downloaded" by the in-memory app (Settings › Drawings). */
+  const cjkFetched = new Set<string>();
   /** Previous versions of drawings, by "vault|id", newest first. */
   const drawingVersions = new Map<string, Array<{ name: string; scene: string }>>();
 
@@ -262,6 +264,19 @@ export function installDevMock(): void {
         if (!found) throw { kind: "notFound", message: "no such version" };
         return found.scene;
       }
+      case "cjk_font_present": {
+        const { files } = payload as { files: Array<{ name: string }> };
+        return localStorage.getItem("ursa-dev-cjk") === "1" ? files.length : files.filter((f) => cjkFetched.has(f.name)).length;
+      }
+      case "cjk_font_fetch": {
+        if (localStorage.getItem("ursa-dev-cjk-fail") === "1") throw { kind: "other", message: "blocked: offline" };
+        cjkFetched.add(args.name!);
+        return null;
+      }
+      case "cjk_font_remove":
+        cjkFetched.clear();
+        localStorage.removeItem("ursa-dev-cjk");
+        return null;
       case "copy_drawing": {
         const { from, to } = payload as { from: string; to: string };
         const store = assetsOf(vaultPath);

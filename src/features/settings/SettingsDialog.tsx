@@ -1,11 +1,12 @@
 import { useId, useRef } from "react";
-import { ArchiveRestore, Info, Keyboard, PenLine, ScanText, SlidersHorizontal, type LucideIcon } from "lucide-react";
+import { ArchiveRestore, Info, Keyboard, PenLine, PenTool, ScanText, SlidersHorizontal, type LucideIcon } from "lucide-react";
 import { useT } from "../../app/i18n";
 import { setState, useApp, type SettingsPage } from "../../app/store";
 import { Dialog } from "../../components/Dialog";
 import { CloseButton } from "../../components/Modal";
 import { AboutPage } from "./AboutPage";
 import { BackupsPage } from "./BackupsPage";
+import { DrawingsPage } from "./DrawingsPage";
 import { EditorPage } from "./EditorPage";
 import { GeneralPage } from "./GeneralPage";
 import { OcrPage } from "./OcrPage";
@@ -15,6 +16,7 @@ import s from "./Settings.module.css";
 const PAGES: ReadonlyArray<{ id: SettingsPage; icon: LucideIcon }> = [
   { id: "general", icon: SlidersHorizontal },
   { id: "editor", icon: PenLine },
+  { id: "drawings", icon: PenTool },
   { id: "shortcuts", icon: Keyboard },
   { id: "ocr", icon: ScanText },
   { id: "backups", icon: ArchiveRestore },
@@ -63,6 +65,7 @@ function SettingsContent({ page }: { page: SettingsPage }) {
         <div className={s.page}>
           {page === "general" && <GeneralPage />}
           {page === "editor" && <EditorPage />}
+          {page === "drawings" && <DrawingsPage />}
           {page === "shortcuts" && <ShortcutsPage />}
           {page === "ocr" && <OcrPage />}
           {page === "backups" && <BackupsPage />}

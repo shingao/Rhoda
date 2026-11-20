@@ -56,6 +56,11 @@ export default function DrawingEditor({ scene, dark, language, handle }: { scene
         files,
         exportPadding: PICTURE_PADDING,
       });
+      // Fonts Excalidraw could not embed are referenced by their CDN address: left
+      // out, so that the picture never points outside (decision P12-11).
+      for (const style of picture.querySelectorAll("style")) {
+        style.textContent = (style.textContent ?? "").replace(/@font-face\s*\{[^}]*\}/g, (rule: string) => (/url\(\s*["']?data:/.test(rule) ? rule : ""));
+      }
       return { source, svg: picture.outerHTML, empty: getNonDeletedElements(elements).length === 0 };
     },
   }), [scene]);

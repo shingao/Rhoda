@@ -15,7 +15,7 @@ type Licence = "mit" | "ofl" | "isc" | "apache" | "mitApache";
 const TEXTS = { mit, ofl, isc, apache, mitExcalidraw } as const;
 
 /** What the app ships that others made; `use` keys are in i18n (settings.credits). */
-const CREDITS: ReadonlyArray<{ name: string; author: string; licence: Licence; use: "stickers" | "hand" | "ui" | "serif" | "mono" | "icons" | "pdf" | "editor" | "app" | "shell" | "store" | "yaml" | "docx" | "drawing" | "drawingFonts" | "drawingCode" }> = [
+const CREDITS: ReadonlyArray<{ name: string; author: string; licence: Licence; use: "stickers" | "hand" | "ui" | "serif" | "mono" | "icons" | "pdf" | "editor" | "app" | "shell" | "store" | "yaml" | "docx" | "drawing" | "drawingFonts" | "drawingCode" | "drawingCjk" }> = [
   { name: "Fluent Emoji 3D", author: "Microsoft", licence: "mit", use: "stickers" },
   { name: "Caveat", author: "The Caveat Project Authors", licence: "ofl", use: "hand" },
   { name: "Hanken Grotesk", author: "The Hanken Grotesk Project Authors", licence: "ofl", use: "ui" },
@@ -34,6 +34,7 @@ const CREDITS: ReadonlyArray<{ name: string; author: string; licence: Licence; u
   { name: "Nunito, Lilita One, Assistant", author: "The Nunito, Lilita One and Assistant Project Authors", licence: "ofl", use: "drawingFonts" },
   { name: "Cascadia Code, Liberation Sans", author: "Microsoft, Red Hat", licence: "ofl", use: "drawingFonts" },
   { name: "Comic Shanns", author: "Shannon Miwa", licence: "mit", use: "drawingCode" },
+  { name: "Xiaolai", author: "Lxgw, Excalidraw", licence: "ofl", use: "drawingCjk" },
 ];
 
 /** Settings › About: version, privacy, third-party licences (full texts of those shipped as files). */
