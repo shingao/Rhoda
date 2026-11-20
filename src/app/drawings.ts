@@ -137,8 +137,17 @@ async function readTexts(ids: Iterable<string>): Promise<void> {
   }
 }
 
+/**
+ * Where Excalidraw takes its fonts: the app itself (scripts/vite-excalidraw-fonts.ts).
+ * Excalidraw reads it once, when its code is first loaded: set at startup.
+ */
+export function setDrawingAssetPath(): void {
+  (window as { EXCALIDRAW_ASSET_PATH?: string }).EXCALIDRAW_ASSET_PATH = new URL("excalidraw/", document.baseURI).href;
+}
+
 /** Search source "drawing", fed as notes link drawings; forgets everything with the vault. */
 export function connectDrawings(): void {
+  setDrawingAssetPath();
   registerTextSource({
     name: "drawing",
     text: (note) => {

@@ -183,6 +183,29 @@ try {
   await page.waitForTimeout(300);
   const filter = await page.evaluate(() => getComputedStyle(document.querySelector(".cm-drawing img")).filter);
   check(filter.includes("invert"), "palette sombre : le dessin est inversé", filter);
+  // The turn keeps hues (invert + hue-rotate(180deg), as Excalidraw does): red stays red.
+  const hues = await page.evaluate((filter) => {
+    const c = document.createElement("canvas");
+    c.width = c.height = 1;
+    const x = c.getContext("2d", { willReadFrequently: true });
+    const hue = ([r, g, b]) => {
+      const max = Math.max(r, g, b), d = max - Math.min(r, g, b);
+      const h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+      return Math.round((h * 60 + 360) % 360);
+    };
+    return ["#e03131", "#2f9e44", "#1971c2", "#f08c00"].map((color) => {
+      x.filter = "none";
+      x.fillStyle = color;
+      x.fillRect(0, 0, 1, 1);
+      const before = hue(x.getImageData(0, 0, 1, 1).data);
+      x.clearRect(0, 0, 1, 1);
+      x.filter = filter;
+      x.fillRect(0, 0, 1, 1);
+      return [color, before, hue(x.getImageData(0, 0, 1, 1).data)];
+    });
+  }, filter);
+  const drift = (a, b) => Math.min(Math.abs(a - b), 360 - Math.abs(a - b));
+  check(hues.every(([, a, b]) => drift(a, b) <= 15), "palette sombre : les teintes restent (rouge reste rouge)", hues.map(([c, a, b]) => `${c} ${a}°→${b}°`).join(", "));
   const copied = await page.evaluate(async () => {
     const { useApp } = await import("/src/app/store.ts");
     const { duplicateNote } = await import("/src/app/notes.ts");

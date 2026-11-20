@@ -2,7 +2,7 @@ import { Component, lazy, Suspense, useCallback, useEffect, useRef, useState, ty
 import { createPortal } from "react-dom";
 import { History, PenTool } from "lucide-react";
 import { confirmAction } from "../../app/confirm";
-import { openDrawingVersions, saveDrawing } from "../../app/drawings";
+import { openDrawingVersions, saveDrawing, setDrawingAssetPath } from "../../app/drawings";
 import { useT } from "../../app/i18n";
 import { setState, useApp } from "../../app/store";
 import { matchShortcut, shortcutLabel } from "../../app/shortcuts";
@@ -16,7 +16,7 @@ import s from "./DrawingDialog.module.css";
 // Excalidraw is loaded on first use only: nothing at startup (decision P12-5).
 // Its fonts come from the app itself (see scripts/vite-excalidraw-fonts.ts).
 const DrawingEditor = lazy(() => {
-  (window as { EXCALIDRAW_ASSET_PATH?: string }).EXCALIDRAW_ASSET_PATH = new URL("excalidraw/", document.baseURI).href;
+  setDrawingAssetPath();
   return import("./DrawingEditor");
 });
 
