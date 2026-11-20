@@ -15,7 +15,7 @@
 | 8 | Stickers et post-it | ✅ validée |
 | 9 | OCR local | ✅ validée |
 | 10 | Export, raccourcis, palette, packaging | 🟡 10a à 10d validées ; retours sur la 1.0 traités, à valider |
-| — | Barre de mise en forme, dessins (Excalidraw) | 🟡 faite sur `feature/barre-format`, à valider |
+| — | Barre de mise en forme, dessins (Excalidraw) | 🟡 faite sur `feature/barre-format` (retours avant fusion traités), à valider |
 
 ---
 
@@ -1292,6 +1292,40 @@ Aucune maquette ne montre la barre de mise en forme ni l'éditeur de dessin. La 
 8. Double-clic (puis Ctrl+clic) sur le dessin : modifie, « Fermer » : la question « Fermer sans enregistrer ? » ; Enregistrer : l'aperçu se met à jour. Recherche « cuisine » : la note sort, « Trouvé dans un dessin ».
 9. Palette sombre : le dessin s'inverse lisiblement. Duplique la note, modifie le dessin de la copie : l'original ne change pas. Exporte en PDF, DOCX, PNG et Markdown : dessin, police, tailles, souligné et couleurs présents ; le dossier Markdown contient le `.svg` et le `.excalidraw`.
 10. Coupe le réseau (mode avion) puis ouvre l'éditeur de dessin : tout fonctionne, polices comprises.
+
+### Retours avant fusion (barre de mise en forme) : fait, à valider
+
+- **Barre compacte** : police et taille de la note + taille de la sélection derrière un seul bouton « Aa » (popover : deux listes et un sélecteur petit / normal / grand, appliqués tout de suite, annulables) ; puces / numérotée / tâche dans un seul menu « Listes » (icône du type courant). Faute de place, l'alignement puis l'insertion se replient chacun en un bouton-menu ; « … » ne sert qu'en dessous d'environ 1 140 px avec barre latérale et liste ouvertes. Mesuré par `test:format` : barre entière sans débordement à 1 440 px, alignement en menu à 1 280, insertion aussi à 1 200, « … » à 1 000 (P12-9).
+- **Versions des dessins** : avant chaque enregistrement d'un dessin modifié, la scène remplacée est gardée dans `.ursa/backups/dessins/<id>/` (5 dernières ; jamais listée ni purgée comme une sauvegarde). « Versions précédentes… » dans la barre du dessin (note) et dans l'éditeur de dessin : une version s'ouvre dans l'éditeur, l'enregistrer la restaure (l'actuelle est gardée à son tour) (P12-10).
+- **Sombre** : l'inversion (`invert(93%) hue-rotate(180deg)`, comme Excalidraw) garde les teintes : rouge 0° → 0°, vert 131° → 131°, bleu 209° → 209°, orange 35° → 32° (`test:drawing`, filtre réel). Captures `dessin-couleurs-clair.png` / `dessin-couleurs-sombre.png`. Trouvé en route : Excalidraw lit l'emplacement de ses polices une seule fois, au chargement de son code ; il est maintenant posé au démarrage.
+- **Chinois** (simplifié et traditionnel, japonais, coréen) : sans police CJK, le texte s'affiche avec la police du système dans l'éditeur, l'aperçu et les exports ; l'aperçu pointait vers le CDN d'Excalidraw pour la police qu'il n'avait pas pu embarquer, c'est retiré. Réglages › Dessins propose le téléchargement à la demande, une seule fois pour l'ordinateur, de Xiaolai (209 fichiers, 12 Mo), par le code réseau des aperçus de liens, chaque fichier vérifié par SHA-256 ; les aperçus enregistrés ensuite embarquent ses glyphes : même rendu partout. L'éditeur de dessin le propose quand le dessin contient du CJK (P12-11). `test:drawing` dessine le texte sans puis avec la police et écrit éditeur, note, image d'export et PDF dans `test-results/drawing-cjk/`, publié par la CI Windows (artefact `drawing-cjk`, rendu de Windows) ; la CI télécharge aussi un vrai fichier (test Rust).
+
+### Décisions (retours avant fusion)
+
+| # | Sujet | Décision |
+|---|---|---|
+| P12-9 | Barre compacte | « Aa » = popover (police / taille de la note, taille de la sélection) ; « Listes » = menu ; repli par priorité calculé depuis les jetons : tout, puis alignement en menu, puis insertion en menu, puis « … ». |
+| P12-10 | Versions des dessins | `.ursa/backups/dessins/<id>/<ms>.excalidraw`, 5 au plus, seulement si la scène change ; restaurer = ouvrir dans l'éditeur puis enregistrer (une étape visible, annulable par « Fermer »). |
+| P12-11 | Police CJK | Xiaolai d'Excalidraw (OFL), adresse d'Excalidraw (esm.sh, version du paquet), uniquement les fichiers du manifeste construit à partir du paquet installé (nom + SHA-256), via `preview::fetch` ; stockée dans `%LOCALAPPDATA%\com.bullshit.notes\fonts\Xiaolai\`, servie par `vault:` sous `_fonts/`. Les `@font-face` non embarqués sont retirés des aperçus. Le serveur de dev applique la CSP de l'app pour les polices et requêtes ; Chromium y signale les URL de repli CDN d'Excalidraw, bloquées avant toute connexion. |
+
+### Publication de la 1.0.0 depuis `main` (après ton go)
+
+`CHANGELOG.md` : la section 1.0.0 inclut maintenant la barre de mise en forme et les dessins (datée du 20 novembre 2026, à ajuster le jour de la publication). La release brouillon et le tag `v1.0.0` actuels sont supprimés par le workflow lui-même (étape « Tag the version », P11-10) : rien à supprimer à la main.
+
+1. Créer `main` depuis `feature/barre-format` : GitHub › *Code* › *Branches* › *New branch* « main », source `feature/barre-format` ; puis *Settings* › *General* › *Default branch* → `main`.
+2. *Actions* › *Windows* › *Run workflow*, branche **`main`**, cocher **« release »**. Le run passe tous les tests, supprime la release brouillon `v1.0.0` et son tag, tague le commit de `main` et recrée la release brouillon avec l'installeur et les notes 1.0.0.
+3. Vérifier la release brouillon (*Releases*), télécharger l'installeur, puis *Publish release*.
+
+Si tu préfères supprimer d'abord à la main : *Releases* › brouillon « Bullshit 1.0.0 » › *Delete* ; *Tags* › `v1.0.0` › *Delete* (ou `git push origin :refs/tags/v1.0.0`), puis l'étape 2.
+
+### Checklist complémentaire (Windows)
+1. Fenêtre 1 440 px, barre latérale et liste ouvertes : toute la barre, sans « … ». Réduis : l'alignement puis l'insertion passent en menu, « … » vers 1 100 px.
+2. « Aa » : police Manuscrite, taille 20 px, « Grand » sur un mot ; Échap ; Ctrl+Z annule une à une.
+3. Menu « Listes » : le type courant est coché, l'icône suit.
+4. Modifie et enregistre un dessin trois fois ; barre du dessin › « Versions précédentes… » : 3 versions datées ; ouvre la plus ancienne, « Fermer » demande confirmation, « Enregistrer » la restaure.
+5. Thème sombre : un dessin avec du rouge, du vert, du bleu garde ses couleurs.
+6. Dessin avec « 简体中文 繁體中文 » : lisible dans l'éditeur, la note, l'export PDF et PNG. L'éditeur propose « télécharger la police des dessins… ».
+7. Réglages › Dessins › Télécharger (12 Mo) : progression, « Installée » ; relance l'app, refais le dessin : même écriture manuscrite dans l'éditeur, l'aperçu et les exports. Mode avion pendant le téléchargement : message clair, « Reprendre » ensuite.
 
 ### Arborescence
 

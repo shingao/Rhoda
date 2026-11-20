@@ -2,19 +2,7 @@
 
 Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [SemVer](https://semver.org/lang/fr/).
 
-## [Non publié]
-
-### Ajouts
-- Barre de mise en forme sous la barre de l'éditeur (masquable, cachée en mode focus) : style de bloc, police et taille de la note, taille du texte sélectionné (petit / normal / grand), gras, italique, souligné, barré, surlignage en quatre couleurs, listes, alignement, insertion de liens, d'images, de dessins et de séparateurs, effacement de la mise en forme. Les boutons montrent l'état du texte sous le curseur ; sur une fenêtre étroite, une partie passe dans un menu « … ».
-- Police (sans serif, serif, mono, manuscrite) et taille propres à une note, enregistrées en tête de note ; le réglage global reste la valeur par défaut et propose aussi les quatre polices.
-- Nouveaux raccourcis : Ctrl+B / I / U, Ctrl+Maj+X (barré), Ctrl+Maj+Y (surligner), Ctrl+Maj+. et , (taille), Ctrl+L (lien), Ctrl+Maj+Espace (effacer), Ctrl+Maj+7 / 8 / 9 (listes).
-- Dessins avec Excalidraw : éditeur plein écran chargé à la demande, dans les couleurs de la palette ; enregistrés dans `assets/dessins/` (source `.excalidraw` + aperçu `.svg` lisible partout), affichés dans la note, rouverts d'un double-clic ; leur texte est trouvé par la recherche ; copiés avec une note dupliquée et inclus dans les exports.
-- Tout cela s'annule avec Ctrl+Z et se retrouve dans les exports (HTML, PDF, Word, images) ; le Markdown reste propre (`<u>`, `<span data-size>`, `<mark data-color>` pour ce que Markdown ne sait pas dire), et la recherche ignore ces balises.
-
-### Corrections
-- Le marqueur de titre (H1–H6) ne touche plus la marge rouge quand la colonne est à gauche : il reste à distance fixe, quelles que soient la police et la taille.
-
-## [1.0.0] — 2026-10-08
+## [1.0.0] — 2026-11-20
 
 Première version publique. L'app s'appelait Ursa pendant le développement : réglages et dossier de notes d'Ursa sont repris automatiquement.
 
@@ -34,6 +22,18 @@ Première version publique. L'app s'appelait Ursa pendant le développement : r�
 - Alignement par bloc : à gauche, centré, à droite ou justifié, pour les paragraphes, titres, citations et éléments de liste (clic droit dans le texte, menu …, palette, Ctrl+Maj+1 à 4) ; enregistré en tête de note, le Markdown reste propre ; respecté par les exports.
 - Colonne de texte centrée ou contre le bord gauche, pour toutes les notes ou note par note ; la marge rouge suit.
 - Mode machine à écrire : la ligne en cours reste au centre pendant l'écriture et aux flèches haut / bas, avec un défilement doux ; un clic, la souris ou la molette ne déplacent jamais le texte.
+
+### Mise en forme
+- Barre de mise en forme sous la barre de l'éditeur (masquable, cachée en mode focus) : style de bloc, « Aa » (police et taille de la note, taille du texte sélectionné), gras, italique, souligné, barré, surlignage en quatre couleurs, listes, alignement, insertion (lien, image ou PDF, dessin, séparateur), effacement de la mise en forme. Les boutons montrent l'état du texte sous le curseur ; elle tient entière à 1 440 px avec la barre latérale et la liste ouvertes.
+- Police (sans serif, serif, mono, manuscrite) et taille propres à une note, enregistrées en tête de note ; le réglage global reste la valeur par défaut.
+- Raccourcis : Ctrl+B / I / U, Ctrl+Maj+X (barré), Ctrl+Maj+Y (surligner), Ctrl+Maj+. et , (taille), Ctrl+L (lien), Ctrl+Maj+Espace (effacer), Ctrl+Maj+7 / 8 / 9 (listes).
+- Tout s'annule avec Ctrl+Z et se retrouve dans les exports ; le Markdown reste propre (`<u>`, `<span data-size>`, `<mark data-color>` pour ce que Markdown ne sait pas dire), et la recherche ignore ces balises.
+
+### Dessins
+- Excalidraw intégré : éditeur plein écran chargé à la demande, dans les couleurs de la palette ; dessins enregistrés dans `assets/dessins/` (source `.excalidraw` + aperçu `.svg` lisible partout), affichés dans la note (inversés sans perdre leurs couleurs en thème sombre), rouverts d'un double-clic.
+- Les 5 versions précédentes de chaque dessin sont gardées et restaurables (« Versions précédentes… »).
+- Leur texte est trouvé par la recherche ; ils suivent la note dupliquée et sont inclus dans les exports.
+- Chinois, japonais, coréen : police des dessins téléchargeable une fois dans Réglages › Dessins (vérifiée fichier par fichier), pour un rendu identique partout.
 
 ### Recherche
 - Recherche instantanée dans tout le coffre : syntaxe (`#tag`, `"expression"`, `-exclusion`, `@images`…), insensible à la casse et aux accents, extraits.
